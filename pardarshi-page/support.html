@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PARDARSHI - Base Template</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style/structure.css">
+</head>
+
+<body class="preload">
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="sidebar">
+        <!-- IMAGE LOGOS -->
+        <div class="sidebar-logo">
+            <img src="logo-1.png" alt="Logo" class="logo-small">
+            <img src="logo.png" alt="Full Logo" class="logo-large">
+        </div>
+
+        <!-- NEW TOGGLE BUTTON -->
+        <div class="sidebar-toggle" id="sidebarToggle">>></div>
+
+        <nav class="nav-links">
+            <a href="home.html" class="nav-item">
+                <i class="fa-solid fa-house"></i>
+                <span>Home</span>
+            </a>
+            <a href="forms.html" class="nav-item">
+                <i class="fa-solid fa-file-lines"></i>
+                <span>Forms</span>
+            </a>
+            <a href="transactions.html" class="nav-item">
+                <i class="fa-solid fa-wallet"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="support.html" class="nav-item">
+                <i class="fa-solid fa-headset"></i>
+                <span>Support</span>
+            </a>
+        </nav>
+
+        <!-- account section -->
+        <a href="register.html" class="account-section">
+            <div class="account-unregistered" id="unregistered-state">
+                <img src="https://ui-avatars.com/api/?name=Guest&background=e2e8f0&color=64748b" alt="Guest"
+                    class="profile-pic">
+                <span class="username">Please Register</span>
+            </div>
+            <div class="account-registered" id="registered-state" style="display: none;">
+                <img src="https://ui-avatars.com/api/?name=Alan&background=3b82f6&color=fff" alt="Profile"
+                    class="profile-pic">
+                <span class="username">Alan Smith</span>
+            </div>
+        </a>
+    </aside>
+
+    <!-- MAIN CONTENT WRAPPER -->
+    <main class="main-wrapper">
+
+        <!-- Top Header (Fixed during scroll) -->
+        <header class="top-header">
+            <div class="mobile-logo">
+                <img src="logo.png" alt="Logo">
+            </div>
+
+            <div class="header-title">
+                Good Morning, Alan
+            </div>
+
+            <div class="search-container" id="searchContainer">
+                <i class="fa-solid fa-magnifying-glass search-icon" id="searchIcon"></i>
+                <input type="text" class="search-bar" id="searchInput" placeholder="Search for data / people...">
+
+                <!-- Search Popup -->
+                <div class="search-popup" id="searchPopup">
+                    <h4>Recent Searches</h4>
+                    <p style="color: var(--text-muted); font-size: 14px;">
+                        <i class="fa-solid fa-person-digging"></i> Search engine currently under development...
+                    </p>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <div id="google_translate_element" class="desktop-translate"></div>
+                <i class="fa-solid fa-bars hamburger-menu" onclick="toggleMobileDrawer()"></i>
+            </div>
+        </header>
+
+        <!-- AREA FOR DYNAMIC PAGE CONTENT -->
+        <div style="padding: 40px; overflow-y: auto; height: 100%;">
+            <!-- Content goes here -->
+        </div>
+
+    </main>
+
+    <!-- MOBILE BOTTOM NAVIGATION (Without Plus Icon) -->
+    <nav class="mobile-bottom-nav">
+        <a href="home.html" class="bottom-nav-item"><i class="fa-solid fa-house"></i></a>
+        <a href="forms.html" class="bottom-nav-item"><i class="fa-solid fa-file-lines"></i></a>
+        <a href="transactions.html" class="bottom-nav-item"><i class="fa-solid fa-wallet"></i></a>
+        <a href="support.html" class="bottom-nav-item"><i class="fa-solid fa-headset"></i></a>
+    </nav>
+
+    <!-- MOBILE DRAWER -->
+    <div class="mobile-drawer" id="mobileDrawer">
+        <i class="fa-solid fa-xmark drawer-close" onclick="toggleMobileDrawer()"></i>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <img src="https://ui-avatars.com/api/?name=Alan&background=3b82f6&color=fff&size=100" alt="Profile"
+                style="border-radius: 50%;">
+            <h3 style="margin-top: 15px; color: var(--text-light);">Alan Smith</h3>
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">alan@example.com</p>
+            <a href="account.html" style="text-decoration: none;">
+                <button class="drawer-manage-btn">
+                    <i class="fa-solid fa-user"></i> Manage Account
+                </button>
+            </a>
+        </div>
+    </div>
+
+
+  <script src="script/structure.js"></script>
+
+</body>
+
+</html>
