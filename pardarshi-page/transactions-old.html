@@ -183,79 +183,6 @@
         .btn-primary-full { width: 100%; background: #ef4444; color: #fff; border: none; border-radius: 12px; padding: 13px; font-size: 14.5px; font-weight: 700; cursor: pointer; transition: opacity .2s ease; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
         /* ==========================================================
-           TRANSACTION STATUS TEXT
-           ========================================================== */
-        .status-text {
-            font-size: 10px;
-            padding: 3px 8px;
-            border-radius: 6px;
-            font-weight: 700;
-            margin-left: 8px;
-            text-transform: uppercase;
-            vertical-align: middle;
-            letter-spacing: 0.5px;
-        }
-        .status-text.success { background: #dcfce7; color: #16a34a; }
-        .status-text.pending { background: #fef08a; color: #ca8a04; }
-        .status-text.failed { background: #fee2e2; color: #dc2626; }
-        .status-text.refunded { background: #f1f5f9; color: #475569; }
-
-        /* ==========================================================
-           VIEW DOCUMENTS BUTTON
-           ========================================================== */
-        .btn-view-doc {
-            background: #eff6ff;
-            color: #3b82f6;
-            border: 1px solid #bfdbfe;
-            padding: 3px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-left: 10px;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .btn-view-doc:hover { background: #dbeafe; border-color: #93c5fd; transform: translateY(-1px); }
-
-        /* ==========================================================
-           GALLERY MODAL & FULLSCREEN
-           ========================================================== */
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 12px;
-            margin-top: 15px;
-        }
-        .gallery-img {
-            width: 100%;
-            height: 110px;
-            object-fit: cover;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.2s;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .gallery-img:hover { transform: scale(1.05); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-
-        .fullscreen-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
-            display: none; align-items: center; justify-content: center; z-index: 2000;
-        }
-        .fullscreen-overlay.open { display: flex; }
-        .fullscreen-img { max-width: 90%; max-height: 90%; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        .fullscreen-close {
-            position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2);
-            color: white; border: none; font-size: 24px; cursor: pointer; border-radius: 50%;
-            width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;
-            transition: background 0.2s;
-        }
-        .fullscreen-close:hover { background: rgba(255,255,255,0.4); }
-
-        /* ==========================================================
            NEW: MOBILE OVERRIDES (Responsive Stacking)
            ========================================================== */
         @media (max-width: 768px) {
@@ -277,6 +204,7 @@
 
             /* --- ALL 3 CARDS VISIBLE ON MOBILE --- */
             .summary-grid {
+                /* REMOVED !important from display so JS can hide it properly */
                 display: flex; 
                 flex-direction: column !important; /* Stack all 3 cards cleanly */
                 gap: 12px !important;
@@ -512,36 +440,9 @@
         </div>
     </div>
 
-    <!-- GALLERY MODAL -->
-    <div class="modal-overlay" id="gallery-modal">
-        <div class="modal-box">
-            <button class="modal-close" onclick="closeGalleryModal()"><i class="fa-solid fa-xmark"></i></button>
-            <h3 class="modal-title">Expense Documents</h3>
-            <p class="modal-sub">Click on any image to view it full screen</p>
-            
-            <div id="gallery-loading" style="display: none; text-align: center; padding: 30px;">
-                <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 24px; color: #3b82f6;"></i>
-                <p style="margin-top: 10px; color: #64748b; font-size: 13px;">Loading documents...</p>
-            </div>
-            
-            <div class="gallery-grid" id="gallery-grid">
-                <!-- Images will be injected here via JS -->
-            </div>
-            
-            <p id="gallery-empty" style="display: none; color: #64748b; font-size: 13px; text-align: center; padding: 30px; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1; margin-top: 15px;">
-                No documents uploaded for this transaction yet.
-            </p>
-        </div>
-    </div>
-
-    <!-- FULLSCREEN IMAGE VIEWER -->
-    <div class="fullscreen-overlay" id="fullscreen-viewer">
-        <button class="fullscreen-close" onclick="closeFullscreen()"><i class="fa-solid fa-xmark"></i></button>
-        <img src="" class="fullscreen-img" id="fullscreen-img-element">
-    </div>
-
     <!-- UI Interaction Script -->
     <script src="script/structure.js"></script>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -668,21 +569,19 @@
                 renderExpenses();
             };
 
-            // --- Render Functions (UPDATED) ---
+            // --- Render Functions ---
             function renderContributions() {
                 const list = document.getElementById('contributions-list');
                 const filtered = filterByDate(allContributions, 'created_at', currentContribFilter);
                 
+                // Slice the array for fake pagination
                 const itemsToShow = filtered.slice(0, visibleContribCount);
                 
                 let html = itemsToShow.length ? itemsToShow.map(c => {
                     const isOffline = c.payment_method === 'offline' || c.payment_gateway === 'offline';
                     const badge = isOffline ? `<span class="badge-offline">Offline</span>` : `<span class="badge-online">Online</span>`;
                     
-                    // Format payment status text and class
-                    const statusVal = (c.payment_status || 'pending').toLowerCase();
-                    const statusHtml = `<span class="status-text ${statusVal}">${statusVal}</span>`;
-                    
+                    // Only Offline Contributions get the edit/add document + button
                     const plusBtn = isOffline ? `<div class="tooltip-container"><button class="btn-plus-doc" onclick="openModal('edit_contrib', ${c.contribution_id}, '${escapeHtml(c.contributor_name)}', ${c.amount})"><i class="fa-solid fa-plus"></i></button></div>` : '';
                     
                     return `
@@ -690,10 +589,8 @@
                             <div class="item-left">
                                 <div class="avatar" style="background:${getAvatarColor(c.contributor_name)}">${getInitials(c.contributor_name)}</div>
                                 <div class="item-info">
-                                    <h4>${escapeHtml(c.contributor_name || 'Anonymous')} ${statusHtml}</h4>
-                                    <div class="item-meta">
-                                        <span>${formatDateTime(c.created_at)}</span>
-                                    </div>
+                                    <h4>${escapeHtml(c.contributor_name || 'Anonymous')}</h4>
+                                    <div class="item-meta"><span>${formatDateTime(c.created_at)}</span></div>
                                 </div>
                             </div>
                             <div class="item-right">
@@ -704,71 +601,55 @@
                     `;
                 }).join('') : '<p style="color:#6b7280; font-size:13px; text-align:center; padding: 20px;">No contributions found for this filter.</p>';
 
+                // Append "View More" button if there is hidden data
                 if (filtered.length > visibleContribCount) {
                     html += `<button class="btn-view-more" onclick="loadMoreContributions()">Show More (${filtered.length - visibleContribCount} remaining)</button>`;
                 }
+
                 list.innerHTML = html;
             }
 
-        function renderExpenses() {
-    const list = document.getElementById('expenses-list');
-    const filtered = filterByDate(allExpenses, 'expense_date', currentExpenseFilter);
-    
-    const itemsToShow = filtered.slice(0, visibleExpenseCount);
-    
-    let html = itemsToShow.length ? itemsToShow.map(e => {
-        const isOffline = e.payment_method === 'offline' || !e.is_online_payment;
-        const badge = isOffline ? `<span class="badge-offline">Offline</span>` : `<span class="badge-online">Online</span>`;
-        
-        const statusVal = (e.payment_status || 'pending').toLowerCase();
-        // Removed style="margin-left:0;" to use the default 8px margin from CSS
-        const statusHtml = `<span class="status-text ${statusVal}">${statusVal}</span>`; 
-        
-        const plusBtn = `<div class="tooltip-container"><button class="btn-plus-doc" onclick="openModal('edit_expense', ${e.expense_id}, '${escapeHtml(e.title)}', ${e.amount})"><i class="fa-solid fa-plus"></i></button></div>`;
-        
-        return `
-            <div class="list-item" style="align-items: center;">
-                <div class="item-left" style="flex: 1;">
-                    <div class="item-info">
-                        <div style="display: flex; align-items: center; margin-bottom: 4px;">
-                            <h4 style="margin:0; font-size: 15px;">${escapeHtml(e.title)}</h4>
-                            ${statusHtml}
+            function renderExpenses() {
+                const list = document.getElementById('expenses-list');
+                const filtered = filterByDate(allExpenses, 'expense_date', currentExpenseFilter);
+                
+                // Slice the array for fake pagination
+                const itemsToShow = filtered.slice(0, visibleExpenseCount);
+                
+                let html = itemsToShow.length ? itemsToShow.map(e => {
+                    const isOffline = e.payment_method === 'offline' || !e.is_online_payment;
+                    const badge = isOffline ? `<span class="badge-offline">Offline</span>` : `<span class="badge-online">Online</span>`;
+                    
+                    // All Expenses get the edit/add document + button
+                    const plusBtn = `<div class="tooltip-container"><button class="btn-plus-doc" onclick="openModal('edit_expense', ${e.expense_id}, '${escapeHtml(e.title)}', ${e.amount})"><i class="fa-solid fa-plus"></i></button></div>`;
+                    
+                    return `
+                        <div class="list-item">
+                            <div class="item-left">
+                                <div class="item-info">
+                                    <h4>${escapeHtml(e.title)}</h4>
+                                    <div class="item-meta"><span>${formatDateTime(e.expense_date || e.created_at)}</span></div>
+                                </div>
+                            </div>
+                            <div class="item-right">
+                                <div class="amount-row"><span class="item-amt-orange">₹${formatNum(e.amount)}</span>${badge}${plusBtn}</div>
+                                <p class="edited-by">Reported by: ${escapeHtml(e.creator_name || 'Admin')}</p>
+                            </div>
                         </div>
-                        <div class="item-meta">
-                            <span>${formatDateTime(e.expense_date || e.created_at)}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="item-right" style="align-items: flex-end; gap: 6px;">
-                    <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap; justify-content: flex-end;">
-                        <!-- Action Buttons Group -->
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            ${plusBtn}
-                            <button class="btn-view-doc" style="margin: 0;" onclick="openGalleryModal(${e.expense_id})">
-                                <i class="fa-regular fa-image"></i> View docs
-                            </button>
-                        </div>
-                        <!-- Amount and Gateway Group -->
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span class="item-amt-orange">₹${formatNum(e.amount)}</span>
-                            ${badge}
-                        </div>
-                    </div>
-                    <p class="edited-by" style="margin:0;">Reported by: ${escapeHtml(e.creator_name || 'Admin')}</p>
-                </div>
-            </div>
-        `;
-    }).join('') : '<p style="color:#6b7280; font-size:13px; text-align:center; padding: 20px;">No expenses found for this filter.</p>';
+                    `;
+                }).join('') : '<p style="color:#6b7280; font-size:13px; text-align:center; padding: 20px;">No expenses found for this filter.</p>';
 
-    if (filtered.length > visibleExpenseCount) {
-        html += `<button class="btn-view-more" onclick="loadMoreExpenses()">Show More (${filtered.length - visibleExpenseCount} remaining)</button>`;
-    }
-    list.innerHTML = html;
-}
+                // Append "View More" button if there is hidden data
+                if (filtered.length > visibleExpenseCount) {
+                    html += `<button class="btn-view-more" onclick="loadMoreExpenses()">Show More (${filtered.length - visibleExpenseCount} remaining)</button>`;
+                }
 
+                list.innerHTML = html;
+            }
 
             // --- Main API Fetch (Loads all data at once) ---
             async function loadAllData() {
+                // UPDATE: Replaced 'grid' with '' so the CSS stylesheet (Grid for PC, Flex for Mobile) takes over naturally.
                 document.getElementById('skeleton-summary').style.display = '';
                 document.getElementById('real-summary').style.display = 'none';
                 
@@ -801,6 +682,7 @@
                     console.error("Fetch Error:", err);
                 } finally {
                     document.getElementById('skeleton-summary').style.display = 'none';
+                    // UPDATE: Replaced 'grid' with '' so the CSS stylesheet (Grid for PC, Flex for Mobile) takes over naturally.
                     document.getElementById('real-summary').style.display = ''; 
                     
                     document.getElementById('skeleton-contributions').style.display = 'none';
@@ -984,57 +866,6 @@
                     btn.disabled = false;
                 }
             });
-
-            // ==========================================
-            // GALLERY & FULLSCREEN LOGIC (NEW)
-            // ==========================================
-            window.openGalleryModal = async (expenseId) => {
-                document.getElementById('gallery-modal').classList.add('open');
-                const grid = document.getElementById('gallery-grid');
-                const emptyState = document.getElementById('gallery-empty');
-                const loader = document.getElementById('gallery-loading');
-                
-                grid.innerHTML = '';
-                emptyState.style.display = 'none';
-                loader.style.display = 'block';
-
-                try {
-                    // Calls backend to fetch documents linked to the expense_id
-                    const res = await fetch(`${BASE_URL}/api/transactions/expense/${expenseId}/documents`, fetchOptions);
-                    const result = await res.json();
-                    
-                    loader.style.display = 'none';
-
-                    if (result.success && result.data && result.data.length > 0) {
-                        grid.innerHTML = result.data.map(doc => {
-                            if (doc.file_url.toLowerCase().endsWith('.pdf')) {
-                                return `
-                                <div class="gallery-img" style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:#f8fafc;" onclick="window.open('${doc.file_url}', '_blank')">
-                                    <i class="fa-solid fa-file-pdf" style="font-size: 32px; color: #ef4444;"></i>
-                                    <span style="font-size: 10px; margin-top: 5px; color: #64748b; font-weight: 600;">PDF Doc</span>
-                                </div>`;
-                            } else {
-                                return `<img src="${doc.file_url}" class="gallery-img" onclick="openFullscreen('${doc.file_url}')" alt="Document">`;
-                            }
-                        }).join('');
-                    } else {
-                        emptyState.style.display = 'block';
-                    }
-                } catch(e) {
-                    loader.style.display = 'none';
-                    emptyState.textContent = 'Failed to load documents. Please check your connection.';
-                    emptyState.style.display = 'block';
-                }
-            };
-
-            window.closeGalleryModal = () => document.getElementById('gallery-modal').classList.remove('open');
-
-            window.openFullscreen = (url) => {
-                document.getElementById('fullscreen-img-element').src = url;
-                document.getElementById('fullscreen-viewer').classList.add('open');
-            };
-            
-            window.closeFullscreen = () => document.getElementById('fullscreen-viewer').classList.remove('open');
 
             // Initialize Page
             fetchProjects();

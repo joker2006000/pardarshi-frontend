@@ -13,9 +13,12 @@
 
     <style>
         /* === BASE STYLES === */
+        /* Added box-sizing to prevent mobile inputs from overflowing */
+        *, *::before, *::after { box-sizing: border-box; }
+        
         body {
             font-family: 'Inter', Arial, sans-serif;
-            background-color: #f4f7fe; /* Matched from home.css */
+            background-color: #f4f7fe;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -27,10 +30,10 @@
             max-width: 900px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 40px; /* Provides the gap between cards */
         }
 
-        /* === 1. ORG PROFILE CARD (From home.css) === */
+        /* === 1. ORG PROFILE CARD (Restructured) === */
         .dash-card {
             background: #ffffff;
             border-radius: 16px;
@@ -38,23 +41,33 @@
             border: 1px solid #f1f5f9;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
-        .profile-info-layout {
-            display: flex; gap: 20px; align-items: center; flex-wrap: nowrap;
-        }
         .profile-pic-wrapper {
             width: 85px; height: 85px; flex-shrink: 0;
             border-radius: 50%; border: 2px solid #e0e7ff; overflow: hidden; background: #eef2ff;
         }
         .profile-pic-wrapper img { width: 100%; height: 100%; object-fit: cover; }
-        .data-grid { display: flex; flex-direction: column; gap: 8px; flex-grow: 1; }
-        .data-grid-3 {
-            display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;
-            margin-top: 20px; padding-top: 20px; border-top: 1px solid #f1f5f9;
-        }
-        .data-label { font-size: 11px; color: #64748b; margin-bottom: 4px; text-transform: uppercase; font-weight: 600; display: block;}
-        .data-value-faint { font-size: 14px; color: #16253c; font-weight: 600; margin: 0; }
 
-        /* === 2. DYNAMIC FORM (From form.css) === */
+        /* === PROJECT DESCRIPTION ACCORDION === */
+        .project-desc-card {
+            background: #ffffff;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            overflow: hidden;
+        }
+        .desc-toggle-btn {
+            width: 100%; padding: 16px 20px; background: none; border: none; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+            font-family: inherit; font-size: 15px; font-weight: 700; color: #1e293b; text-align: left;
+        }
+        .desc-content-panel {
+            max-height: 0; overflow: hidden; transition: max-height 0.35s ease-out;
+            background: #ffffff; border-top: 1px solid #f1f5f9;
+        }
+        .desc-content-panel.open { max-height: 500px; overflow-y: auto; }
+        .desc-inner-text { padding: 18px 20px; font-size: 14px; line-height: 1.6; color: #475569; margin: 0; white-space: pre-line; }
+
+        /* === 2. DYNAMIC FORM (Old Style Merging) === */
         .form-wrapper {
             background-color: #fffefe;
             border-radius: 15px;
@@ -107,6 +120,28 @@
         }
         .btn-submit:hover { background-color: #3856d6; transform: scale(1.05); }
 
+
+        /* === WHATSAPP NOTE === */
+        .whatsapp-note {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-top: 10px;
+            padding: 12px 16px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            color: #64748b; /* Faint/muted text color */
+            font-size: 13px;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+        .whatsapp-note i {
+            color: #10b981; /* Soft green tick */
+            font-size: 16px;
+            margin-top: 2px;
+        }
+
         /* LOADING & SUCCESS STATES */
         #loading-screen, #success-screen {
             text-align: center; padding: 100px 20px; background: white; border-radius: 16px;
@@ -119,10 +154,12 @@
 
         /* Mobile tweaks */
         @media (max-width: 768px) {
+            body { padding: 12px; }
             .image-header-container { height: 280px; }
             #event-display-title { font-size: 24px; top: 20px; }
             .form-content { padding: 0 20px 30px 20px; margin-top: -60px; }
             .profile-pic-wrapper { width: 65px; height: 65px; }
+            .form-group { min-width: 100%; }
         }
     </style>
 </head>
@@ -139,35 +176,36 @@
         <!-- 2. MAIN CONTENT (Hidden until loaded) -->
         <div id="main-content" style="display: none;">
             
-            <!-- ORG PROFILE CARD -->
+            <!-- ORG PROFILE CARD (Restructured Layout) -->
             <div class="dash-card">
-                <div class="profile-info-layout">
+                <div style="display: flex; gap: 20px; align-items: center;">
                     <div class="profile-pic-wrapper">
                         <img id="org-pic" src="https://ui-avatars.com/api/?name=Org" alt="Org Logo">
                     </div>
-                    <div class="data-grid">
-                        <h2 id="org-name" class="data-value-faint" style="font-size: 20px; color: #3b82f6;">Loading...</h2>
-                        <p id="org-desc" style="font-size: 13px; color: #64748b; margin: 5px 0 0 0; line-height: 1.4;"></p>
-                    </div>
-                </div>
-                <div class="data-grid-3">
-                    <div>
-                        <span class="data-label">Established</span>
-                        <p id="org-year" class="data-value-faint">---</p>
-                    </div>
-                    <div>
-                        <span class="data-label">Type</span>
-                        <p id="org-type" class="data-value-faint">---</p>
-                    </div>
-                    <div>
-                        <span class="data-label">Category</span>
-                        <p id="org-category" class="data-value-faint">---</p>
+                    <div style="display: flex; flex-direction: column; justify-content: center; gap: 8px;">
+                        <h2 id="org-name" style="font-size: 20px; color: #3b82f6; margin: 0;">Loading...</h2>
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap; color: #64748b; font-size: 13px;">
+                            <span><strong>Established:</strong> <span id="org-year">---</span></span>
+                            <span><strong>Type:</strong> <span id="org-type">---</span></span>
+                            <span><strong>Category:</strong> <span id="org-category">---</span></span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- FORM WRAPPER -->
-            <div class="form-wrapper" style="margin-top: 20px;">
+            <!-- PROJECT DESCRIPTION DROPDOWN -->
+            <div id="project-desc-wrapper" class="project-desc-card" style="display: none;">
+                <button type="button" class="desc-toggle-btn" id="desc-toggle-btn" onclick="toggleProjectDesc()">
+                    <span><i class="fa-solid fa-circle-info" style="margin-right: 8px; color: #3b82f6;"></i> Read more about this project</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </button>
+                <div class="desc-content-panel" id="desc-panel">
+                    <p class="desc-inner-text" id="project-description-text"></p>
+                </div>
+            </div>
+
+            <!-- FORM WRAPPER (Old Visual Style) -->
+            <div class="form-wrapper">
                 <div class="image-header-container">
                     <h1 id="event-display-title">Form Title</h1>
                     <img id="event-display-pic" src="https://via.placeholder.com/900x400?text=No+Cover+Image" alt="Form Cover">
@@ -179,8 +217,14 @@
                             <!-- Fields will be injected here by JS -->
                         </div>
 
+                        <!-- NEW: Polite WhatsApp Note -->
+                        <div class="whatsapp-note">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>Please ensure the mobile number you provide is correct and active on WhatsApp so we can send you your contribution details and updates.</span>
+                        </div>
+
                         <div class="submit-area">
-                            <button type="submit" class="btn-submit" id="submit-btn">Submit Application</button>
+                            <button type="submit" class="btn-submit" id="submit-btn">Contribute Now</button>
                         </div>
                     </form>
                 </div>
@@ -201,18 +245,35 @@
         let currentFormId = null;
         let thankYouMessage = "Your submission was successful.";
         
-        // Initialize Cashfree (Sandbox mode. Change to 'production' when live)
+        // Initialize Cashfree
         const cashfree = Cashfree({ mode: "sandbox" });
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Extract the slug from the URL (e.g., yourdomain.com/form/helping-hands-drive)
             const pathParts = window.location.pathname.split('/');
             const publicSlug = pathParts[pathParts.length - 1]; 
-
-            // Fallback for local testing if opened directly
             const finalSlug = publicSlug.includes('.html') ? 'test-slug-here' : publicSlug;
             fetchFormDetails(finalSlug);
         });
+
+        // Dropdown toggle logic
+        function toggleProjectDesc() {
+            const panel = document.getElementById('desc-panel');
+            panel.classList.toggle('open');
+        }
+
+        // Mobile Validation Logic (Limits to 10 digits & warns user)
+        function validateMobile(input, warnId) {
+            // Remove any non-numeric characters
+            input.value = input.value.replace(/\D/g, ''); 
+            
+            const warnEl = document.getElementById(warnId);
+            // If length is > 0 but less than 10, show warning
+            if (input.value.length > 0 && input.value.length < 10) {
+                warnEl.style.display = 'block';
+            } else {
+                warnEl.style.display = 'none';
+            }
+        }
 
         // --- 1. FETCH DATA FROM SERVER ---
         async function fetchFormDetails(slug) {
@@ -222,9 +283,13 @@
 
                 if (result.success) {
                     currentFormId = result.form.form_id;
-                    if (result.form.thank_you_message) thankYouMessage = result.form.thank_you_message;
+                    if (result.form.thank_you_message) {
+                        thankYouMessage = result.form.thank_you_message;
+                        sessionStorage.setItem('pardarshi_thank_you_msg', thankYouMessage);
+                    }
                     
                     renderOrgProfile(result.organization);
+                    renderProjectDescription(result.form.description);
                     renderFormHeader(result.form);
                     renderFormFields(result.fields);
 
@@ -245,7 +310,18 @@
             document.getElementById('org-year').textContent = org.established_year || 'N/A';
             document.getElementById('org-type').textContent = org.type || 'N/A';
             document.getElementById('org-category').textContent = org.category || 'N/A';
-            document.getElementById('org-desc').textContent = org.description || '';
+        }
+
+        // --- PROJECT DESCRIPTION ---
+        function renderProjectDescription(description) {
+            const wrapper = document.getElementById('project-desc-wrapper');
+            const textEl = document.getElementById('project-description-text');
+            if (description && description.trim() !== '') {
+                textEl.textContent = description;
+                wrapper.style.display = 'block';
+            } else {
+                wrapper.style.display = 'none';
+            }
         }
 
         // --- 3. RENDER FORM HEADER ---
@@ -261,31 +337,37 @@
             const container = document.getElementById('dynamic-fields-container');
             let html = '';
 
-            // We enforce 2 items per row exactly like form.css
             for (let i = 0; i < fields.length; i++) {
                 const field = fields[i];
                 const required = field.is_required ? 'required' : '';
                 const placeholder = field.placeholder ? `placeholder="${field.placeholder}"` : '';
                 const fieldKey = field.label.trim();
 
-                // Open row
                 if (i % 2 === 0 || field.field_type === 'textarea') html += `<div class="form-row">`;
-                
                 const isFullWidth = field.field_type === 'textarea' ? 'full-width' : '';
 
                 html += `<div class="form-group ${isFullWidth}">
                             <label>${field.label} ${field.is_required ? '*' : ''}</label>`;
                 
-                // Render based on type
-                if (['text', 'email', 'tel', 'number', 'amount'].includes(field.field_type)) {
-                    // Identify specific standard fields for backend routing
+                // Identify if it's a mobile field to apply the new 10-digit logic
+                const isMobileField = field.field_type === 'tel' || fieldKey.toLowerCase().includes('mobile') || fieldKey.toLowerCase().includes('phone');
+
+                if (isMobileField) {
+                    let idAttr = (fieldKey.toLowerCase().includes('mobile') || fieldKey.toLowerCase().includes('phone')) ? 'id="standard_mobile"' : '';
+                    
+                    // Warning Text (Hidden by default)
+                    html += `<span id="warn-mobile-${i}" style="color: #ef4444; font-size: 11px; display: none; margin-bottom: 5px;">Must be exactly 10 digits.</span>`;
+                    
+                    // Input with maxlength and oninput validator
+                    html += `<input type="tel" name="${fieldKey}" data-type="${field.field_type}" ${idAttr} ${placeholder} ${required} class="dynamic-input" maxlength="10" oninput="validateMobile(this, 'warn-mobile-${i}')">`;
+                
+                } else if (['text', 'email', 'number', 'amount'].includes(field.field_type)) {
                     let idAttr = '';
                     if (fieldKey.toLowerCase().includes('name')) idAttr = 'id="standard_name"';
-                    else if (fieldKey.toLowerCase().includes('mobile') || fieldKey.toLowerCase().includes('phone')) idAttr = 'id="standard_mobile"';
                     else if (fieldKey.toLowerCase().includes('email')) idAttr = 'id="standard_email"';
                     else if (field.field_type === 'amount') idAttr = 'id="standard_amount"';
 
-                    const typeMap = { 'text': 'text', 'email': 'email', 'phone': 'tel', 'number': 'number', 'amount': 'number' };
+                    const typeMap = { 'text': 'text', 'email': 'email', 'number': 'number', 'amount': 'number' };
                     html += `<input type="${typeMap[field.field_type] || 'text'}" name="${fieldKey}" data-type="${field.field_type}" ${idAttr} ${placeholder} ${required} class="dynamic-input">`;
                 
                 } else if (field.field_type === 'textarea') {
@@ -308,21 +390,28 @@
                 }
 
                 html += `</div>`;
-                
-                // Close row
                 if (i % 2 !== 0 || field.field_type === 'textarea' || i === fields.length - 1) html += `</div>`;
             }
             container.innerHTML = html;
         }
 
-        // --- 5. HANDLE SUBMISSION (PAYMENT VS NON-PAYMENT) ---
+        // --- 5. HANDLE SUBMISSION ---
         document.getElementById('dynamic-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submit-btn');
+
+            // PREVENT SUBMIT IF ANY MOBILE NUMBER IS < 10 DIGITS
+            const mobileWarnings = document.querySelectorAll('span[id^="warn-mobile-"]');
+            for (let warn of mobileWarnings) {
+                if (warn.style.display === 'block') {
+                    alert("Please ensure all mobile numbers are exactly 10 digits before submitting.");
+                    return;
+                }
+            }
+
             btn.textContent = 'Processing...';
             btn.disabled = true;
 
-            // Extract Standard Fields safely
             const nameEl = document.getElementById('standard_name');
             const mobileEl = document.getElementById('standard_mobile');
             const emailEl = document.getElementById('standard_email');
@@ -332,7 +421,7 @@
 
             const payload = {
                 form_id: currentFormId,
-                organization_id: 1, // Will be overridden securely by backend JOINs
+                organization_id: 1, 
                 contributor_name: nameEl ? nameEl.value : "Contributor",
                 contributor_mobile: mobileEl ? mobileEl.value : "",
                 contributor_email: emailEl ? emailEl.value : "",
@@ -340,7 +429,6 @@
                 answers: {}
             };
 
-            // Extract all Dynamic Answers
             document.querySelectorAll('.dynamic-input').forEach(input => {
                 const label = input.name;
                 const type = input.getAttribute('data-type');
@@ -353,7 +441,6 @@
                         payload.answers[label].push(input.value);
                     }
                 } else {
-                    // Prevent standard fields from duplicating in answers JSON
                     if (!['standard_name','standard_mobile','standard_email','standard_amount'].includes(input.id)) {
                         payload.answers[label] = input.value;
                     }
@@ -362,8 +449,7 @@
 
             try {
                 if (amountVal > 0) {
-                    // ROUTE 1: Payment Flow
-                    const res = await fetch(`${BASE_URL}/api/payments/initiate`, {
+                    const res = await fetch(`${BASE_URL}/api/payment/initiate`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
@@ -371,7 +457,6 @@
                     const result = await res.json();
                     
                     if (result.success && result.payment_session_id) {
-                        // Pop open Cashfree checkout
                         cashfree.checkout({
                             paymentSessionId: result.payment_session_id,
                             redirectTarget: "_self" 
@@ -381,7 +466,6 @@
                         resetBtn(btn);
                     }
                 } else {
-                    // ROUTE 2: Free Submission Flow
                     const res = await fetch(`${BASE_URL}/api/forms/submit`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },

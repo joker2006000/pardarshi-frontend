@@ -16,7 +16,7 @@
     <!--Ui css for DASHBOARD SPECIFIC STYLES -->
     <link rel="stylesheet" href="style/home.css">
 
-    <style>
+<style>
         /* ==========================================================
            1. OVERRIDE FOR DATA TEXT & FORCING WRAP
            ========================================================== */
@@ -73,22 +73,6 @@
             .data-grid-3 .data-value-faint {
                 font-size: 12px !important; 
             }
-        }
-
-        /* ==========================================================
-           4. LAYOUT STABILITY FIX (Prevents Sidebar from Shrinking)
-           ========================================================== */
-        .sidebar {
-            flex-shrink: 0 !important;
-        }
-        .main-wrapper {
-            min-width: 0 !important;
-            flex-grow: 1;
-            overflow-x: hidden;
-        }
-        #real-dashboard-data {
-            width: 100%;
-            box-sizing: border-box;
         }
 
         /* -------------------------------------
@@ -174,6 +158,7 @@
     </aside>
 
     <!-- MAIN CONTENT WRAPPER -->
+  <!-- MAIN CONTENT WRAPPER -->
     <main class="main-wrapper">
         
         <!-- HIDDEN HEADER TO FIX SIDEBAR MATH -->
@@ -184,6 +169,7 @@
 
             <!-- Dashboard Header -->
             <div class="dash-header">
+                <!-- ... -->
                 <div class="dash-greeting">
                     <h1><i class="fa-solid fa-hexagon-nodes"></i> Good Morning</h1>
                     <p>Manage your organization profile and team settings</p>
@@ -393,46 +379,47 @@
                             </div>
                         </div>
 
+
                         <!-- Receiving Accounts Card -->
-                        <div class="dash-card">
-                            <div class="dash-card-header">
-                                <h2 class="dash-card-title">Receiving Account</h2>
-                                <button class="btn-red-pill" id="btn-edit-payment">Edit</button>
-                            </div>
-                            <p class="data-label" style="line-height: 1.5; margin-bottom: 16px;">Add your organization's bank or UPI details to automatically receive direct donations.</p>
+<div class="dash-card">
+    <div class="dash-card-header">
+        <h2 class="dash-card-title">Receiving Account</h2>
+        <button class="btn-red-pill" id="btn-edit-payment">Edit</button>
+    </div>
+    <p class="data-label" style="line-height: 1.5; margin-bottom: 16px;">Add your organization's bank or UPI details to automatically receive direct donations.</p>
 
-                            <!-- Modern Tab Toggle -->
-                            <div class="pay-tabs">
-                                <button class="pay-tab active" id="tab-upi" onclick="switchPayTab('upi')">UPI ID</button>
-                                <button class="pay-tab" id="tab-bank" onclick="switchPayTab('bank')">Bank Account</button>
-                            </div>
+    <!-- Modern Tab Toggle -->
+    <div class="pay-tabs">
+        <button class="pay-tab active" id="tab-upi" onclick="switchPayTab('upi')">UPI ID</button>
+        <button class="pay-tab" id="tab-bank" onclick="switchPayTab('bank')">Bank Account</button>
+    </div>
 
-                            <!-- UPI Section -->
-                            <div id="section-upi">
-                                <label class="data-label" style="margin-bottom: 6px;">Registered UPI ID</label>
-                                <div class="payment-input-wrap">
-                                    <div id="display-upi" class="data-value-faint" style="font-weight: 600;">Loading...</div>
-                                </div>
-                            </div>
+    <!-- UPI Section -->
+    <div id="section-upi">
+        <label class="data-label" style="margin-bottom: 6px;">Registered UPI ID</label>
+        <div class="payment-input-wrap">
+            <div id="display-upi" class="data-value-faint" style="font-weight: 600;">Loading...</div>
+        </div>
+    </div>
 
-                            <!-- Bank Section -->
-                            <div id="section-bank" style="display: none;">
-                                <label class="data-label" style="margin-bottom: 6px;">Account Holder Name</label>
-                                <div class="payment-input-wrap">
-                                    <div id="display-bank-name" class="data-value-faint" style="font-weight: 600;">Loading...</div>
-                                </div>
+    <!-- Bank Section -->
+    <div id="section-bank" style="display: none;">
+        <label class="data-label" style="margin-bottom: 6px;">Account Holder Name</label>
+        <div class="payment-input-wrap">
+            <div id="display-bank-name" class="data-value-faint" style="font-weight: 600;">Loading...</div>
+        </div>
 
-                                <label class="data-label" style="margin-bottom: 6px;">Account Number</label>
-                                <div class="payment-input-wrap">
-                                    <div id="display-bank-acc" class="data-value-faint" style="font-weight: 600;">Loading...</div>
-                                </div>
+        <label class="data-label" style="margin-bottom: 6px;">Account Number</label>
+        <div class="payment-input-wrap">
+            <div id="display-bank-acc" class="data-value-faint" style="font-weight: 600;">Loading...</div>
+        </div>
 
-                                <label class="data-label" style="margin-bottom: 6px;">IFSC Code</label>
-                                <div class="payment-input-wrap" style="margin-bottom: 0;">
-                                    <div id="display-bank-ifsc" class="data-value-faint" style="font-weight: 600;">Loading...</div>
-                                </div>
-                            </div>
-                        </div>
+        <label class="data-label" style="margin-bottom: 6px;">IFSC Code</label>
+        <div class="payment-input-wrap" style="margin-bottom: 0;">
+            <div id="display-bank-ifsc" class="data-value-faint" style="font-weight: 600;">Loading...</div>
+        </div>
+    </div>
+</div>
 
                     </div>
 
@@ -441,7 +428,9 @@
                 <!-- PREVIOUS PROJECTS SECTION -->
                 <div class="projects-section-header">
                     <h2 class="projects-title">Previous Projects</h2>
-                    <!-- Add Project button removed -->
+                    <button class="btn-red-pill" style="padding: 10px 20px; font-size: 14px;">
+                        <i class="fa-solid fa-plus" style="margin-right: 6px;"></i> Add Project
+                    </button>
                 </div>
 
                 <!-- Container for Dynamic API rendering -->
@@ -479,40 +468,6 @@
         </div>
     </div>
 
-    <!-- DELETE PROJECT MODAL -->
-    <div id="delete-project-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
-        <div style="background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-            <h2 style="margin-top: 0; color: #ef4444; font-size: 20px;"><i class="fa-solid fa-triangle-exclamation"></i> Delete Project</h2>
-            
-            <div style="background: #fef2f2; border: 1px solid #f87171; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                <p style="margin: 0 0 10px 0; font-size: 14px; color: #991b1b; font-weight: 600;">Warning: Deleting this project will permanently affect your transactions!</p>
-                <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #991b1b; line-height: 1.5;">
-                    <li>Your expenses records related to this project will be deleted.</li>
-                    <li>Your funding records related to this project will be deleted.</li>
-                </ul>
-                <p style="margin: 10px 0 0 0; font-size: 13px; color: #991b1b; font-weight: 600;">The remaining balance will be automatically managed to your main account.</p>
-            </div>
-            
-            <!-- Download Records Button -->
-            <button id="btn-download-records" style="width: 100%; background: #3b82f6; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; margin-bottom: 20px; font-weight: 600; transition: 0.2s;">
-                <i class="fa-solid fa-file-pdf"></i> Download Project Records (PDF)
-            </button>
-
-            <!-- Confirmation Input -->
-            <label style="display: block; font-size: 13px; color: #334155; margin-bottom: 8px;">
-                To confirm, type the project name <b>"<span id="delete-modal-project-name"></span>"</b> below:
-            </label>
-            <input type="text" id="delete-project-input" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 20px; box-sizing: border-box; outline: none; font-size: 14px;" autocomplete="off" placeholder="Project Name">
-
-            <!-- Action Buttons -->
-            <div style="display: flex; gap: 10px;">
-                <button id="btn-cancel-delete" style="flex: 1; padding: 12px; background: #e2e8f0; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: #475569; transition: 0.2s;">Cancel</button>
-                <button id="btn-confirm-delete" style="flex: 1; padding: 12px; background: #ef4444; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.5;" disabled>
-                    Delete
-                </button>
-            </div>
-        </div>
-    </div>
 
     <!-- UI Interaction Script of Sidebar -->
     <script src="script/structure.js"></script>
@@ -565,26 +520,26 @@
 
            
            // RESTRICT UI FOR NON-OWNERS
-            if (currentUserRole !== 'owner') {
-                // 1. Hide Add Members button
-                const addMemberBtn = document.getElementById('btn-toggle-add-member');
-                if (addMemberBtn) addMemberBtn.style.display = 'none';
+if (currentUserRole !== 'owner') {
+    // 1. Hide Add Members button
+    const addMemberBtn = document.getElementById('btn-toggle-add-member');
+    if (addMemberBtn) addMemberBtn.style.display = 'none';
 
-                // 2. Hide Payment Details Edit button
-                const editPaymentBtn = document.getElementById('btn-edit-payment');
-                if (editPaymentBtn) editPaymentBtn.style.display = 'none';
+    // 2. Hide Payment Details Edit button
+    const editPaymentBtn = document.getElementById('btn-edit-payment');
+    if (editPaymentBtn) editPaymentBtn.style.display = 'none';
 
-                // 3. Hide all other general Edit buttons (Description, WhatsApp, etc.)
-                document.querySelectorAll('.dash-card-header .btn-red-pill').forEach(btn => {
-                    if (btn.textContent.trim() === 'Edit') {
-                        btn.style.display = 'none';
-                    }
-                });
+    // 3. Hide all other general Edit buttons (Description, WhatsApp, etc.)
+    document.querySelectorAll('.dash-card-header .btn-red-pill').forEach(btn => {
+        if (btn.textContent.trim() === 'Edit') {
+            btn.style.display = 'none';
+        }
+    });
 
-                // 4. Disable Profile Picture clicking
-                const profileEditIcon = document.querySelector('.profile-edit-icon');
-                if (profileEditIcon) profileEditIcon.style.display = 'none';
-            }
+    // 4. Disable Profile Picture clicking
+    const profileEditIcon = document.querySelector('.profile-edit-icon');
+    if (profileEditIcon) profileEditIcon.style.display = 'none';
+}
 
             const fetchOptionsJson = {
                 headers: {
@@ -758,11 +713,11 @@
                         document.getElementById('display-org-district').textContent = org.district || 'Not provided';
                         document.getElementById('display-whatsapp-number').textContent = org.whatsapp_number || 'No WhatsApp registered.';
 
-                        // Render Payment Data
-                        document.getElementById('display-upi').textContent = org.upi_id || 'Not provided';
-                        document.getElementById('display-bank-name').textContent = org.bank_account_name || 'Not provided';
-                        document.getElementById('display-bank-acc').textContent = org.bank_account_number || 'Not provided';
-                        document.getElementById('display-bank-ifsc').textContent = org.bank_ifsc_code || 'Not provided';
+// NEW: Render Payment Data
+document.getElementById('display-upi').textContent = org.upi_id || 'Not provided';
+document.getElementById('display-bank-name').textContent = org.bank_account_name || 'Not provided';
+document.getElementById('display-bank-acc').textContent = org.bank_account_number || 'Not provided';
+document.getElementById('display-bank-ifsc').textContent = org.bank_ifsc_code || 'Not provided';
 
                         if (org.profile_pic_url) {
                             const fullUrl = org.profile_pic_url.startsWith('http') ? org.profile_pic_url : `${BASE_URL}${org.profile_pic_url}`;
@@ -801,12 +756,15 @@
                                 : initials;
                             
                             const isOwner = currentUserRole === 'owner';
+                            // NEW: Check if the member being rendered is the currently logged-in user
                             const isSelf = String(currentUserId) === String(member.user_id);
 
+                            // Only show remove button if the user is an owner AND they are not viewing their own row
                             const removeBtnHTML = (isOwner && !isSelf) 
                                 ? `<span class="remove-text" onclick="removeMember('${member.user_id}')" style="cursor: pointer; color: #ef4444; font-size: 18px; font-weight: 600;" title="Remove Member"><i class="fa-solid fa-xmark"></i></span>`
                                 : ``;
 
+                            // Only show role dropdown if the user is an owner AND they are not viewing their own row
                             const roleUI = (isOwner && !isSelf) 
                                 ? `<select onchange="changeMemberRole(this, '${member.user_id}')" style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px; font-size: 13px; color: #334155; background: white; cursor: pointer; outline: none; width: 100%;">
                                     <option value="viewer" ${member.role === 'viewer' ? 'selected' : ''}>Viewer</option>
@@ -816,26 +774,38 @@
                                    </select>`
                                 : `<span style="font-size: 13px; color: #334155; font-weight: 600; text-transform: capitalize;">${member.role}</span>`;
 
+                            // NEW LAYOUT: Horizontal Strip structure mapping the image layout
                             const memberHTML = `
                                 <div class="member-item" style="display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #f1f5f9; gap: 15px;">
+                                    
+                                    <!-- 1. Profile Pic (Circle) -->
                                     <div class="member-avatar" style="width: 45px; height: 45px; flex-shrink: 0; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; color: #64748b; overflow: hidden;">
                                         ${avatarHtml}
                                     </div>
+                                    
+                                    <!-- 2. Name Block -->
                                     <div style="flex: 1.5; display: flex; flex-direction: column; min-width: 0;">
                                         <span style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 2px;">Name</span>
                                         <span style="color: #334155; font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${member.name}</span>
                                     </div>
+                                    
+                                    <!-- 3. Mobile Block -->
                                     <div style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
                                         <span style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 2px;">Mobile</span>
                                         <span style="color: #64748b; font-size: 13px;">${member.mobile_no || 'N/A'}</span>
                                     </div>
+                                    
+                                    <!-- 4. Role Block -->
                                     <div style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
                                         <span style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 2px;">Role</span>
                                         <div style="margin-top: 1px;">${roleUI}</div>
                                     </div>
+
+                                    <!-- 5. Remove Button Action -->
                                     <div style="margin-left: auto;">
                                         ${removeBtnHTML}
                                     </div>
+
                                 </div>
                             `;
                             container.insertAdjacentHTML('beforeend', memberHTML);
@@ -849,6 +819,7 @@
             // ==========================================
             // MEMBER MANAGEMENT LOGIC (Search, Add, Edit, Remove)
             // ==========================================
+
             const btnToggleAdd = document.getElementById('btn-toggle-add-member');
             const addSection = document.getElementById('add-member-section');
             const btnSearch = document.getElementById('btn-search-member');
@@ -856,6 +827,7 @@
             const btnConfirmAdd = document.getElementById('btn-confirm-add');
             const btnCancelAdd = document.getElementById('btn-cancel-add');
 
+            // 1. Toggle Search UI
             if (btnToggleAdd) {
                 btnToggleAdd.addEventListener('click', () => {
                     const isHidden = addSection.style.display === 'none';
@@ -867,6 +839,7 @@
                 });
             }
 
+            // 2. Search for User
             if (btnSearch) {
                 btnSearch.addEventListener('click', async () => {
                     const mobile = document.getElementById('search-member-mobile').value.trim();
@@ -890,12 +863,13 @@
                             }
                             document.getElementById('search-result-avatar').innerHTML = avatarHtml;
                             
+                            // Check if already in the organization
                             if (user.member_status === 'active') {
                                 document.getElementById('search-result-status').textContent = `Already a member (${user.member_role})`;
-                                btnConfirmAdd.style.display = 'none'; 
+                                btnConfirmAdd.style.display = 'none'; // Hide + button
                             } else {
                                 document.getElementById('search-result-status').textContent = 'Found on platform';
-                                btnConfirmAdd.style.display = 'flex'; 
+                                btnConfirmAdd.style.display = 'flex'; // Show + button
                             }
                             searchResult.style.display = 'flex';
                         } else {
@@ -910,6 +884,7 @@
                 });
             }
 
+            // 3. Cancel Add (Red X Button)
             if (btnCancelAdd) {
                 btnCancelAdd.addEventListener('click', () => {
                     searchResult.style.display = 'none';
@@ -917,12 +892,14 @@
                 });
             }
 
+            // 4. Confirm Add Member (Green + Button)
             if (btnConfirmAdd) {
                 btnConfirmAdd.addEventListener('click', async () => {
                     const userId = document.getElementById('search-result-id').value;
                     btnConfirmAdd.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
                     
                     try {
+                        // Adds as 'viewer' by default. Owner can edit via dropdown instantly.
                         const res = await fetch(`${BASE_URL}/api/member/${orgId}/add`, {
                             method: 'POST',
                             headers: fetchOptionsJson.headers,
@@ -933,8 +910,8 @@
                         if (result.success) {
                             searchResult.style.display = 'none';
                             document.getElementById('search-member-mobile').value = '';
-                            addSection.style.display = 'none'; 
-                            fetchMembersData(); 
+                            addSection.style.display = 'none'; // Auto close panel
+                            fetchMembersData(); // Reload UI
                         } else {
                             alert(result.message);
                         }
@@ -946,6 +923,7 @@
                 });
             }
 
+            // 5. Global Edit Role Function (Attached to Select tag)
             window.changeMemberRole = async function(selectElement, userId) {
                 const newRole = selectElement.value;
                 selectElement.disabled = true;
@@ -958,16 +936,17 @@
                     const result = await res.json();
                     if (!result.success) {
                         alert(result.message);
-                        fetchMembersData(); 
+                        fetchMembersData(); // Revert UI on failure
                     }
                 } catch (e) {
                     alert("Failed to update role");
-                    fetchMembersData(); 
+                    fetchMembersData(); // Revert UI
                 } finally {
                     selectElement.disabled = false;
                 }
             };
 
+            // 6. Global Remove Function (Attached to Remove text)
             window.removeMember = async function(userId) {
                 if (!confirm("Are you sure you want to remove this member?")) return;
                 
@@ -978,7 +957,7 @@
                     });
                     const result = await res.json();
                     if (result.success) {
-                        fetchMembersData(); 
+                        fetchMembersData(); // Reload list to hide user
                     } else {
                         alert(result.message);
                     }
@@ -986,6 +965,7 @@
                     alert("Failed to remove member");
                 }
             };
+
 
             // ==========================================
             // 3. FETCH & RENDER PROJECTS
@@ -1016,7 +996,6 @@
                                 displayImage = `<img src="${fullProjUrl}" alt="Project" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px; position: absolute; top:0; left:0;">`;
                             }
 
-                            // Inject openDeleteModal logic into the delete button
                             const projectHTML = `
                                 <div class="project-card">
                                     <div class="project-card-main">
@@ -1026,7 +1005,7 @@
                                             <button class="slider-arrow" style="position: relative; z-index: 10;"><i class="fa-solid fa-chevron-right"></i></button>
                                         </div>
                                         <div class="project-info-area">
-                                            <button class="btn-delete-project" title="Delete Project" onclick="openDeleteModal('${project.project_id}', '${project.name.replace(/'/g, "\\'")}')">
+                                            <button class="btn-delete-project" title="Delete Project">
                                                 <i class="fa-regular fa-trash-can"></i>
                                             </button>
                                             <div>
@@ -1066,181 +1045,99 @@
                 }
             }
 
-            // ==========================================
-            // PAYMENT DETAILS: TABS & EDIT LOGIC
-            // ==========================================
-            window.switchPayTab = function(type) {
-                if(type === 'upi') {
-                    document.getElementById('tab-upi').classList.add('active');
-                    document.getElementById('tab-bank').classList.remove('active');
-                    document.getElementById('section-upi').style.display = 'block';
-                    document.getElementById('section-bank').style.display = 'none';
-                } else {
-                    document.getElementById('tab-bank').classList.add('active');
-                    document.getElementById('tab-upi').classList.remove('active');
-                    document.getElementById('section-bank').style.display = 'block';
-                    document.getElementById('section-upi').style.display = 'none';
-                }
-            };
 
-            const btnEditPay = document.getElementById('btn-edit-payment');
-            if(btnEditPay) {
-                btnEditPay.addEventListener('click', async function() {
-                    const isEditing = this.textContent === 'Save';
-                    
-                    const upiBox = document.getElementById('display-upi');
-                    const bankNameBox = document.getElementById('display-bank-name');
-                    const bankAccBox = document.getElementById('display-bank-acc');
-                    const bankIfscBox = document.getElementById('display-bank-ifsc');
+            // ==========================================
+// PAYMENT DETAILS: TABS & EDIT LOGIC
+// ==========================================
 
-                    if(!isEditing) {
-                        this.textContent = 'Save';
-                        this.style.backgroundColor = '#22c55e';
-                        
-                        upiBox.innerHTML = `<input type="text" id="input-upi" value="${upiBox.textContent === 'Not provided' ? '' : upiBox.textContent}" class="payment-input" placeholder="e.g. orgname@bank">`;
-                        bankNameBox.innerHTML = `<input type="text" id="input-bank-name" value="${bankNameBox.textContent === 'Not provided' ? '' : bankNameBox.textContent}" class="payment-input" placeholder="Name on account">`;
-                        bankAccBox.innerHTML = `<input type="text" id="input-bank-acc" value="${bankAccBox.textContent === 'Not provided' ? '' : bankAccBox.textContent}" class="payment-input" placeholder="Account Number">`;
-                        bankIfscBox.innerHTML = `<input type="text" id="input-bank-ifsc" value="${bankIfscBox.textContent === 'Not provided' ? '' : bankIfscBox.textContent}" class="payment-input" placeholder="IFSC Code">`;
-                        
-                    } else {
-                        this.textContent = 'Saving...';
-                        
-                        const upiVal = document.getElementById('input-upi').value.trim();
-                        const nameVal = document.getElementById('input-bank-name').value.trim();
-                        const accVal = document.getElementById('input-bank-acc').value.trim();
-                        const ifscVal = document.getElementById('input-bank-ifsc').value.trim();
-                        
-                        const formData = new FormData();
-                        formData.append('upi_id', upiVal);
-                        formData.append('bank_account_name', nameVal);
-                        formData.append('bank_account_number', accVal);
-                        formData.append('bank_ifsc_code', ifscVal);
-                        
-                        try {
-                            const response = await fetch(`${BASE_URL}/api/organization/${orgId}`, {
-                                method: 'PUT',
-                                headers: fetchOptionsForm.headers,
-                                body: formData
-                            });
-                            const result = await response.json();
-                            
-                            if (result.success) {
-                                upiBox.textContent = upiVal || 'Not provided';
-                                bankNameBox.textContent = nameVal || 'Not provided';
-                                bankAccBox.textContent = accVal || 'Not provided';
-                                bankIfscBox.textContent = ifscVal || 'Not provided';
-                                
-                                this.textContent = 'Edit';
-                                this.style.backgroundColor = 'var(--red-btn)';
-                            } else {
-                                alert('Failed to save payment details.');
-                                this.textContent = 'Save';
-                                this.style.backgroundColor = '#22c55e';
-                            }
-                        } catch (e) {
-                            alert('Error saving data.');
-                            this.textContent = 'Save';
-                            this.style.backgroundColor = '#22c55e';
-                        }
-                    }
+// 1. Tab Switcher
+window.switchPayTab = function(type) {
+    if(type === 'upi') {
+        document.getElementById('tab-upi').classList.add('active');
+        document.getElementById('tab-bank').classList.remove('active');
+        document.getElementById('section-upi').style.display = 'block';
+        document.getElementById('section-bank').style.display = 'none';
+    } else {
+        document.getElementById('tab-bank').classList.add('active');
+        document.getElementById('tab-upi').classList.remove('active');
+        document.getElementById('section-bank').style.display = 'block';
+        document.getElementById('section-upi').style.display = 'none';
+    }
+};
+
+// 2. Custom Edit/Save for Payment Card
+const btnEditPay = document.getElementById('btn-edit-payment');
+if(btnEditPay) {
+    btnEditPay.addEventListener('click', async function() {
+        const isEditing = this.textContent === 'Save';
+        
+        const upiBox = document.getElementById('display-upi');
+        const bankNameBox = document.getElementById('display-bank-name');
+        const bankAccBox = document.getElementById('display-bank-acc');
+        const bankIfscBox = document.getElementById('display-bank-ifsc');
+
+        if(!isEditing) {
+            // ENTER EDIT MODE (Convert text to inputs)
+            this.textContent = 'Save';
+            this.style.backgroundColor = '#22c55e';
+            
+            upiBox.innerHTML = `<input type="text" id="input-upi" value="${upiBox.textContent === 'Not provided' ? '' : upiBox.textContent}" class="payment-input" placeholder="e.g. orgname@bank">`;
+            
+            bankNameBox.innerHTML = `<input type="text" id="input-bank-name" value="${bankNameBox.textContent === 'Not provided' ? '' : bankNameBox.textContent}" class="payment-input" placeholder="Name on account">`;
+            
+            bankAccBox.innerHTML = `<input type="text" id="input-bank-acc" value="${bankAccBox.textContent === 'Not provided' ? '' : bankAccBox.textContent}" class="payment-input" placeholder="Account Number">`;
+            
+            bankIfscBox.innerHTML = `<input type="text" id="input-bank-ifsc" value="${bankIfscBox.textContent === 'Not provided' ? '' : bankIfscBox.textContent}" class="payment-input" placeholder="IFSC Code">`;
+            
+        } else {
+            // SAVE MODE (Extract input values and send to API)
+            this.textContent = 'Saving...';
+            
+            const upiVal = document.getElementById('input-upi').value.trim();
+            const nameVal = document.getElementById('input-bank-name').value.trim();
+            const accVal = document.getElementById('input-bank-acc').value.trim();
+            const ifscVal = document.getElementById('input-bank-ifsc').value.trim();
+            
+            const formData = new FormData();
+            formData.append('upi_id', upiVal);
+            formData.append('bank_account_name', nameVal);
+            formData.append('bank_account_number', accVal);
+            formData.append('bank_ifsc_code', ifscVal);
+            
+            try {
+                const response = await fetch(`${BASE_URL}/api/organization/${orgId}`, {
+                    method: 'PUT',
+                    headers: fetchOptionsForm.headers,
+                    body: formData
                 });
-            }
-
-            // ==========================================
-            // DELETE PROJECT MODAL LOGIC
-            // ==========================================
-            let projectToDeleteId = null;
-            let projectToDeleteName = '';
-
-            window.openDeleteModal = function(projectId, projectName) {
-                projectToDeleteId = projectId;
-                projectToDeleteName = projectName;
+                const result = await response.json();
                 
-                // Reset Modal UI
-                document.getElementById('delete-modal-project-name').textContent = projectName;
-                document.getElementById('delete-project-input').value = '';
-                
-                const confirmBtn = document.getElementById('btn-confirm-delete');
-                confirmBtn.disabled = true;
-                confirmBtn.style.opacity = '0.5';
-                confirmBtn.innerHTML = 'Delete';
-                
-                document.getElementById('btn-cancel-delete').disabled = false;
-                document.getElementById('btn-cancel-delete').style.opacity = '1';
-                document.getElementById('delete-project-input').disabled = false;
-                
-                // Show Modal
-                document.getElementById('delete-project-modal').style.display = 'flex';
-            };
-
-            document.getElementById('delete-project-input').addEventListener('input', function(e) {
-                const confirmBtn = document.getElementById('btn-confirm-delete');
-                if (e.target.value.trim() === projectToDeleteName.trim()) {
-                    confirmBtn.disabled = false;
-                    confirmBtn.style.opacity = '1';
+                if (result.success) {
+                    // Update UI with new raw text
+                    upiBox.textContent = upiVal || 'Not provided';
+                    bankNameBox.textContent = nameVal || 'Not provided';
+                    bankAccBox.textContent = accVal || 'Not provided';
+                    bankIfscBox.textContent = ifscVal || 'Not provided';
+                    
+                    this.textContent = 'Edit';
+                    this.style.backgroundColor = 'var(--red-btn)';
                 } else {
-                    confirmBtn.disabled = true;
-                    confirmBtn.style.opacity = '0.5';
+                    alert('Failed to save payment details.');
+                    this.textContent = 'Save';
+                    this.style.backgroundColor = '#22c55e';
                 }
-            });
-
-            document.getElementById('btn-cancel-delete').addEventListener('click', function() {
-                document.getElementById('delete-project-modal').style.display = 'none';
-            });
-
-            document.getElementById('btn-download-records').addEventListener('click', function() {
-                alert(`Downloading records for ${projectToDeleteName} in PDF format...`);
-                // Placeholder to connect your backend PDF route
-            });
-
-            document.getElementById('btn-confirm-delete').addEventListener('click', async function() {
-                const inputVal = document.getElementById('delete-project-input').value;
-                if (inputVal.trim() !== projectToDeleteName.trim()) return;
-
-                const confirmBtn = document.getElementById('btn-confirm-delete');
-                const cancelBtn = document.getElementById('btn-cancel-delete');
-                const inputField = document.getElementById('delete-project-input');
-                
-                // Loading State
-                confirmBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Deleting...';
-                confirmBtn.disabled = true;
-                cancelBtn.disabled = true;
-                cancelBtn.style.opacity = '0.5';
-                inputField.disabled = true;
-                inputField.value = '';
-
-                try {
-                    const response = await fetch(`${BASE_URL}/api/project/${orgId}/${projectToDeleteId}`, {
-                        method: 'DELETE',
-                        headers: fetchOptionsJson.headers
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        document.getElementById('delete-project-modal').style.display = 'none';
-                        loadDashboardData(); 
-                    } else {
-                        alert(result.error || 'Failed to delete project.');
-                        resetModalButtons(confirmBtn, cancelBtn, inputField);
-                    }
-                } catch (error) {
-                    console.error(error);
-                    alert('Server error while deleting project.');
-                    resetModalButtons(confirmBtn, cancelBtn, inputField);
-                }
-            });
-
-            function resetModalButtons(confirmBtn, cancelBtn, inputField) {
-                confirmBtn.innerHTML = 'Delete';
-                confirmBtn.disabled = false;
-                cancelBtn.disabled = false;
-                cancelBtn.style.opacity = '1';
-                inputField.disabled = false;
+            } catch (e) {
+                alert('Error saving data.');
+                this.textContent = 'Save';
+                this.style.backgroundColor = '#22c55e';
             }
+        }
+    });
+ }
 
         });
     </script>
 
 </body>
+
 </html>
