@@ -3,41 +3,29 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { 
-      "source": "/form", 
-      "destination": "/public-form.html" 
+    {
+      "source": "/form/:path*",
+      "destination": "/public-form.html"
     },
-    { 
-      "source": "/form/:slug*", 
-      "destination": "/public-form.html" 
+    {
+      "source": "/form",
+      "destination": "/public-form.html"
     },
-    { 
-      "source": "/org", 
-      "destination": "/contributer-page/org.html" 
+    {
+      "source": "/org",
+      "destination": "/contributer-page/org.html"
     },
-    { 
-      "source": "/org/:match*", 
-      "destination": "/contributer-page/org.html" 
+    {
+      "source": "/project",
+      "destination": "/contributer-page/project.html"
     },
-    { 
-      "source": "/project", 
-      "destination": "/contributer-page/project.html" 
+    {
+      "source": "/support",
+      "destination": "/contributer-page/support.html"
     },
-    { 
-      "source": "/project/:match*", 
-      "destination": "/contributer-page/project.html" 
-    },
-    { 
-      "source": "/support", 
-      "destination": "/contributer-page/support.html" 
-    },
-    { 
-      "source": "/support/:match*", 
-      "destination": "/contributer-page/support.html" 
-    },
-    { 
-      "source": "/payment-status", 
-      "destination": "/payment-status.html" 
+    {
+      "source": "/payment-status",
+      "destination": "/payment-status.html"
     }
   ],
   "headers": [
