@@ -1,0 +1,37 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { 
+      "source": "/form/:slug*", 
+      "destination": "/public-form.html" 
+    },
+    { 
+      "source": "/org", 
+      "destination": "/contributer-page/org.html" 
+    },
+    { 
+      "source": "/project", 
+      "destination": "/contributer-page/project.html" 
+    },
+    { 
+      "source": "/support", 
+      "destination": "/contributer-page/support.html" 
+    },
+    { 
+      "source": "/pardarshi-page/(.*)", 
+      "destination": "/pardarshi-page/$1.html" 
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*\\.html)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, must-revalidate"
+        }
+      ]
+    }
+  ]
+}
