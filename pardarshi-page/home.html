@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PARDARSHI - Base Template</title>
+    <!-- Standard Favicon for Chrome/Edge -->
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+
+<!-- Apple Touch Icon for Safari & iOS -->
+<link rel="apple-touch-icon" href="/logo-1.png">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- UI css of Sidebar -->
+    <link rel="stylesheet" href="style/structure.css">
+
+    <!--Ui css for DASHBOARD SPECIFIC STYLES -->
+    <link rel="stylesheet" href="style/home.css">
+
+    <style>
+        /* ==========================================================
+           1. OVERRIDE FOR DATA TEXT & FORCING WRAP
+           ========================================================== */
+        .data-value-faint {
+            font-size: 14px;
+            color: var(--text-main); 
+            font-weight: 500; 
+            margin: 0;
+            word-break: break-word !important;
+            overflow-wrap: break-word !important;
+        }
+
+        /* ==========================================================
+           2. PC SIDEBAR FIX (Allows content to shrink when sidebar opens)
+           ========================================================== */
+        .dash-card, .dash-col, .dash-grid, .profile-info-layout, .data-grid {
+            min-width: 0 !important; 
+        }
+
+        /* ==========================================================
+           3. MOBILE-ONLY FIXES (Does not affect PC layout at all)
+           ========================================================== */
+        @media (max-width: 768px) {
+            /* Shrink the huge 30px inline padding on mobile to give cards room */
+            .dashboard-content {
+                padding: 15px !important; 
+                padding-bottom: 80px !important; 
+                box-sizing: border-box !important;
+                overflow-x: hidden !important;
+            }
+
+            /* Keep image left, text right, but allow the text side to shrink */
+            .profile-info-layout {
+                gap: 15px !important;
+                flex-wrap: nowrap !important; 
+            }
+            
+            /* Slightly shrink the logo to fit mobile screens better */
+            .profile-pic-wrapper {
+                width: 85px !important;
+                height: 85px !important;
+            }
+
+            /* Force the 3 bottom columns (Year, Type, Category) to fit evenly */
+            .data-grid-3 {
+                grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+                gap: 8px !important;
+                padding-top: 15px !important;
+                margin-top: 15px !important;
+            }
+            .data-grid-3 .data-label {
+                font-size: 11px !important; 
+            }
+            .data-grid-3 .data-value-faint {
+                font-size: 12px !important; 
+            }
+        }
+
+        /* ==========================================================
+           4. LAYOUT STABILITY FIX (Prevents Sidebar from Shrinking)
+           ========================================================== */
+        .sidebar {
+            flex-shrink: 0 !important;
+        }
+        .main-wrapper {
+            min-width: 0 !important;
+            flex-grow: 1;
+            overflow-x: hidden;
+        }
+        #real-dashboard-data {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* -------------------------------------
+           SKELETON LOADER & SPINNER STYLES
+        -------------------------------------- */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+        .skeleton {
+            animation: pulse 1.5s infinite ease-in-out;
+            background-color: #e2e8f0;
+            border-radius: 4px;
+        }
+        .sk-circle { width: 100px; height: 100px; border-radius: 50%; flex-shrink: 0; }
+        .sk-title { height: 24px; width: 40%; margin-bottom: 20px; }
+        .sk-text { height: 14px; width: 100%; margin-bottom: 12px; }
+        .sk-text-short { height: 14px; width: 60%; margin-bottom: 12px; }
+        
+        .upload-spinner-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.7);
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; z-index: 20;
+        }
+
+        /* --- MODERN PAYMENT TABS --- */
+        .pay-tabs { display: flex; background: #f1f5f9; border-radius: 10px; padding: 5px; margin-bottom: 20px; }
+        .pay-tab { flex: 1; text-align: center; padding: 10px; border: none; background: transparent; color: #64748b; font-weight: 600; font-size: 14px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+        .pay-tab.active { background: white; color: #0c5ad1; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .payment-input-wrap { padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 12px; }
+        .payment-input { width: 100%; border: none; background: transparent; font-family: inherit; font-size: 14px; font-weight: 600; color: #334155; outline: none; }
+    </style>
+</head>
+
+<body class="preload">
+
+    <!-- Hidden file input for Profile Picture uploads -->
+    <input type="file" id="profile-pic-upload" accept="image/*" style="display: none;">
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="sidebar">
+        <!-- IMAGE LOGOS -->
+        <div class="sidebar-logo">
+            <img src="logo-1.png" alt="Logo" class="logo-small">
+            <img src="logo.png" alt="Full Logo" class="logo-large">
+        </div>
+
+        <!-- NEW TOGGLE BUTTON -->
+        <div class="sidebar-toggle" id="sidebarToggle">>></div>
+
+        <nav class="nav-links">
+            <a href="home.html" class="nav-item">
+                <i class="fa-solid fa-house"></i>
+                <span>Home</span>
+            </a>
+            <a href="forms.html" class="nav-item">
+                <i class="fa-solid fa-file-lines"></i>
+                <span>Forms</span>
+            </a>
+            <a href="transactions.html" class="nav-item">
+                <i class="fa-solid fa-wallet"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="admin-support.html" class="nav-item">
+                <i class="fa-solid fa-headset"></i>
+                <span>Support</span>
+            </a>
+        </nav>
+
+        <!-- account section -->
+        <a href="register.html" class="account-section">
+            <div class="account-unregistered" id="unregistered-state">
+                <img src="https://ui-avatars.com/api/?name=Guest&background=e2e8f0&color=64748b" alt="Guest" class="profile-pic">
+                <span class="username">Please Register</span>
+            </div>
+            <div class="account-registered" id="registered-state" style="display: none;">
+                <img src="https://ui-avatars.com/api/?name=User&background=3b82f6&color=fff" alt="Profile" class="profile-pic">
+                <span class="username">User Profile</span>
+            </div>
+        </a>
+    </aside>
+
+    <!-- MAIN CONTENT WRAPPER -->
+    <main class="main-wrapper">
+        
+        <!-- HIDDEN HEADER TO FIX SIDEBAR MATH -->
+        <header class="top-header" style="display: none;"></header>
+
+        <!-- AREA FOR DYNAMIC PAGE CONTENT -->
+        <div class="dashboard-content" style="padding: 30px; padding-bottom: 80px; overflow-y: auto; height: 100vh; box-sizing: border-box;">
+
+            <!-- Dashboard Header -->
+            <div class="dash-header">
+                <div class="dash-greeting">
+                    <h1><i class="fa-solid fa-hexagon-nodes"></i> Good Morning</h1>
+                    <p>Manage your organization profile and team settings</p>
+                </div>
+                <div class="dash-org-selector">
+                    <div class="heart-icon"><i class="fa-solid fa-heart"></i></div>
+                    <span style="font-size: 14px; font-weight: 500; color: #334155;">Select Organization</span>
+                    <i class="fa-solid fa-chevron-down" style="font-size: 12px; color: #94a3b8;"></i>
+                </div>
+            </div>
+
+            <!-- SKELETON LOADER CONTAINER -->
+            <div id="skeleton-dashboard" class="dash-grid">
+                <!-- Left Column Skeleton -->
+                <div class="dash-col">
+                    <div class="dash-card">
+                        <div class="skeleton sk-title"></div>
+                        <div style="display: flex; gap: 24px; margin-bottom: 24px;">
+                            <div class="skeleton sk-circle"></div>
+                            <div style="flex-grow: 1;">
+                                <div class="skeleton sk-text"></div>
+                                <div class="skeleton sk-text"></div>
+                                <div class="skeleton sk-text-short"></div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 16px;"><div class="skeleton sk-text"></div><div class="skeleton sk-text"></div></div>
+                    </div>
+                    <div class="dash-card">
+                        <div class="skeleton sk-title"></div>
+                        <div class="skeleton sk-text"></div>
+                        <div class="skeleton sk-text-short"></div>
+                    </div>
+                </div>
+                <!-- Right Column Skeleton -->
+                <div class="dash-col">
+                    <div class="dash-card">
+                        <div class="skeleton sk-title"></div>
+                        <div style="display: flex; gap: 16px; margin-bottom: 16px;"><div class="skeleton sk-circle" style="width:40px; height:40px;"></div><div style="flex-grow:1;"><div class="skeleton sk-text"></div></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REAL DATA CONTAINER (Hidden initially) -->
+            <div id="real-dashboard-data" style="display: none;">
+                
+                <!-- Main Dashboard Grid -->
+                <div class="dash-grid">
+
+                    <!-- LEFT COLUMN -->
+                    <div class="dash-col">
+
+                        <!-- Profile Info Card -->
+                        <div class="dash-card">
+                            <div class="dash-card-header">
+                                <h2 class="dash-card-title">Profile Info</h2>
+                            </div>
+
+                            <div class="profile-info-layout">
+                                <!-- Profile Pic with Edit Border Icon -->
+                                <div class="profile-pic-wrapper">
+                                    <div class="profile-pic-circle">
+                                        <i class="fa-regular fa-user"></i>
+                                    </div>
+                                    <div class="profile-edit-icon" onclick="triggerImageUpload()">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </div>
+                                </div>
+
+                                <!-- Faint Data Display -->
+                                <div class="data-grid">
+                                    <div>
+                                        <label class="data-label">Organization Name</label>
+                                        <p class="data-value-faint" id="display-org-name">Loading name...</p>
+                                    </div>
+                                    <div>
+                                        <label class="data-label">Organization Email</label>
+                                        <p class="data-value-faint" id="display-org-email">Loading email...</p>
+                                    </div>
+                                    <div>
+                                        <label class="data-label">Organization Mobile</label>
+                                        <p class="data-value-faint" id="display-org-mobile">Loading mobile...</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 3 Column Bottom Data -->
+                            <div class="data-grid-3">
+                                <div>
+                                    <label class="data-label">Establish Year</label>
+                                    <p class="data-value-faint" id="display-org-year">----</p>
+                                </div>
+                                <div>
+                                    <label class="data-label">Type</label>
+                                    <p class="data-value-faint" id="display-org-type">Loading type...</p>
+                                </div>
+                                <div>
+                                    <label class="data-label">Category</label>
+                                    <p class="data-value-faint" id="display-org-category">Loading category...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Description Card -->
+                        <div class="dash-card">
+                            <div class="dash-card-header">
+                                <h2 class="dash-card-title">Description</h2>
+                                <button class="btn-red-pill">Edit</button>
+                            </div>
+                            <div class="desc-box" id="display-org-desc">
+                                Server will load organization description here...
+                            </div>
+                        </div>
+
+                        <!-- Organization Address Card -->
+                        <div class="dash-card">
+                            <h2 class="dash-card-title" style="margin-bottom: 20px;">Organization Address</h2>
+                            <div class="data-grid-3" style="margin-top:0; padding-top:0; border:none;">
+                                <div>
+                                    <label class="data-label">City</label>
+                                    <p class="data-value-faint" id="display-org-city"></p>
+                                </div>
+                                <div>
+                                    <label class="data-label">State</label>
+                                    <p class="data-value-faint" id="display-org-state">Loading state...</p>
+                                </div>
+                                <div>
+                                    <label class="data-label">District</label>
+                                    <p class="data-value-faint" id="display-org-district">Loading district...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- RIGHT COLUMN -->
+                    <div class="dash-col">
+
+                        <!-- Organization Members Card -->
+                        <div class="dash-card">
+                            <div class="dash-card-header">
+                                <h2 class="dash-card-title">Organization Members</h2>
+                                <button class="btn-red-pill" id="btn-toggle-add-member">
+                                    <i class="fa-solid fa-plus"></i> Add Members
+                                </button>
+                            </div>
+
+                            <!-- SEARCH UI (Hidden initially) -->
+                            <div id="add-member-section" style="display: none; padding: 15px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 15px; background: #f8fafc;">
+                                <p style="font-size: 11px; color: #64748b; margin-bottom: 8px; font-weight: 500;">
+                                    Note: Member must first register on PARDARSHI
+                                </p>
+                                <div style="display: flex; gap: 10px;">
+                                    <input type="text" id="search-member-mobile" placeholder="Enter mobile number" style="flex-grow: 1; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; font-size: 14px; outline: none;">
+                                    <button id="btn-search-member" style="background: #3b82f6; color: white; border: none; border-radius: 8px; width: 45px; cursor: pointer; transition: 0.2s;">
+                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- SEARCH RESULT (Hidden initially) -->
+                                <div id="search-member-result" style="display: none; margin-top: 15px; align-items: center; justify-content: space-between; background: white; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div id="search-result-avatar" style="width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-weight: 600; color: #64748b; font-size: 14px;">
+                                        </div>
+                                        <div>
+                                            <p id="search-result-name" class="data-value-faint" style="font-weight: 600; color: #334155;"></p>
+                                            <p id="search-result-status" style="font-size: 12px; color: #64748b; margin: 0;"></p>
+                                        </div>
+                                    </div>
+                                    <!-- Action Buttons (+ and x) -->
+                                    <div style="display: flex; gap: 8px;">
+                                        <input type="hidden" id="search-result-id">
+                                        <button id="btn-confirm-add" style="background: #22c55e; color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px;">
+                                            <i class="fa-solid fa-plus"></i>
+                                        </button>
+                                        <button id="btn-cancel-add" style="background: #ef4444; color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px;">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Container where JS will inject members -->
+                            <div id="members-list-container">
+                                <!-- Members will load here -->
+                            </div>
+
+                        </div>
+
+                        <!-- WhatsApp Number Card -->
+                        <div class="dash-card">
+                            <div class="dash-card-header">
+                                <h2 class="dash-card-title">WhatsApp Number</h2>
+                                <button class="btn-red-pill">Edit</button>
+                            </div>
+                            <p class="data-label" style="line-height: 1.5; margin-bottom: 16px;">Register your
+                                organization's WhatsApp number to receive updates and notifications.</p>
+
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <div class="whatsapp-icon-circle">
+                                    <i class="fa-brands fa-whatsapp"></i>
+                                </div>
+
+                                <div class="desc-box" id="display-whatsapp-number"
+                                    style="flex-grow: 1; padding: 5px 7px; margin: 0; display: flex; align-items: center; min-height: 45px;">
+                                    Loading WhatsApp number...
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Receiving Accounts Card -->
+                        <div class="dash-card">
+                            <div class="dash-card-header">
+                                <h2 class="dash-card-title">Receiving Account</h2>
+                                <button class="btn-red-pill" id="btn-edit-payment">Edit</button>
+                            </div>
+                            <p class="data-label" style="line-height: 1.5; margin-bottom: 16px;">Add your organization's bank or UPI details to automatically receive direct donations.</p>
+
+                            <!-- Modern Tab Toggle -->
+                            <div class="pay-tabs">
+                                <button class="pay-tab active" id="tab-upi" onclick="switchPayTab('upi')">UPI ID</button>
+                                <button class="pay-tab" id="tab-bank" onclick="switchPayTab('bank')">Bank Account</button>
+                            </div>
+
+                            <!-- UPI Section -->
+                            <div id="section-upi">
+                                <label class="data-label" style="margin-bottom: 6px;">Registered UPI ID</label>
+                                <div class="payment-input-wrap">
+                                    <div id="display-upi" class="data-value-faint" style="font-weight: 600;">Loading...</div>
+                                </div>
+                            </div>
+
+                            <!-- Bank Section -->
+                            <div id="section-bank" style="display: none;">
+                                <label class="data-label" style="margin-bottom: 6px;">Account Holder Name</label>
+                                <div class="payment-input-wrap">
+                                    <div id="display-bank-name" class="data-value-faint" style="font-weight: 600;">Loading...</div>
+                                </div>
+
+                                <label class="data-label" style="margin-bottom: 6px;">Account Number</label>
+                                <div class="payment-input-wrap">
+                                    <div id="display-bank-acc" class="data-value-faint" style="font-weight: 600;">Loading...</div>
+                                </div>
+
+                                <label class="data-label" style="margin-bottom: 6px;">IFSC Code</label>
+                                <div class="payment-input-wrap" style="margin-bottom: 0;">
+                                    <div id="display-bank-ifsc" class="data-value-faint" style="font-weight: 600;">Loading...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- PREVIOUS PROJECTS SECTION -->
+                <div class="projects-section-header">
+                    <h2 class="projects-title">Previous Projects</h2>
+                    <!-- Add Project button removed -->
+                </div>
+
+                <!-- Container for Dynamic API rendering -->
+                <div id="projects-container">
+                    <!-- Project Cards will be injected here -->
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MOBILE BOTTOM NAVIGATION -->
+    <nav class="mobile-bottom-nav">
+        <a href="home.html" class="bottom-nav-item"><i class="fa-solid fa-house"></i></a>
+        <a href="forms.html" class="bottom-nav-item"><i class="fa-solid fa-file-lines"></i></a>
+        <a href="transactions.html" class="bottom-nav-item"><i class="fa-solid fa-wallet"></i></a>
+        <a href="admin-support.html" class="bottom-nav-item"><i class="fa-solid fa-headset"></i></a>
+    </nav>
+
+    <!-- MOBILE DRAWER -->
+    <div class="mobile-drawer" id="mobileDrawer">
+        <i class="fa-solid fa-xmark drawer-close" onclick="toggleMobileDrawer()"></i>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <img src="https://ui-avatars.com/api/?name=User&background=3b82f6&color=fff&size=100" alt="Profile"
+                style="border-radius: 50%;">
+            <h3 style="margin-top: 15px; color: var(--text-light);">User Name</h3>
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">user@example.com</p>
+            <a href="register.html" style="text-decoration: none;">
+                <button class="drawer-manage-btn">
+                    <i class="fa-solid fa-user"></i> Manage Account
+                </button>
+            </a>
+        </div>
+    </div>
+
+    <!-- DELETE PROJECT MODAL -->
+    <div id="delete-project-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
+        <div style="background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            <h2 style="margin-top: 0; color: #ef4444; font-size: 20px;"><i class="fa-solid fa-triangle-exclamation"></i> Delete Project</h2>
+            
+            <div style="background: #fef2f2; border: 1px solid #f87171; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <p style="margin: 0 0 10px 0; font-size: 14px; color: #991b1b; font-weight: 600;">Warning: Deleting this project will permanently affect your transactions!</p>
+                <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #991b1b; line-height: 1.5;">
+                    <li>Your expenses records related to this project will be deleted.</li>
+                    <li>Your funding records related to this project will be deleted.</li>
+                </ul>
+                <p style="margin: 10px 0 0 0; font-size: 13px; color: #991b1b; font-weight: 600;">The remaining balance will be automatically managed to your main account.</p>
+            </div>
+            
+            <!-- Download Records Button -->
+            <button id="btn-download-records" style="width: 100%; background: #3b82f6; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; margin-bottom: 20px; font-weight: 600; transition: 0.2s;">
+                <i class="fa-solid fa-file-pdf"></i> Download Project Records (PDF)
+            </button>
+
+            <!-- Confirmation Input -->
+            <label style="display: block; font-size: 13px; color: #334155; margin-bottom: 8px;">
+                To confirm, type the project name <b>"<span id="delete-modal-project-name"></span>"</b> below:
+            </label>
+            <input type="text" id="delete-project-input" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 20px; box-sizing: border-box; outline: none; font-size: 14px;" autocomplete="off" placeholder="Project Name">
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 10px;">
+                <button id="btn-cancel-delete" style="flex: 1; padding: 12px; background: #e2e8f0; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: #475569; transition: 0.2s;">Cancel</button>
+                <button id="btn-confirm-delete" style="flex: 1; padding: 12px; background: #ef4444; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.5;" disabled>
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- UI Interaction Script of Sidebar -->
+    <script src="script/structure.js"></script>
+
+    <!-- DASHBOARD API INTEGRATION SCRIPT -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Corrected Configuration
+            const BASE_URL = 'https://pardarshi-server-1.onrender.com'; 
+            
+            // Handle Auth Token and State
+            const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+            const orgId = localStorage.getItem('currentOrgId');
+            const currentUserRole = localStorage.getItem('currentOrgRole') || 'viewer';
+
+            // EXTRACT LOGGED IN USER ID TO PREVENT SELF-DELETION
+            let currentUserId = null;
+            try {
+                const userObj = JSON.parse(localStorage.getItem('user'));
+                if (userObj) currentUserId = userObj.userId;
+            } catch(e) {}
+
+            // ==========================================
+            // NON-MEMBER STATE HANDLING
+            // ==========================================
+            if (!orgId || orgId === "null" || orgId === "undefined") {
+                // Hide skeleton and header
+                document.getElementById('skeleton-dashboard').style.display = 'none';
+                document.querySelector('.dash-header').style.display = 'none';
+                
+                // Show friendly "Not Connected" message
+                const noOrgDiv = document.createElement('div');
+                noOrgDiv.style.cssText = "text-align: center; margin-top: 80px; padding: 50px 30px; background: white; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); max-width: 600px; margin-left: auto; margin-right: auto;";
+                noOrgDiv.innerHTML = `
+                    <div style="width: 80px; height: 80px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
+                        <i class="fa-solid fa-building-circle-xmark" style="font-size: 35px; color: #94a3b8;"></i>
+                    </div>
+                    <h2 style="color: #334155; margin-bottom: 15px; font-size: 24px; font-weight: 700;">First, you need to connect to an organization.</h2>
+                    <p style="color: #64748b; font-size: 16px; line-height: 1.5; margin-bottom: 0;">Request your organization owner to add your registered mobile number to their members list.</p>
+                `;
+                document.querySelector('.dashboard-content').appendChild(noOrgDiv);
+                
+                // Return here so it does NOT try to fetch API data
+                return; 
+            }
+
+            if (!token) {
+                console.warn("⚠️ No auth token found! The PARDASHI will block these requests.");
+            }
+
+           
+           // RESTRICT UI FOR NON-OWNERS
+            if (currentUserRole !== 'owner') {
+                // 1. Hide Add Members button
+                const addMemberBtn = document.getElementById('btn-toggle-add-member');
+                if (addMemberBtn) addMemberBtn.style.display = 'none';
+
+                // 2. Hide Payment Details Edit button
+                const editPaymentBtn = document.getElementById('btn-edit-payment');
+                if (editPaymentBtn) editPaymentBtn.style.display = 'none';
+
+                // 3. Hide all other general Edit buttons (Description, WhatsApp, etc.)
+                document.querySelectorAll('.dash-card-header .btn-red-pill').forEach(btn => {
+                    if (btn.textContent.trim() === 'Edit') {
+                        btn.style.display = 'none';
+                    }
+                });
+
+                // 4. Disable Profile Picture clicking
+                const profileEditIcon = document.querySelector('.profile-edit-icon');
+                if (profileEditIcon) profileEditIcon.style.display = 'none';
+            }
+
+            const fetchOptionsJson = {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            };
+
+            const fetchOptionsForm = {
+                headers: {
+                    'Authorization': `Bearer ${token}` // No content type for FormData
+                }
+            };
+
+            // Initialize Dashboard
+            loadDashboardData();
+
+            async function loadDashboardData() {
+                try {
+                    await Promise.all([
+                        fetchOrganizationData(),
+                        fetchMembersData(),
+                        fetchProjectsData()
+                    ]);
+                    // Hide skeleton and show real data smoothly
+                    document.getElementById('skeleton-dashboard').style.display = 'none';
+                    document.getElementById('real-dashboard-data').style.display = 'block';
+                } catch (error) {
+                    console.error("Dashboard Loading Error:", error);
+                }
+            }
+
+            // ==========================================
+            // EDIT PROFILE PICTURE
+            // ==========================================
+            const picInput = document.getElementById('profile-pic-upload');
+            
+            window.triggerImageUpload = function() {
+                picInput.click();
+            };
+
+            picInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const formData = new FormData();
+                formData.append('profile_pic', file);
+
+                // UI Loading State Elements
+                const editBtn = document.querySelector('.profile-edit-icon');
+                const picCircle = document.querySelector('.profile-pic-circle');
+                
+                // Disable button and show spinner
+                editBtn.style.pointerEvents = 'none';
+                editBtn.style.opacity = '0.5';
+                picCircle.insertAdjacentHTML('beforeend', '<div class="upload-spinner-overlay" id="pic-spinner"><i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: #3b82f6;"></i></div>');
+
+                try {
+                    const response = await fetch(`${BASE_URL}/api/organization/${orgId}`, {
+                        method: 'PUT',
+                        headers: fetchOptionsForm.headers,
+                        body: formData
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        loadDashboardData(); 
+                    } else {
+                        alert(result.message || 'Failed to update picture.');
+                    }
+                } catch (error) {
+                    console.error('Error uploading image:', error);
+                    alert('Failed to upload image.');
+                } finally {
+                    // Restore UI State
+                    editBtn.style.pointerEvents = 'auto';
+                    editBtn.style.opacity = '1';
+                    const spinner = document.getElementById('pic-spinner');
+                    if (spinner) spinner.remove();
+                }
+            });
+
+            // ==========================================
+            // EDIT TEXT FIELDS (Description & WhatsApp)
+            // ==========================================
+            document.querySelectorAll('.dash-card-header .btn-red-pill').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const card = this.closest('.dash-card');
+                    const title = card.querySelector('.dash-card-title').textContent;
+                    
+                    // Prevent this from interfering with Add Members button
+                    if(this.id === 'btn-toggle-add-member') return; 
+                    
+                    if (title === 'Description') {
+                        toggleEditState(this, 'display-org-desc', 'description', true);
+                    } else if (title === 'WhatsApp Number') {
+                        toggleEditState(this, 'display-whatsapp-number', 'whatsapp_number', false);
+                    }
+                });
+            });
+
+            async function toggleEditState(button, displayId, apiField, isTextArea) {
+                const displayBox = document.getElementById(displayId);
+                const isEditing = button.textContent === 'Save';
+
+                if (!isEditing) {
+                    // SWITCH TO EDIT MODE
+                    const currentText = displayBox.textContent.trim();
+                    button.textContent = 'Save';
+                    button.style.backgroundColor = '#22c55e'; 
+                    
+                    if (isTextArea) {
+                        displayBox.innerHTML = `<textarea id="input-${displayId}" style="width: 100%; min-height: 100px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; font-family: inherit; font-size: 14px;">${currentText}</textarea>`;
+                    } else {
+                        displayBox.innerHTML = `<input type="text" id="input-${displayId}" value="${currentText}" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; font-family: inherit; font-size: 14px;">`;
+                    }
+                } else {
+                    // SAVE CHANGES TO BACKEND
+                    const newValue = document.getElementById(`input-${displayId}`).value;
+                    button.textContent = 'Saving...';
+
+                    // Use FormData because backend uses upload.single() middleware
+                    const formData = new FormData();
+                    formData.append(apiField, newValue);
+
+                    try {
+                        const response = await fetch(`${BASE_URL}/api/organization/${orgId}`, {
+                            method: 'PUT',
+                            headers: fetchOptionsForm.headers,
+                            body: formData
+                        });
+                        
+                        const result = await response.json();
+                        if (result.success) {
+                            displayBox.innerHTML = newValue;
+                            button.textContent = 'Edit';
+                            button.style.backgroundColor = 'var(--red-btn)'; 
+                        } else {
+                            alert('Failed to save changes.');
+                            button.textContent = 'Save';
+                            button.style.backgroundColor = '#22c55e';
+                        }
+                    } catch (error) {
+                        console.error('Error saving data:', error);
+                        alert('An error occurred while saving.');
+                        button.textContent = 'Save';
+                        button.style.backgroundColor = '#22c55e';
+                    }
+                }
+            }
+
+            // ==========================================
+            // 1. FETCH & RENDER ORGANIZATION INFO
+            // ==========================================
+            async function fetchOrganizationData() {
+                try {
+                    const response = await fetch(`${BASE_URL}/api/organization/${orgId}/home`, fetchOptionsJson);
+                    const result = await response.json();
+
+                    if (result.success && result.data) {
+                        const org = result.data;
+                        document.getElementById('display-org-name').textContent = org.name || 'Not provided';
+                        document.getElementById('display-org-email').textContent = org.email || 'Not provided';
+                        document.getElementById('display-org-mobile').textContent = org.mobile_no || 'Not provided';
+                        document.getElementById('display-org-year').textContent = org.established_year || '----';
+                        document.getElementById('display-org-type').textContent = org.type || 'Not provided';
+                        document.getElementById('display-org-category').textContent = org.category || 'Not provided';
+                        document.getElementById('display-org-desc').textContent = org.description || 'No description available.';
+                        document.getElementById('display-org-city').textContent = org.city || 'Not provided';
+                        document.getElementById('display-org-state').textContent = org.state || 'Not provided';
+                        document.getElementById('display-org-district').textContent = org.district || 'Not provided';
+                        document.getElementById('display-whatsapp-number').textContent = org.whatsapp_number || 'No WhatsApp registered.';
+
+                        // Render Payment Data
+                        document.getElementById('display-upi').textContent = org.upi_id || 'Not provided';
+                        document.getElementById('display-bank-name').textContent = org.bank_account_name || 'Not provided';
+                        document.getElementById('display-bank-acc').textContent = org.bank_account_number || 'Not provided';
+                        document.getElementById('display-bank-ifsc').textContent = org.bank_ifsc_code || 'Not provided';
+
+                        if (org.profile_pic_url) {
+                            const fullUrl = org.profile_pic_url.startsWith('http') ? org.profile_pic_url : `${BASE_URL}${org.profile_pic_url}`;
+                            const picContainer = document.querySelector('.profile-pic-circle');
+                            picContainer.innerHTML = `<img src="${fullUrl}" alt="Logo" style="width: 100%; height: 100%; object-fit: cover;">`;
+                        }
+                    }
+                } catch (error) {
+                    console.error("Failed to load organization data:", error);
+                }
+            }
+
+            // ==========================================
+            // 2. FETCH & RENDER MEMBERS
+            // ==========================================
+            async function fetchMembersData() {
+                try {
+                    const response = await fetch(`${BASE_URL}/api/member/${orgId}`, fetchOptionsJson);
+                    const result = await response.json();
+
+                    if (result.success && result.data) {
+                        const container = document.getElementById('members-list-container');
+                        if (!container) return;
+                        container.innerHTML = ''; // Clear existing list
+
+                        result.data.forEach(member => {
+                            const initials = member.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                            
+                            let fullAvatarUrl = null;
+                            if (member.profile_pic_url) {
+                                fullAvatarUrl = member.profile_pic_url.startsWith('http') ? member.profile_pic_url : `${BASE_URL}${member.profile_pic_url}`;
+                            }
+
+                            const avatarHtml = fullAvatarUrl
+                                ? `<img src="${fullAvatarUrl}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`
+                                : initials;
+                            
+                            const isOwner = currentUserRole === 'owner';
+                            const isSelf = String(currentUserId) === String(member.user_id);
+
+                            const removeBtnHTML = (isOwner && !isSelf) 
+                                ? `<span class="remove-text" onclick="removeMember('${member.user_id}')" style="cursor: pointer; color: #ef4444; font-size: 18px; font-weight: 600;" title="Remove Member"><i class="fa-solid fa-xmark"></i></span>`
+                                : ``;
+
+                            const roleUI = (isOwner && !isSelf) 
+                                ? `<select onchange="changeMemberRole(this, '${member.user_id}')" style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px; font-size: 13px; color: #334155; background: white; cursor: pointer; outline: none; width: 100%;">
+                                    <option value="viewer" ${member.role === 'viewer' ? 'selected' : ''}>Viewer</option>
+                                    <option value="editor" ${member.role === 'editor' ? 'selected' : ''}>Editor</option>
+                                    <option value="admin" ${member.role === 'admin' ? 'selected' : ''}>Admin</option>
+                                    <option value="owner" ${member.role === 'owner' ? 'selected' : ''}>Owner</option>
+                                   </select>`
+                                : `<span style="font-size: 13px; color: #334155; font-weight: 600; text-transform: capitalize;">${member.role}</span>`;
+
+                            const memberHTML = `
+                                <div class="member-item" style="display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #f1f5f9; gap: 15px;">
+                                    <div class="member-avatar" style="width: 45px; height: 45px; flex-shrink: 0; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; color: #64748b; overflow: hidden;">
+                                        ${avatarHtml}
+                                    </div>
+                                    <div style="flex: 1.5; display: flex; flex-direction: column; min-width: 0;">
+                                        <span style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 2px;">Name</span>
+                                        <span style="color: #334155; font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${member.name}</span>
+                                    </div>
+                                    <div style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
+                                        <span style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 2px;">Mobile</span>
+                                        <span style="color: #64748b; font-size: 13px;">${member.mobile_no || 'N/A'}</span>
+                                    </div>
+                                    <div style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
+                                        <span style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 2px;">Role</span>
+                                        <div style="margin-top: 1px;">${roleUI}</div>
+                                    </div>
+                                    <div style="margin-left: auto;">
+                                        ${removeBtnHTML}
+                                    </div>
+                                </div>
+                            `;
+                            container.insertAdjacentHTML('beforeend', memberHTML);
+                        });
+                    }
+                } catch (error) {
+                    console.error("Failed to load members data:", error);
+                }
+            }
+
+            // ==========================================
+            // MEMBER MANAGEMENT LOGIC (Search, Add, Edit, Remove)
+            // ==========================================
+            const btnToggleAdd = document.getElementById('btn-toggle-add-member');
+            const addSection = document.getElementById('add-member-section');
+            const btnSearch = document.getElementById('btn-search-member');
+            const searchResult = document.getElementById('search-member-result');
+            const btnConfirmAdd = document.getElementById('btn-confirm-add');
+            const btnCancelAdd = document.getElementById('btn-cancel-add');
+
+            if (btnToggleAdd) {
+                btnToggleAdd.addEventListener('click', () => {
+                    const isHidden = addSection.style.display === 'none';
+                    addSection.style.display = isHidden ? 'block' : 'none';
+                    if (!isHidden) {
+                        searchResult.style.display = 'none';
+                        document.getElementById('search-member-mobile').value = '';
+                    }
+                });
+            }
+
+            if (btnSearch) {
+                btnSearch.addEventListener('click', async () => {
+                    const mobile = document.getElementById('search-member-mobile').value.trim();
+                    if (!mobile) return alert("Please enter a mobile number");
+                    
+                    btnSearch.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+                    
+                    try {
+                        const res = await fetch(`${BASE_URL}/api/member/${orgId}/search/${mobile}`, fetchOptionsJson);
+                        const result = await res.json();
+                        
+                        if (result.success) {
+                            const user = result.data;
+                            document.getElementById('search-result-name').textContent = user.name;
+                            document.getElementById('search-result-id').value = user.user_id;
+                            
+                            let avatarHtml = user.name.substring(0, 2).toUpperCase();
+                            if (user.profile_pic_url) {
+                                const url = user.profile_pic_url.startsWith('http') ? user.profile_pic_url : `${BASE_URL}${user.profile_pic_url}`;
+                                avatarHtml = `<img src="${url}" style="width:100%; height:100%; object-fit:cover;">`;
+                            }
+                            document.getElementById('search-result-avatar').innerHTML = avatarHtml;
+                            
+                            if (user.member_status === 'active') {
+                                document.getElementById('search-result-status').textContent = `Already a member (${user.member_role})`;
+                                btnConfirmAdd.style.display = 'none'; 
+                            } else {
+                                document.getElementById('search-result-status').textContent = 'Found on platform';
+                                btnConfirmAdd.style.display = 'flex'; 
+                            }
+                            searchResult.style.display = 'flex';
+                        } else {
+                            alert(result.message || "User not found. They must register first.");
+                            searchResult.style.display = 'none';
+                        }
+                    } catch (error) {
+                        alert("Search failed. Please try again.");
+                    } finally {
+                        btnSearch.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i>';
+                    }
+                });
+            }
+
+            if (btnCancelAdd) {
+                btnCancelAdd.addEventListener('click', () => {
+                    searchResult.style.display = 'none';
+                    document.getElementById('search-member-mobile').value = '';
+                });
+            }
+
+            if (btnConfirmAdd) {
+                btnConfirmAdd.addEventListener('click', async () => {
+                    const userId = document.getElementById('search-result-id').value;
+                    btnConfirmAdd.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                    
+                    try {
+                        const res = await fetch(`${BASE_URL}/api/member/${orgId}/add`, {
+                            method: 'POST',
+                            headers: fetchOptionsJson.headers,
+                            body: JSON.stringify({ user_id: userId, role: 'viewer' })
+                        });
+                        const result = await res.json();
+                        
+                        if (result.success) {
+                            searchResult.style.display = 'none';
+                            document.getElementById('search-member-mobile').value = '';
+                            addSection.style.display = 'none'; 
+                            fetchMembersData(); 
+                        } else {
+                            alert(result.message);
+                        }
+                    } catch (error) {
+                        alert("Failed to add member.");
+                    } finally {
+                        btnConfirmAdd.innerHTML = '<i class="fa-solid fa-plus"></i>';
+                    }
+                });
+            }
+
+            window.changeMemberRole = async function(selectElement, userId) {
+                const newRole = selectElement.value;
+                selectElement.disabled = true;
+                try {
+                    const res = await fetch(`${BASE_URL}/api/member/${orgId}/add`, {
+                        method: 'POST',
+                        headers: fetchOptionsJson.headers,
+                        body: JSON.stringify({ user_id: userId, role: newRole })
+                    });
+                    const result = await res.json();
+                    if (!result.success) {
+                        alert(result.message);
+                        fetchMembersData(); 
+                    }
+                } catch (e) {
+                    alert("Failed to update role");
+                    fetchMembersData(); 
+                } finally {
+                    selectElement.disabled = false;
+                }
+            };
+
+            window.removeMember = async function(userId) {
+                if (!confirm("Are you sure you want to remove this member?")) return;
+                
+                try {
+                    const res = await fetch(`${BASE_URL}/api/member/${orgId}/remove/${userId}`, {
+                        method: 'DELETE',
+                        headers: fetchOptionsJson.headers
+                    });
+                    const result = await res.json();
+                    if (result.success) {
+                        fetchMembersData(); 
+                    } else {
+                        alert(result.message);
+                    }
+                } catch (error) {
+                    alert("Failed to remove member");
+                }
+            };
+
+            // ==========================================
+            // 3. FETCH & RENDER PROJECTS
+            // ==========================================
+            async function fetchProjectsData() {
+                try {
+                    const response = await fetch(`${BASE_URL}/api/project/${orgId}`, fetchOptionsJson);
+                    const result = await response.json();
+
+                    if (result.success && result.data) {
+                        const container = document.getElementById('projects-container');
+                        container.innerHTML = ''; 
+
+                        result.data.forEach(project => {
+                            const dateObj = new Date(project.created_at);
+                            const formattedDate = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+                            let images = [];
+                            try {
+                                images = typeof project.pictures === 'string' ? JSON.parse(project.pictures) : project.pictures;
+                            } catch (e) { }
+
+                            const firstImage = (images && images.length > 0 && images[0]) ? images[0] : null;
+                            let displayImage = `<i class="fa-regular fa-image placeholder-img"></i>`;
+
+                            if (firstImage) {
+                                const fullProjUrl = firstImage.startsWith('http') ? firstImage : `${BASE_URL}${firstImage}`;
+                                displayImage = `<img src="${fullProjUrl}" alt="Project" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px; position: absolute; top:0; left:0;">`;
+                            }
+
+                            // Inject openDeleteModal logic into the delete button
+                            const projectHTML = `
+                                <div class="project-card">
+                                    <div class="project-card-main">
+                                        <div class="project-image-area" style="position: relative; overflow: hidden;">
+                                            <button class="slider-arrow" style="position: relative; z-index: 10;"><i class="fa-solid fa-chevron-left"></i></button>
+                                            ${displayImage}
+                                            <button class="slider-arrow" style="position: relative; z-index: 10;"><i class="fa-solid fa-chevron-right"></i></button>
+                                        </div>
+                                        <div class="project-info-area">
+                                            <button class="btn-delete-project" title="Delete Project" onclick="openDeleteModal('${project.project_id}', '${project.name.replace(/'/g, "\\'")}')">
+                                                <i class="fa-regular fa-trash-can"></i>
+                                            </button>
+                                            <div>
+                                                <label class="data-label">Project Name</label>
+                                                <div class="project-fake-input" style="color: var(--text-main); font-weight: 500;">
+                                                    ${project.name}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="data-label">Project Description</label>
+                                                <div class="project-fake-textarea" style="height: auto; white-space: pre-wrap; word-wrap: break-word;">
+                                                    ${project.description || 'No description provided.'}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="project-card-footer">
+                                        <div class="project-date-info">
+                                            <i class="fa-regular fa-calendar"></i>
+                                            <div class="project-date-text">
+                                                <span>Date of Add</span>
+                                                <span>${formattedDate}</span>
+                                            </div>
+                                        </div>
+                                        <button class="btn-red-pill btn-details">
+                                            Details <i class="fa-solid fa-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+
+                            container.insertAdjacentHTML('beforeend', projectHTML);
+                        });
+                    }
+                } catch (error) {
+                    console.error("Failed to load projects data:", error);
+                }
+            }
+
+            // ==========================================
+            // PAYMENT DETAILS: TABS & EDIT LOGIC
+            // ==========================================
+            window.switchPayTab = function(type) {
+                if(type === 'upi') {
+                    document.getElementById('tab-upi').classList.add('active');
+                    document.getElementById('tab-bank').classList.remove('active');
+                    document.getElementById('section-upi').style.display = 'block';
+                    document.getElementById('section-bank').style.display = 'none';
+                } else {
+                    document.getElementById('tab-bank').classList.add('active');
+                    document.getElementById('tab-upi').classList.remove('active');
+                    document.getElementById('section-bank').style.display = 'block';
+                    document.getElementById('section-upi').style.display = 'none';
+                }
+            };
+
+            const btnEditPay = document.getElementById('btn-edit-payment');
+            if(btnEditPay) {
+                btnEditPay.addEventListener('click', async function() {
+                    const isEditing = this.textContent === 'Save';
+                    
+                    const upiBox = document.getElementById('display-upi');
+                    const bankNameBox = document.getElementById('display-bank-name');
+                    const bankAccBox = document.getElementById('display-bank-acc');
+                    const bankIfscBox = document.getElementById('display-bank-ifsc');
+
+                    if(!isEditing) {
+                        this.textContent = 'Save';
+                        this.style.backgroundColor = '#22c55e';
+                        
+                        upiBox.innerHTML = `<input type="text" id="input-upi" value="${upiBox.textContent === 'Not provided' ? '' : upiBox.textContent}" class="payment-input" placeholder="e.g. orgname@bank">`;
+                        bankNameBox.innerHTML = `<input type="text" id="input-bank-name" value="${bankNameBox.textContent === 'Not provided' ? '' : bankNameBox.textContent}" class="payment-input" placeholder="Name on account">`;
+                        bankAccBox.innerHTML = `<input type="text" id="input-bank-acc" value="${bankAccBox.textContent === 'Not provided' ? '' : bankAccBox.textContent}" class="payment-input" placeholder="Account Number">`;
+                        bankIfscBox.innerHTML = `<input type="text" id="input-bank-ifsc" value="${bankIfscBox.textContent === 'Not provided' ? '' : bankIfscBox.textContent}" class="payment-input" placeholder="IFSC Code">`;
+                        
+                    } else {
+                        this.textContent = 'Saving...';
+                        
+                        const upiVal = document.getElementById('input-upi').value.trim();
+                        const nameVal = document.getElementById('input-bank-name').value.trim();
+                        const accVal = document.getElementById('input-bank-acc').value.trim();
+                        const ifscVal = document.getElementById('input-bank-ifsc').value.trim();
+                        
+                        const formData = new FormData();
+                        formData.append('upi_id', upiVal);
+                        formData.append('bank_account_name', nameVal);
+                        formData.append('bank_account_number', accVal);
+                        formData.append('bank_ifsc_code', ifscVal);
+                        
+                        try {
+                            const response = await fetch(`${BASE_URL}/api/organization/${orgId}`, {
+                                method: 'PUT',
+                                headers: fetchOptionsForm.headers,
+                                body: formData
+                            });
+                            const result = await response.json();
+                            
+                            if (result.success) {
+                                upiBox.textContent = upiVal || 'Not provided';
+                                bankNameBox.textContent = nameVal || 'Not provided';
+                                bankAccBox.textContent = accVal || 'Not provided';
+                                bankIfscBox.textContent = ifscVal || 'Not provided';
+                                
+                                this.textContent = 'Edit';
+                                this.style.backgroundColor = 'var(--red-btn)';
+                            } else {
+                                alert('Failed to save payment details.');
+                                this.textContent = 'Save';
+                                this.style.backgroundColor = '#22c55e';
+                            }
+                        } catch (e) {
+                            alert('Error saving data.');
+                            this.textContent = 'Save';
+                            this.style.backgroundColor = '#22c55e';
+                        }
+                    }
+                });
+            }
+
+            // ==========================================
+            // DELETE PROJECT MODAL LOGIC
+            // ==========================================
+            let projectToDeleteId = null;
+            let projectToDeleteName = '';
+
+            window.openDeleteModal = function(projectId, projectName) {
+                projectToDeleteId = projectId;
+                projectToDeleteName = projectName;
+                
+                // Reset Modal UI
+                document.getElementById('delete-modal-project-name').textContent = projectName;
+                document.getElementById('delete-project-input').value = '';
+                
+                const confirmBtn = document.getElementById('btn-confirm-delete');
+                confirmBtn.disabled = true;
+                confirmBtn.style.opacity = '0.5';
+                confirmBtn.innerHTML = 'Delete';
+                
+                document.getElementById('btn-cancel-delete').disabled = false;
+                document.getElementById('btn-cancel-delete').style.opacity = '1';
+                document.getElementById('delete-project-input').disabled = false;
+                
+                // Show Modal
+                document.getElementById('delete-project-modal').style.display = 'flex';
+            };
+
+            document.getElementById('delete-project-input').addEventListener('input', function(e) {
+                const confirmBtn = document.getElementById('btn-confirm-delete');
+                if (e.target.value.trim() === projectToDeleteName.trim()) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.style.opacity = '1';
+                } else {
+                    confirmBtn.disabled = true;
+                    confirmBtn.style.opacity = '0.5';
+                }
+            });
+
+            document.getElementById('btn-cancel-delete').addEventListener('click', function() {
+                document.getElementById('delete-project-modal').style.display = 'none';
+            });
+
+            document.getElementById('btn-download-records').addEventListener('click', function() {
+                alert(`Downloading records for ${projectToDeleteName} in PDF format...`);
+                // Placeholder to connect your backend PDF route
+            });
+
+            document.getElementById('btn-confirm-delete').addEventListener('click', async function() {
+                const inputVal = document.getElementById('delete-project-input').value;
+                if (inputVal.trim() !== projectToDeleteName.trim()) return;
+
+                const confirmBtn = document.getElementById('btn-confirm-delete');
+                const cancelBtn = document.getElementById('btn-cancel-delete');
+                const inputField = document.getElementById('delete-project-input');
+                
+                // Loading State
+                confirmBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Deleting...';
+                confirmBtn.disabled = true;
+                cancelBtn.disabled = true;
+                cancelBtn.style.opacity = '0.5';
+                inputField.disabled = true;
+                inputField.value = '';
+
+                try {
+                    const response = await fetch(`${BASE_URL}/api/project/${orgId}/${projectToDeleteId}`, {
+                        method: 'DELETE',
+                        headers: fetchOptionsJson.headers
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        document.getElementById('delete-project-modal').style.display = 'none';
+                        loadDashboardData(); 
+                    } else {
+                        alert(result.error || 'Failed to delete project.');
+                        resetModalButtons(confirmBtn, cancelBtn, inputField);
+                    }
+                } catch (error) {
+                    console.error(error);
+                    alert('Server error while deleting project.');
+                    resetModalButtons(confirmBtn, cancelBtn, inputField);
+                }
+            });
+
+            function resetModalButtons(confirmBtn, cancelBtn, inputField) {
+                confirmBtn.innerHTML = 'Delete';
+                confirmBtn.disabled = false;
+                cancelBtn.disabled = false;
+                cancelBtn.style.opacity = '1';
+                inputField.disabled = false;
+            }
+
+        });
+    </script>
+
+</body>
+</html>

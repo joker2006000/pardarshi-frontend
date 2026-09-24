@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pardarshi - Form</title>
+       <!-- Standard Favicon for Chrome/Edge -->
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+
+<!-- Apple Touch Icon for Safari & iOS -->
+<link rel="apple-touch-icon" href="/logo-1.png">
+    <!-- Font Awesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Cashfree SDK (Required for payment popup) -->
+    <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+
+    <style>
+        /* === BASE STYLES === */
+        /* Added box-sizing to prevent mobile inputs from overflowing */
+        *, *::before, *::after { box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background-color: #f4f7fe;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 40px; /* Provides the gap between cards */
+        }
+
+        /* === 1. ORG PROFILE CARD (Restructured) === */
+        .dash-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        .profile-pic-wrapper {
+            width: 85px; height: 85px; flex-shrink: 0;
+            border-radius: 50%; border: 2px solid #e0e7ff; overflow: hidden; background: #eef2ff;
+        }
+        .profile-pic-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* === PROJECT DESCRIPTION ACCORDION === */
+        .project-desc-card {
+            background: #ffffff;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            overflow: hidden;
+        }
+        .desc-toggle-btn {
+            width: 100%; padding: 16px 20px; background: none; border: none; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+            font-family: inherit; font-size: 15px; font-weight: 700; color: #1e293b; text-align: left;
+        }
+        .desc-content-panel {
+            max-height: 0; overflow: hidden; transition: max-height 0.35s ease-out;
+            background: #ffffff; border-top: 1px solid #f1f5f9;
+        }
+        .desc-content-panel.open { max-height: 500px; overflow-y: auto; }
+        .desc-inner-text { padding: 18px 20px; font-size: 14px; line-height: 1.6; color: #475569; margin: 0; white-space: pre-line; }
+
+        /* === 2. DYNAMIC FORM (Old Style Merging) === */
+        .form-wrapper {
+            background-color: #fffefe;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .image-header-container {
+            position: relative; width: 100%; height: 400px; background-color: #ffffff;
+        }
+        .image-header-container img {
+            width: 100%; height: 100%; object-fit: cover;
+            -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+            mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+        }
+        #event-display-title {
+            position: absolute; top: 30px; left: 0; right: 0;
+            text-align: center; color: #ffffff; font-size: 35px;
+            font-weight: 800; text-transform: uppercase;
+            text-shadow: 0px 4px 15px rgb(0, 0, 0); margin: 0; padding: 0 20px; z-index: 10;
+        }
+        .form-content {
+            padding: 0 40px 40px 40px; margin-top: -80px; position: relative; z-index: 20;
+        }
+        .form-row { display: flex; flex-wrap: wrap; gap: 30px; margin-bottom: 25px; }
+        .form-group { flex: 1; min-width: 250px; display: flex; flex-direction: column; }
+        .form-group.full-width { flex: 100%; }
+        
+        .form-group label {
+            font-weight: 800; font-size: 13px; color: #2e2e2e; margin-bottom: 8px; text-transform: uppercase;
+        }
+        .form-group input[type="text"], .form-group input[type="tel"], .form-group input[type="email"], 
+        .form-group input[type="number"], .form-group select, .form-group textarea {
+            width: 100%; padding: 15px; border: 1px solid #6f6f6f; border-radius: 12px;
+            background-color: #ffffff; font-size: 15px; font-weight: 500; outline: none; font-family: inherit;
+        }
+        .form-group textarea { resize: vertical; min-height: 100px; }
+        
+        .radio-group { display: flex; gap: 20px; flex-wrap: wrap; padding: 10px 0; }
+        .radio-group label { font-weight: 600; font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; text-transform: none;}
+        .radio-group input[type="radio"], .radio-group input[type="checkbox"] { transform: scale(1.3); accent-color: #000; }
+
+        .submit-area { display: flex; justify-content: center; margin-top: 30px; width: 100%; }
+        .btn-submit {
+            background-color: #6a88ff; color: #ffffff; border: 2px solid #000000;
+            padding: 15px 40px; font-size: 15px; font-weight: 700; border-radius: 50px;
+            cursor: pointer; transition: 0.2s; text-transform: uppercase;
+        }
+        .btn-submit:hover { background-color: #3856d6; transform: scale(1.05); }
+
+
+        /* === WHATSAPP NOTE === */
+        .whatsapp-note {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-top: 10px;
+            padding: 12px 16px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            color: #64748b; /* Faint/muted text color */
+            font-size: 13px;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+        .whatsapp-note i {
+            color: #10b981; /* Soft green tick */
+            font-size: 16px;
+            margin-top: 2px;
+        }
+
+        /* LOADING & SUCCESS STATES */
+        #loading-screen, #success-screen {
+            text-align: center; padding: 100px 20px; background: white; border-radius: 16px;
+        }
+        .spinner {
+            width: 45px; height: 45px; border: 4px solid #f3f3f3; border-top: 4px solid #392991;
+            border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Mobile tweaks */
+        @media (max-width: 768px) {
+            body { padding: 12px; }
+            .image-header-container { height: 280px; }
+            #event-display-title { font-size: 24px; top: 20px; }
+            .form-content { padding: 0 20px 30px 20px; margin-top: -60px; }
+            .profile-pic-wrapper { width: 65px; height: 65px; }
+            .form-group { min-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+
+        <!-- 1. LOADING SCREEN -->
+        <div id="loading-screen">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px; font-weight: 600; color: #64748b;">Loading Form...</p>
+        </div>
+
+        <!-- 2. MAIN CONTENT (Hidden until loaded) -->
+        <div id="main-content" style="display: none;">
+            
+            <!-- ORG PROFILE CARD (Restructured Layout) -->
+            <div class="dash-card">
+                <div style="display: flex; gap: 20px; align-items: center;">
+                    <div class="profile-pic-wrapper">
+                        <img id="org-pic" src="https://ui-avatars.com/api/?name=Org" alt="Org Logo">
+                    </div>
+                    <div style="display: flex; flex-direction: column; justify-content: center; gap: 8px;">
+                        <h2 id="org-name" style="font-size: 20px; color: #3b82f6; margin: 0;">Loading...</h2>
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap; color: #64748b; font-size: 13px;">
+                            <span><strong>Established:</strong> <span id="org-year">---</span></span>
+                            <span><strong>Type:</strong> <span id="org-type">---</span></span>
+                            <span><strong>Category:</strong> <span id="org-category">---</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PROJECT DESCRIPTION DROPDOWN -->
+            <div id="project-desc-wrapper" class="project-desc-card" style="display: none;">
+                <button type="button" class="desc-toggle-btn" id="desc-toggle-btn" onclick="toggleProjectDesc()">
+                    <span><i class="fa-solid fa-circle-info" style="margin-right: 8px; color: #3b82f6;"></i> Read more about this project</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </button>
+                <div class="desc-content-panel" id="desc-panel">
+                    <p class="desc-inner-text" id="project-description-text"></p>
+                </div>
+            </div>
+
+            <!-- FORM WRAPPER (Old Visual Style) -->
+            <div class="form-wrapper">
+                <div class="image-header-container">
+                    <h1 id="event-display-title">Form Title</h1>
+                    <img id="event-display-pic" src="https://via.placeholder.com/900x400?text=No+Cover+Image" alt="Form Cover">
+                </div>
+
+                <div class="form-content">
+                    <form id="dynamic-form">
+                        <div id="dynamic-fields-container">
+                            <!-- Fields will be injected here by JS -->
+                        </div>
+
+                        <!-- NEW: Polite WhatsApp Note -->
+                        <div class="whatsapp-note">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>Please ensure the mobile number you provide is correct and active on WhatsApp so we can send you your contribution details and updates.</span>
+                        </div>
+
+                        <div class="submit-area">
+                            <button type="submit" class="btn-submit" id="submit-btn">Contribute Now</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. SUCCESS SCREEN (Hidden initially) -->
+        <div id="success-screen" style="display: none;">
+            <i class="fa-solid fa-circle-check" style="font-size: 60px; color: #22c55e; margin-bottom: 20px;"></i>
+            <h2 style="color: #16253c; margin-bottom: 10px;">Thank You!</h2>
+            <p id="thank-you-msg" style="color: #64748b; font-size: 16px;">Your submission was successful.</p>
+        </div>
+
+    </div>
+
+    <script>
+        const BASE_URL = 'https://pardarshi-server-1.onrender.com'; 
+        let currentFormId = null;
+        let thankYouMessage = "Your submission was successful.";
+        
+        // Initialize Cashfree
+        const cashfree = Cashfree({ mode: "sandbox" });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const pathParts = window.location.pathname.split('/');
+            const publicSlug = pathParts[pathParts.length - 1]; 
+            const finalSlug = publicSlug.includes('.html') ? 'test-slug-here' : publicSlug;
+            fetchFormDetails(finalSlug);
+        });
+
+        // Dropdown toggle logic
+        function toggleProjectDesc() {
+            const panel = document.getElementById('desc-panel');
+            panel.classList.toggle('open');
+        }
+
+        // Mobile Validation Logic (Limits to 10 digits & warns user)
+        function validateMobile(input, warnId) {
+            // Remove any non-numeric characters
+            input.value = input.value.replace(/\D/g, ''); 
+            
+            const warnEl = document.getElementById(warnId);
+            // If length is > 0 but less than 10, show warning
+            if (input.value.length > 0 && input.value.length < 10) {
+                warnEl.style.display = 'block';
+            } else {
+                warnEl.style.display = 'none';
+            }
+        }
+
+        // --- 1. FETCH DATA FROM SERVER ---
+        async function fetchFormDetails(slug) {
+            try {
+                const res = await fetch(`${BASE_URL}/api/forms/public/${slug}`);
+                const result = await res.json();
+
+                if (result.success) {
+                    currentFormId = result.form.form_id;
+                    if (result.form.thank_you_message) {
+                        thankYouMessage = result.form.thank_you_message;
+                        sessionStorage.setItem('pardarshi_thank_you_msg', thankYouMessage);
+                    }
+                    
+                    renderOrgProfile(result.organization);
+                    renderProjectDescription(result.form.description);
+                    renderFormHeader(result.form);
+                    renderFormFields(result.fields);
+
+                    document.getElementById('loading-screen').style.display = 'none';
+                    document.getElementById('main-content').style.display = 'block';
+                } else {
+                    document.getElementById('loading-screen').innerHTML = `<h3 style="color:red;">${result.error || 'Form not found or inactive'}</h3>`;
+                }
+            } catch (err) {
+                document.getElementById('loading-screen').innerHTML = `<h3 style="color:red;">Error connecting to server.</h3>`;
+            }
+        }
+
+        // --- 2. RENDER ORG PROFILE ---
+        function renderOrgProfile(org) {
+            document.getElementById('org-name').textContent = org.name;
+            if (org.profile_pic) document.getElementById('org-pic').src = org.profile_pic;
+            document.getElementById('org-year').textContent = org.established_year || 'N/A';
+            document.getElementById('org-type').textContent = org.type || 'N/A';
+            document.getElementById('org-category').textContent = org.category || 'N/A';
+        }
+
+        // --- PROJECT DESCRIPTION ---
+        function renderProjectDescription(description) {
+            const wrapper = document.getElementById('project-desc-wrapper');
+            const textEl = document.getElementById('project-description-text');
+            if (description && description.trim() !== '') {
+                textEl.textContent = description;
+                wrapper.style.display = 'block';
+            } else {
+                wrapper.style.display = 'none';
+            }
+        }
+
+        // --- 3. RENDER FORM HEADER ---
+        function renderFormHeader(form) {
+            document.getElementById('event-display-title').textContent = form.title;
+            if (form.picture_url) {
+                document.getElementById('event-display-pic').src = form.picture_url;
+            }
+        }
+
+        // --- 4. GENERATE DYNAMIC FIELDS ---
+        function renderFormFields(fields) {
+            const container = document.getElementById('dynamic-fields-container');
+            let html = '';
+
+            for (let i = 0; i < fields.length; i++) {
+                const field = fields[i];
+                const required = field.is_required ? 'required' : '';
+                const placeholder = field.placeholder ? `placeholder="${field.placeholder}"` : '';
+                const fieldKey = field.label.trim();
+
+                if (i % 2 === 0 || field.field_type === 'textarea') html += `<div class="form-row">`;
+                const isFullWidth = field.field_type === 'textarea' ? 'full-width' : '';
+
+                html += `<div class="form-group ${isFullWidth}">
+                            <label>${field.label} ${field.is_required ? '*' : ''}</label>`;
+                
+                // Identify if it's a mobile field to apply the new 10-digit logic
+                const isMobileField = field.field_type === 'tel' || fieldKey.toLowerCase().includes('mobile') || fieldKey.toLowerCase().includes('phone');
+
+                if (isMobileField) {
+                    let idAttr = (fieldKey.toLowerCase().includes('mobile') || fieldKey.toLowerCase().includes('phone')) ? 'id="standard_mobile"' : '';
+                    
+                    // Warning Text (Hidden by default)
+                    html += `<span id="warn-mobile-${i}" style="color: #ef4444; font-size: 11px; display: none; margin-bottom: 5px;">Must be exactly 10 digits.</span>`;
+                    
+                    // Input with maxlength and oninput validator
+                    html += `<input type="tel" name="${fieldKey}" data-type="${field.field_type}" ${idAttr} ${placeholder} ${required} class="dynamic-input" maxlength="10" oninput="validateMobile(this, 'warn-mobile-${i}')">`;
+                
+                } else if (['text', 'email', 'number', 'amount'].includes(field.field_type)) {
+                    let idAttr = '';
+                    if (fieldKey.toLowerCase().includes('name')) idAttr = 'id="standard_name"';
+                    else if (fieldKey.toLowerCase().includes('email')) idAttr = 'id="standard_email"';
+                    else if (field.field_type === 'amount') idAttr = 'id="standard_amount"';
+
+                    const typeMap = { 'text': 'text', 'email': 'email', 'number': 'number', 'amount': 'number' };
+                    html += `<input type="${typeMap[field.field_type] || 'text'}" name="${fieldKey}" data-type="${field.field_type}" ${idAttr} ${placeholder} ${required} class="dynamic-input">`;
+                
+                } else if (field.field_type === 'textarea') {
+                    html += `<textarea name="${fieldKey}" data-type="textarea" ${placeholder} ${required} class="dynamic-input"></textarea>`;
+                
+                } else if (field.field_type === 'select') {
+                    const opts = typeof field.options === 'string' ? JSON.parse(field.options) : field.options;
+                    html += `<select name="${fieldKey}" data-type="select" ${required} class="dynamic-input">
+                                <option value="">-- Select --</option>
+                                ${opts.map(o => `<option value="${o}">${o}</option>`).join('')}
+                             </select>`;
+                
+                } else if (field.field_type === 'radio' || field.field_type === 'checkbox') {
+                    const opts = typeof field.options === 'string' ? JSON.parse(field.options) : field.options;
+                    html += `<div class="radio-group">`;
+                    opts.forEach(o => {
+                        html += `<label><input type="${field.field_type}" name="${fieldKey}" value="${o}" data-type="${field.field_type}" class="dynamic-input" ${field.field_type==='radio'?required:''}> ${o}</label>`;
+                    });
+                    html += `</div>`;
+                }
+
+                html += `</div>`;
+                if (i % 2 !== 0 || field.field_type === 'textarea' || i === fields.length - 1) html += `</div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        // --- 5. HANDLE SUBMISSION ---
+        document.getElementById('dynamic-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+
+            // PREVENT SUBMIT IF ANY MOBILE NUMBER IS < 10 DIGITS
+            const mobileWarnings = document.querySelectorAll('span[id^="warn-mobile-"]');
+            for (let warn of mobileWarnings) {
+                if (warn.style.display === 'block') {
+                    alert("Please ensure all mobile numbers are exactly 10 digits before submitting.");
+                    return;
+                }
+            }
+
+            btn.textContent = 'Processing...';
+            btn.disabled = true;
+
+            const nameEl = document.getElementById('standard_name');
+            const mobileEl = document.getElementById('standard_mobile');
+            const emailEl = document.getElementById('standard_email');
+            const amountEl = document.getElementById('standard_amount');
+
+            let amountVal = amountEl ? parseFloat(amountEl.value) : 0;
+
+            const payload = {
+                form_id: currentFormId,
+                organization_id: 1, 
+                contributor_name: nameEl ? nameEl.value : "Contributor",
+                contributor_mobile: mobileEl ? mobileEl.value : "",
+                contributor_email: emailEl ? emailEl.value : "",
+                amount: amountVal,
+                answers: {}
+            };
+
+            document.querySelectorAll('.dynamic-input').forEach(input => {
+                const label = input.name;
+                const type = input.getAttribute('data-type');
+                
+                if (type === 'radio') {
+                    if (input.checked) payload.answers[label] = input.value;
+                } else if (type === 'checkbox') {
+                    if (input.checked) {
+                        if(!payload.answers[label]) payload.answers[label] = [];
+                        payload.answers[label].push(input.value);
+                    }
+                } else {
+                    if (!['standard_name','standard_mobile','standard_email','standard_amount'].includes(input.id)) {
+                        payload.answers[label] = input.value;
+                    }
+                }
+            });
+
+            try {
+                if (amountVal > 0) {
+                    const res = await fetch(`${BASE_URL}/api/payment/initiate`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await res.json();
+                    
+                    if (result.success && result.payment_session_id) {
+                        cashfree.checkout({
+                            paymentSessionId: result.payment_session_id,
+                            redirectTarget: "_self" 
+                        });
+                    } else {
+                        alert(result.error || "Payment initiation failed.");
+                        resetBtn(btn);
+                    }
+                } else {
+                    const res = await fetch(`${BASE_URL}/api/forms/submit`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await res.json();
+                    
+                    if (result.success) {
+                        showSuccess();
+                    } else {
+                        alert(result.error || "Submission failed.");
+                        resetBtn(btn);
+                    }
+                }
+            } catch (err) {
+                alert("Network error occurred.");
+                resetBtn(btn);
+            }
+        });
+
+        function resetBtn(btn) {
+            btn.textContent = 'Submit Application';
+            btn.disabled = false;
+        }
+
+        function showSuccess() {
+            document.getElementById('main-content').style.display = 'none';
+            document.getElementById('thank-you-msg').textContent = thankYouMessage;
+            document.getElementById('success-screen').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

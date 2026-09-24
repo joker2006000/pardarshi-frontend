@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PARDARSHI - Make Payment</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Structure CSS -->
+    <link rel="stylesheet" href="style/structure.css">
+    
+    <!-- Cashfree JS SDK -->
+    <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+    <!-- HTML5 QR Code Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <style>
+        /* Base Container Styles */
+        .payment-page-wrapper {
+            padding: 30px; 
+            padding-bottom: 80px; 
+            overflow-y: auto; 
+            height: 100vh; 
+            box-sizing: border-box; 
+            background: #f1f5f9;
+        }
+
+        .payment-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #64748b;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 20px;
+            transition: color 0.2s;
+        }
+        .back-btn:hover { color: #3b82f6; }
+
+        .page-header { margin-bottom: 30px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; }
+        .page-header h2 { margin: 0; color: #0f172a; font-size: 24px; }
+        .page-header p { color: #64748b; font-size: 14px; margin-top: 5px; line-height: 1.5; }
+
+        .form-group { margin-bottom: 20px; flex: 1; }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .req-text { color: #ef4444; font-size: 12px; font-weight: 500; margin-left: 5px; }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-control:focus { border-color: #3b82f6; }
+
+        /* Responsive Flex Row */
+        .flex-row {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+        }
+
+        /* Payment Option Cards */
+        .payment-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .pay-card {
+            flex: 1;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .pay-card i { font-size: 28px; color: #64748b; margin-bottom: 10px; }
+        .pay-card span { display: block; font-weight: 600; color: #475569; font-size: 14px; }
+        
+        .pay-card.active {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+        .pay-card.active i, .pay-card.active span { color: #3b82f6; }
+
+        /* Dynamic Sections */
+        .dynamic-section { display: none; background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 25px; }
+        .dynamic-section.active { display: block; }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: #22c55e;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-submit:hover { background: #16a34a; }
+        .btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
+
+        #qr-reader { border-radius: 8px; overflow: hidden; border: none !important; }
+
+        /* ==========================================================
+           MOBILE RESPONSIVENESS OVERRIDES
+           ========================================================== */
+        @media (max-width: 768px) {
+            .payment-page-wrapper {
+                padding: 15px; 
+                padding-bottom: 80px; 
+            }
+            .payment-container {
+                padding: 15px;
+            }
+            
+            /* Stack side-by-side inputs vertically */
+            .flex-row {
+                flex-direction: column;
+                gap: 0; /* Gap is managed by form-group margin-bottom now */
+            }
+            
+            /* Stack payment cards for better touch targets */
+            .payment-options {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .pay-card {
+                padding: 15px;
+                flex-direction: row; /* Icon and text side-by-side on mobile */
+                gap: 15px;
+                justify-content: flex-start;
+            }
+            .pay-card i {
+                margin-bottom: 0;
+                font-size: 24px;
+                width: 30px; /* Fixed width to align text perfectly */
+            }
+            
+            .dynamic-section {
+                padding: 15px;
+            }
+            .page-header h2 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body class="preload">
+
+    <!-- Sidebar (Matches Structure) -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="logo-1.png" alt="Logo" class="logo-small">
+            <img src="logo.png" alt="Full Logo" class="logo-large">
+        </div>
+        <div class="sidebar-toggle" id="sidebarToggle">>></div>
+        <nav class="nav-links">
+            <a href="home.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Home</span></a>
+            <a href="forms.html" class="nav-item"><i class="fa-solid fa-file-lines"></i><span>Forms</span></a>
+            <a href="transactions.html" class="nav-item active"><i class="fa-solid fa-wallet"></i><span>Transactions</span></a>
+            <a href="support.html" class="nav-item"><i class="fa-solid fa-headset"></i><span>Support</span></a>
+        </nav>
+    </aside>
+
+    <main class="main-wrapper">
+        <!-- Hidden header to fix sidebar math -->
+        <header class="top-header" style="display: none;"></header>
+
+        <div class="payment-page-wrapper">
+            
+            <a href="transactions.html" class="back-btn">
+                <i class="fa-solid fa-arrow-left"></i> Back to Transactions
+            </a>
+
+            <div class="payment-container">
+                <div class="page-header">
+                    <h2>Online Payments</h2>
+                    <p>Make payments directly to vendors. They will be automatically recorded as expenses.</p>
+                </div>
+
+                <form id="payment-form">
+                    
+                    <!-- 1. Project Selection -->
+                    <div class="form-group">
+                        <label>Which project is related to this payment? <span class="req-text">(Required)</span></label>
+                        <select id="project_id" class="form-control" required>
+                            <option value="">-- Select a Project --</option>
+                            <!-- Populated via API -->
+                        </select>
+                    </div>
+
+                    <!-- 2. General Expense Info (Responsive Row) -->
+                    <div class="flex-row">
+                        <div class="form-group" style="flex: 2;">
+                            <label>Expense Title / Reason <span class="req-text">*</span></label>
+                            <input type="text" id="expense_title" class="form-control" placeholder="e.g. Office Supplies" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Amount (₹) <span class="req-text">*</span></label>
+                            <input type="number" id="amount" class="form-control" placeholder="0.00" min="1" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" id="description" class="form-control" placeholder="Brief note about this expense">
+                    </div>
+
+                    <!-- 3. Payment Method Selection -->
+                    <label style="display: block; font-weight: 600; color: #334155; margin-bottom: 15px; font-size: 14px;">Select Payment Method <span class="req-text">*</span></label>
+                    
+                    <div class="payment-options">
+                        <div class="pay-card" onclick="selectMethod('bank')" id="card-bank">
+                            <i class="fa-solid fa-building-columns"></i>
+                            <span>Bank Account</span>
+                        </div>
+                        <div class="pay-card" onclick="selectMethod('upi')" id="card-upi">
+                            <i class="fa-brands fa-google-pay"></i>
+                            <span>UPI ID</span>
+                        </div>
+                        <div class="pay-card" onclick="selectMethod('qr')" id="card-qr">
+                            <i class="fa-solid fa-qrcode"></i>
+                            <span>Scan QR Code</span>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Section: Bank -->
+                    <div id="section-bank" class="dynamic-section">
+                        <div class="form-group">
+                            <label>Receipt Name (As per bank passbook) <span class="req-text">*</span></label>
+                            <input type="text" id="bank_name" class="form-control" placeholder="Account Holder Name">
+                        </div>
+                        
+                        <!-- Responsive Row -->
+                        <div class="flex-row">
+                            <div class="form-group">
+                                <label>Account Number <span class="req-text">*</span></label>
+                                <input type="text" id="bank_acc" class="form-control" placeholder="Enter Account No.">
+                            </div>
+                            <div class="form-group">
+                                <label>IFSC Code <span class="req-text">*</span></label>
+                                <input type="text" id="bank_ifsc" class="form-control" placeholder="e.g. HDFC0001234">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Section: UPI -->
+                    <div id="section-upi" class="dynamic-section">
+                        <div class="form-group">
+                            <label>Receiver Name <span class="req-text">*</span></label>
+                            <input type="text" id="upi_name" class="form-control" placeholder="Name of person/business">
+                        </div>
+                        <div class="form-group">
+                            <label>UPI ID (VPA) <span class="req-text">*</span></label>
+                            <input type="text" id="upi_id" class="form-control" placeholder="e.g. username@bank">
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Section: QR Scanner -->
+                    <div id="section-qr" class="dynamic-section" style="text-align: center;">
+                        <p style="margin-bottom: 15px; color: #64748b; font-size: 14px;">Point your camera at a valid UPI QR Code.</p>
+                        <div id="qr-reader" style="width: 100%; max-width: 400px; margin: 0 auto;"></div>
+                        <button type="button" onclick="stopScanner()" style="margin-top: 15px; padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Cancel Scan</button>
+                    </div>
+
+                    <button type="submit" id="btn-pay" class="btn-submit" disabled>
+                        Select a payment method to proceed
+                    </button>
+
+                </form>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Mobile Bottom Navigation (Visible only on mobile via structure.css) -->
+    <nav class="mobile-bottom-nav">
+        <a href="home.html" class="bottom-nav-item"><i class="fa-solid fa-house"></i></a>
+        <a href="forms.html" class="bottom-nav-item"><i class="fa-solid fa-file-lines"></i></a>
+        <a href="transactions.html" class="bottom-nav-item"><i class="fa-solid fa-wallet"></i></a>
+        <a href="support.html" class="bottom-nav-item"><i class="fa-solid fa-headset"></i></a>
+    </nav>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer" id="mobileDrawer">
+        <i class="fa-solid fa-xmark drawer-close" onclick="toggleMobileDrawer()"></i>
+        <div style="text-align: center; margin-top: 20px;">
+            <img src="https://ui-avatars.com/api/?name=User&background=3b82f6&color=fff&size=100" alt="Profile" style="border-radius: 50%;">
+            <h3 style="margin-top: 15px; color: var(--text-light);">User Profile</h3>
+            <a href="register.html" style="text-decoration: none;">
+                <button class="drawer-manage-btn" style="margin-top: 15px;">
+                    <i class="fa-solid fa-user"></i> Manage Account
+                </button>
+            </a>
+        </div>
+    </div>
+
+    <!-- UI Interaction Script of Sidebar -->
+    <script src="script/structure.js"></script>
+
+    <script>
+        const BASE_URL = 'https://pardarshi-server-1.onrender.com';
+        const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+        const orgId = localStorage.getItem('currentOrgId');
+        
+        let currentUserId = 1; // Fallback
+        try { const userObj = JSON.parse(localStorage.getItem('user')); if(userObj) currentUserId = userObj.userId; } catch(e){}
+
+        // Initialize Cashfree (Sandbox mode by default for dev. Change to 'production' when live)
+        const cashfree = Cashfree({ mode: "sandbox" });
+
+        let selectedMethod = null;
+        let html5QrcodeScanner = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!orgId || orgId === "null") {
+                alert("You must select an organization first.");
+                window.location.href = "home.html";
+                return;
+            }
+            loadProjects();
+        });
+
+        // 1. Load Projects into Dropdown
+        async function loadProjects() {
+            try {
+                const res = await fetch(`${BASE_URL}/api/project/${orgId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const result = await res.json();
+                
+                if (result.success && result.data) {
+                    const select = document.getElementById('project_id');
+                    result.data.forEach(p => {
+                        select.insertAdjacentHTML('beforeend', `<option value="${p.project_id}">${p.name}</option>`);
+                    });
+                }
+            } catch (err) {
+                console.error("Failed to load projects", err);
+            }
+        }
+
+        // 2. Handle Payment Method Selection
+        window.selectMethod = function(method) {
+            selectedMethod = method;
+            
+            // UI Reset
+            document.querySelectorAll('.pay-card').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.dynamic-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('btn-pay').disabled = false;
+            document.getElementById('btn-pay').innerHTML = `Proceed to Pay`;
+
+            // Clear required constraints initially
+            document.getElementById('bank_name').required = false;
+            document.getElementById('bank_acc').required = false;
+            document.getElementById('bank_ifsc').required = false;
+            document.getElementById('upi_name').required = false;
+            document.getElementById('upi_id').required = false;
+
+            // Stop scanner if switching away
+            if(method !== 'qr') stopScanner();
+
+            // Activate Target Section
+            document.getElementById(`card-${method}`).classList.add('active');
+            document.getElementById(`section-${method}`).classList.add('active');
+
+            if (method === 'bank') {
+                document.getElementById('bank_name').required = true;
+                document.getElementById('bank_acc').required = true;
+                document.getElementById('bank_ifsc').required = true;
+            } 
+            else if (method === 'upi') {
+                document.getElementById('upi_name').required = true;
+                document.getElementById('upi_id').required = true;
+            }
+            else if (method === 'qr') {
+                document.getElementById('btn-pay').disabled = true;
+                document.getElementById('btn-pay').innerHTML = `Awaiting Scan...`;
+                startScanner();
+            }
+        };
+
+        // 3. QR Code Scanner Logic
+        function startScanner() {
+            if (html5QrcodeScanner) return; // already running
+            html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+            
+            html5QrcodeScanner.render((decodedText) => {
+                // Example UPI URI: upi://pay?pa=vendor@bank&pn=Vendor%20Name
+                if(decodedText.includes('upi://pay')) {
+                    try {
+                        const url = new URL(decodedText);
+                        const vpa = url.searchParams.get('pa');
+                        const name = url.searchParams.get('pn');
+                        
+                        if(vpa) {
+                            stopScanner();
+                            // Switch to UPI mode and auto-fill
+                            selectMethod('upi');
+                            document.getElementById('upi_id').value = vpa;
+                            document.getElementById('upi_name').value = name ? decodeURIComponent(name.replace(/\+/g, ' ')) : 'Scanned Vendor';
+                            alert("QR Scanned Successfully!");
+                        }
+                    } catch (e) {
+                        alert("Invalid UPI QR Code format.");
+                    }
+                } else {
+                    alert("This is not a valid UPI QR Code.");
+                }
+            }, (error) => {
+                // Ignore background scanning errors
+            });
+        }
+
+        window.stopScanner = function() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear().then(() => {
+                    html5QrcodeScanner = null;
+                });
+            }
+        };
+
+        // 4. Form Submission & API Call
+        document.getElementById('payment-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!selectedMethod || selectedMethod === 'qr') return;
+
+            const btn = document.getElementById('btn-pay');
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
+            btn.disabled = true;
+
+            // Build Payload required by payment.controller.js
+            const payload = {
+                organization_id: orgId,
+                project_id: document.getElementById('project_id').value,
+                expense_title: document.getElementById('expense_title').value,
+                description: document.getElementById('description').value,
+                amount: document.getElementById('amount').value,
+                created_by: currentUserId
+            };
+
+            if (selectedMethod === 'bank') {
+                payload.vendor_name = document.getElementById('bank_name').value;
+                payload.vendor_bank_account = document.getElementById('bank_acc').value;
+                payload.vendor_ifsc = document.getElementById('bank_ifsc').value;
+            } else if (selectedMethod === 'upi') {
+                payload.vendor_name = document.getElementById('upi_name').value;
+                payload.vendor_upi_id = document.getElementById('upi_id').value;
+            }
+
+            try {
+                const res = await fetch(`${BASE_URL}/api/payment/expense/initiate`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await res.json();
+
+                if (result.success && result.payment_session_id) {
+                    // Trigger Cashfree Checkout Drop
+                    cashfree.checkout({
+                        paymentSessionId: result.payment_session_id,
+                        redirectTarget: "_self" 
+                    });
+                } else {
+                    alert(result.error || "Failed to initiate payment.");
+                    btn.innerHTML = 'Proceed to Pay';
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Server error occurred.");
+                btn.innerHTML = 'Proceed to Pay';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

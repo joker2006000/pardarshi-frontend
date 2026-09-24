@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pardarshi - Payment Status</title>
+       <!-- Standard Favicon for Chrome/Edge -->
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+
+<!-- Apple Touch Icon for Safari & iOS -->
+<link rel="apple-touch-icon" href="/logo-1.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background-color: #f4f7fe;
+            margin: 0;
+            padding: 20px 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .status-container {
+            width: 100%;
+            max-width: 480px;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 36px 28px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border: 1px solid #f1f5f9;
+            text-align: center;
+        }
+        .spinner {
+            width: 45px; height: 45px; border: 4px solid #f3f3f3; border-top: 4px solid #392991;
+            border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 20px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .icon-success { font-size: 64px; color: #22c55e; margin-bottom: 18px; }
+        .icon-fail { font-size: 64px; color: #ef4444; margin-bottom: 18px; }
+        .icon-pending { font-size: 64px; color: #f59e0b; margin-bottom: 18px; }
+        
+        h2 { color: #0f172a; margin: 0 0 12px 0; font-size: 24px; font-weight: 700; }
+        
+        .thank-you-highlight {
+            font-size: 16px;
+            color: #1e293b;
+            font-weight: 600;
+            line-height: 1.5;
+            background: #f8fafc;
+            border-left: 4px solid #22c55e;
+            padding: 14px 16px;
+            border-radius: 8px;
+            text-align: left;
+            margin: 18px 0;
+            word-break: break-word;
+        }
+        
+        .txn-meta {
+            font-size: 13px;
+            color: #64748b;
+            margin: 8px 0 24px 0;
+            word-break: break-all;
+        }
+
+        .btn-home {
+            background-color: #3b82f6; 
+            color: white; 
+            border: none; 
+            padding: 14px 32px;
+            font-size: 15px; 
+            font-weight: 700; 
+            border-radius: 50px; 
+            cursor: pointer; 
+            text-decoration: none; 
+            display: inline-block;
+            width: 100%;
+            transition: 0.2s ease;
+        }
+        .btn-home:hover { background-color: #2563eb; }
+
+        @media (max-width: 480px) {
+            .status-container {
+                padding: 28px 20px;
+                border-radius: 16px;
+            }
+            h2 { font-size: 21px; }
+            .icon-success, .icon-fail, .icon-pending { font-size: 52px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="status-container">
+        <!-- Loading State -->
+        <div id="loading-state">
+            <div class="spinner"></div>
+            <h2>Verifying Payment...</h2>
+            <p style="color: #64748b; font-size: 14px;">Please wait while we confirm your transaction.</p>
+        </div>
+
+        <!-- Pending State -->
+        <div id="pending-state" style="display: none;">
+            <i class="fa-solid fa-clock icon-pending"></i>
+            <h2>Payment Pending</h2>
+            <p style="color: #64748b; font-size: 15px; margin-bottom: 15px; line-height: 1.5;">
+                We are sorry 😔..<br>Please wait while payment is processing....
+            </p>
+            <div id="timer-display" style="font-size: 36px; font-weight: 800; color: #f59e0b; margin-bottom: 25px; font-variant-numeric: tabular-nums;">
+                02:00
+            </div>
+        </div>
+
+        <!-- Success State -->
+        <div id="success-state" style="display: none;">
+            <i class="fa-solid fa-circle-check icon-success"></i>
+            <h2>Payment Successful!</h2>
+            
+            <div id="thank-you-msg-box" class="thank-you-highlight">
+                Thank you for your contribution. Your transaction has been successfully processed.
+            </div>
+
+            <p id="success-details" class="txn-meta"></p>
+            
+            <!-- WhatsApp Notice for Contributors -->
+            <p id="whatsapp-notice" style="display: none; font-size: 15px; color: #16a34a; font-weight: 600; background: #dcfce7; padding: 12px; border-radius: 8px; margin-bottom: 20px;">
+                <i class="fa-brands fa-whatsapp" style="font-size: 18px; margin-right: 5px;"></i> All updates & receipts sent via WhatsApp Message.
+            </p>
+
+            <!-- Action Button for Organizations -->
+            <a href="/" id="dynamic-success-btn" class="btn-home">Return</a>
+        </div>
+
+        <!-- Failed State -->
+        <div id="fail-state" style="display: none;">
+            <i class="fa-solid fa-circle-xmark icon-fail"></i>
+            <h2 id="fail-title">Payment Failed</h2>
+            <p id="fail-details" style="color: #64748b; font-size: 14px; margin-bottom: 24px; line-height: 1.5;">
+                We could not verify your payment. Please try again or contact support.
+            </p>
+            <!-- Clean routing -->
+            <a href="/" class="btn-home" style="background: #ef4444;">Close</a>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'https://pardarshi-server-1.onrender.com';
+        
+        let checkCount = 0;
+        let countdownInterval;
+        let timeLeft = 120; // Total 2 minutes (120 seconds)
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('order_id');
+
+            if (!orderId) {
+                showFail("No order reference found in URL.");
+                return;
+            }
+
+            // Initial verification check
+            await checkPaymentStatus(orderId);
+        });
+
+        async function checkPaymentStatus(orderId) {
+            try {
+                const res = await fetch(`${BASE_URL}/api/payment/verify/${orderId}`);
+                const result = await res.json();
+                console.log("SERVER RESPONSE:", result);
+                 
+                if (result.success && (result.status === 'PAID' || result.status === 'SUCCESS')) {
+                    clearInterval(countdownInterval);
+                    const customMessage = result.thank_you_message 
+                                       || result.form?.thank_you_message 
+                                       || sessionStorage.getItem('pardarshi_thank_you_msg');
+                    
+                    showSuccess(orderId, result.amount, customMessage, result.transaction_type, result.org_id);
+                    
+                 } else if (result.success && (result.status === 'PENDING' || result.status === 'ACTIVE')) {
+                    // HANDLE PENDING LOGIC
+                    if (checkCount === 0) {
+                        startPendingTimer(orderId);
+                    } else if (checkCount >= 2) {
+                        clearInterval(countdownInterval);
+                        showFail("Sorry 😓 , we are facing some trouble. Payment is not processed. We will inform you if payment succeeds.");
+                    }
+                } else {
+                    clearInterval(countdownInterval);
+                    showFail("Transaction was incomplete, cancelled, or failed. 😵‍💫");
+                }
+            } catch (err) {
+                console.error(err);
+                clearInterval(countdownInterval);
+                showFail("Network error occurred while verifying payment.");
+            }
+        }
+
+        function startPendingTimer(orderId) {
+            showPending();
+            
+            countdownInterval = setInterval(() => {
+                timeLeft--;
+                
+                // Format UI timer (MM:SS)
+                let minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+                document.getElementById('timer-display').textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                // At 60 seconds remaining -> Check API again
+                if (timeLeft === 60) {
+                    checkCount = 1;
+                    checkPaymentStatus(orderId);
+                }
+
+                // At 0 seconds remaining -> Final API check
+                if (timeLeft <= 0) {
+                    checkCount = 2;
+                    clearInterval(countdownInterval);
+                    checkPaymentStatus(orderId); 
+                }
+            }, 1000);
+        }
+
+        function showPending() {
+            document.getElementById('loading-state').style.display = 'none';
+            document.getElementById('pending-state').style.display = 'block';
+        }
+
+        function showSuccess(orderId, amount, thankYouText, transactionType, orgId) {
+            document.getElementById('loading-state').style.display = 'none';
+            document.getElementById('pending-state').style.display = 'none';
+
+            if (thankYouText && thankYouText.trim() !== "") {
+                document.getElementById('thank-you-msg-box').textContent = thankYouText;
+            }
+
+            let metaText = `Order ID: ${orderId}`;
+            if (amount) metaText = `Paid: ₹${amount} • ${metaText}`;
+            document.getElementById('success-details').textContent = metaText;
+
+            // --- DYNAMIC UI LOGIC ---
+            const actionBtn = document.getElementById('dynamic-success-btn');
+            const waNotice = document.getElementById('whatsapp-notice');
+
+            if (transactionType === 'expense') {
+                // Organization Admin UI
+                actionBtn.style.display = 'inline-block';
+                waNotice.style.display = 'none';
+                actionBtn.href = '/pardarshi-page/transactions'; // Clean Netlify URL
+                actionBtn.textContent = 'Back to Transactions';
+            } else {
+                // Public Contributor UI
+                actionBtn.style.display = 'none';
+                waNotice.style.display = 'block';
+            }
+            // ------------------------
+
+            document.getElementById('success-state').style.display = 'block';
+        }
+
+        function showFail(msg) {
+            document.getElementById('loading-state').style.display = 'none';
+            document.getElementById('pending-state').style.display = 'none';
+            
+            if(msg.includes("facing some trouble")) {
+                document.getElementById('fail-title').textContent = "Payment Unconfirmed";
+            }
+
+            document.getElementById('fail-details').textContent = msg;
+            document.getElementById('fail-state').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

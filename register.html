@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organization Registration</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* === THEME VARIABLES === */
+        :root {
+            --theme-primary: #0c5ad1;
+            --theme-primary-hover: #0840a7;
+            --theme-text-on-primary: #ffffff;
+            --auth-bg-gradient: #f4f7fa;
+            --auth-card-bg: #ffffff;
+            --text-main: #333333;
+            --text-muted: #6b7280;
+            --input-bg: #f9fafb;
+            --input-border: #e5e7eb;
+            --auth-image: url('register.png');
+        }
+
+      body, html {
+            margin: 0; padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--auth-bg-gradient);
+            box-sizing: border-box; color: var(--text-main);
+            overflow: hidden; 
+            height: 100%; /* Changed from 100vh */
+            width: 100%;
+            background-color: transparent !important;
+        }
+
+        *, *:before, *:after { box-sizing: inherit; }
+
+        main { display: flex; justify-content: center; align-items: center; min-height: 80vh; padding: 20px 20px; }
+
+        .auth-card {
+            background: var(--auth-card-bg); width: 100%; max-width: 1200px; height: 690px;
+            border-radius: 50px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08); position: relative;
+            display: flex; overflow: hidden; transition: all 0.4s ease;
+        }
+
+        .auth-forms-panel {
+            width: 50%; height: 100%; padding: 40px 60px; position: relative; z-index: 5;
+            display: flex; flex-direction: column; background-color: var(--auth-card-bg); overflow-y: auto; 
+        }
+
+        .auth-image-panel {
+            width: 50%; height: 100%; position: absolute; top: 0; left: 50%; z-index: 10;
+            background-image: var(--auth-image); background-size: cover; background-position: center;
+        }
+
+        .auth-image-overlay {
+            position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.7) 100%);
+            display: flex; flex-direction: column; justify-content: flex-end; padding: 50px; color: white; text-align: left;
+        }
+
+        .auth-image-overlay h2 { font-size: 32px; margin: 0 0 10px 0; font-weight: 700; }
+        .auth-image-overlay p { font-size: 16px; margin: 0; opacity: 0.9; line-height: 1.5; }
+
+        .form-view { width: 100%; animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .form-view h2 { text-align: left; color: var(--text-main); font-size: 28px; margin-top: 0; margin-bottom: 25px; }
+
+        .form-section-title { color: var(--theme-primary); font-size: 16px; font-weight: 700; margin-top: 25px; margin-bottom: 15px; border-bottom: 2px solid var(--input-border); padding-bottom: 8px; }
+        .sub-section-title { font-size: 14px; font-weight: 600; color: var(--text-muted); margin: 15px 0 10px 0; }
+
+        .form-group { margin-bottom: 18px; }
+        .form-group input, .form-group select { width: 100%; background: var(--input-bg); padding: 16px 15px; border: 1px solid var(--input-border); border-radius: 16px; box-sizing: border-box; font-size: 15px; color: var(--text-main); transition: all 0.3s; }
+        .form-group select { appearance: none; cursor: pointer; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--theme-primary); background: #ffffff; box-shadow: 0 0 0 3px rgba(76, 145, 242, 0.219); }
+        .form-group select:disabled { background: #e2e8f0; cursor: not-allowed; color: #94a3b8; }
+
+        .flex-row { display: flex; gap: 10px; }
+        .flex-row > * { flex: 1; min-width: 0; }
+
+        .otp-flex { display: flex; gap: 10px; }
+        .btn-otp { background-color: var(--theme-primary); color: white; border: none; padding: 0 20px; border-radius: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; white-space: nowrap; }
+        .btn-otp:hover { background-color: var(--theme-primary-hover); }
+        .btn-verify { background-color: #10b981; }
+        .btn-verify:hover { background-color: #059669; }
+        .otp-status { font-size: 12px; margin-top: 5px; display: block; font-weight: 600; }
+        .hidden { display: none !important; }
+
+        .password-wrapper { position: relative; }
+        .eye-btn { position: absolute; right: 15px; top: 25px; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px; color: #9ca3af; }
+
+        .password-requirements { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; font-size: 12px; background: var(--input-bg); padding: 10px 15px; border-radius: 12px; border: 1px solid var(--input-border); }
+        .req-invalid { color: #ef4444; transition: color 0.3s ease; }
+        .req-valid { color: #10b981; transition: color 0.3s ease; }
+        .req-invalid i, .req-valid i { width: 15px; margin-right: 5px; }
+
+        .btn-submit { width: 100%; padding: 16px; background-color: var(--theme-primary); color: var(--theme-text-on-primary); border: none; border-radius: 16px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; margin-bottom: 20px; }
+        .btn-submit:hover:not(:disabled) { background-color: var(--theme-primary-hover); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.347); }
+        .btn-submit:disabled { cursor: not-allowed; opacity: 0.5; }
+
+        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.39); backdrop-filter: blur(2px); border-radius: 52px; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999; }
+        .spinner { width: 45px; height: 45px; border: 4px solid #e5e7eb; border-top: 4px solid var(--theme-primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        .loading-text { margin-top: 15px; font-size: 15px; font-weight: 600; color: var(--text-main); }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+     @media (max-width: 900px) {
+            main { padding: 0; align-items: stretch; height: 100%; }
+            .auth-card { 
+                flex-direction: column; 
+                height: 100%; /* Changed from 100vh */
+                max-width: 100%; 
+                border-radius: 0; 
+                box-shadow: none; 
+                overflow-y: auto; 
+            }
+            .auth-forms-panel { width: 100%; padding: 25px 20px; transform: none !important; order: 2; overflow-y: visible; }
+            .auth-image-panel { position: relative; width: 100%; height: 140px; left: 0; transform: none !important; order: 1; flex-shrink: 0; }
+            .auth-image-overlay { padding: 15px 20px; }
+            .auth-image-overlay h2 { font-size: 18px; margin-bottom: 4px; }
+            .auth-image-overlay p { font-size: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+            .flex-row { flex-direction: column; gap: 0; }
+            .flex-row > * { margin-bottom: 18px; }
+            .flex-row > *:last-child { margin-bottom: 0; }
+            .loading-overlay { position: fixed !important; width: 100vw; height: 100vh; border-radius: 0; }
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <div class="auth-card" id="main-auth-card">
+            
+            <div id="loading-overlay" class="loading-overlay hidden">
+                <div class="spinner"></div>
+                <div class="loading-text">Please wait...</div>
+            </div>
+
+            <!-- LEFT SIDE: REGISTRATION FORM -->
+            <div class="auth-forms-panel">
+                <div class="form-view">
+                    <h2>Organization Registration</h2>
+                    
+                    <form id="orgRegForm">
+                        
+                        <!-- STAGE 1: PERSONAL INFORMATION -->
+                        <h3 class="form-section-title">Stage 1: Personal Information</h3>
+                        
+                        <div class="form-group">
+                            <input type="text" id="fullName" name="name" required placeholder="Full Name">
+                        </div>
+
+                        <!-- Mobile & OTP -->
+                        <div class="form-group">
+                            <div class="otp-flex">
+                                <input type="tel" id="personalMobile" name="mobile_no" required placeholder="Mobile Number" maxlength="10" inputmode="numeric">
+                                <button type="button" id="btnGenerateOtp" class="btn-otp">Generate OTP</button>
+                            </div>
+                        </div>
+
+                        <!-- OTP Input Group -->
+                        <div class="form-group hidden" id="otpInputGroup">
+                            <div class="otp-flex">
+                                <input type="text" id="mobileOtp" name="mobileOtp" placeholder="Enter 4-digit OTP" maxlength="4">
+                                <button type="button" id="btnVerifyOtp" class="btn-otp btn-verify">Verify</button>
+                            </div>
+                            <span id="otpStatusMessage" class="otp-status"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <input type="email" id="personalEmail" name="email" required placeholder="Email Address">
+                        </div>
+
+                        <!-- Shifted Password to Stage 1 -->
+                        <div class="form-group password-wrapper">
+                            <input type="password" id="regPassword" name="password" required placeholder="Create Secure Password">
+                            <button type="button" class="eye-btn" onclick="togglePass('regPassword')">👁</button>
+                            <div class="password-requirements">
+                                <span id="reqCapital" class="req-invalid"><i class="fa-solid fa-xmark"></i> At least 1 capital letter</span>
+                                <span id="reqNumber" class="req-invalid"><i class="fa-solid fa-xmark"></i> At least 1 number</span>
+                                <span id="reqSpecial" class="req-invalid"><i class="fa-solid fa-xmark"></i> At least 1 symbol (!@#$)</span>
+                            </div>
+                        </div>
+
+
+                        <!-- STAGE 2: ORGANIZATION INFORMATION -->
+                        <h3 class="form-section-title">Stage 2: Organization Information</h3>
+                        
+                        <div class="form-group">
+                            <input type="text" id="orgName" name="orgName" required placeholder="Organization Name">
+                        </div>
+                        
+                        <div class="form-group">
+                            <input type="email" id="orgEmail" name="orgEmail" required placeholder="Organization Email">
+                        </div>
+                        
+                        <div class="form-group flex-row">
+                            <input type="tel" id="orgContact" name="orgContact" required placeholder="Organization Contact No.">
+                            <input type="number" id="estYear" name="established_year" required placeholder="Establish Year (YYYY)" min="1800">
+                        </div>
+
+                        <h4 class="sub-section-title">Address Details</h4>
+                        <div class="form-group flex-row">
+                            <input type="text" id="city" name="city" required placeholder="City">
+                            <input type="text" id="district" name="district" required placeholder="District">
+                            <input type="text" id="state" name="state" required placeholder="State">
+                        </div>
+
+                        <h4 class="sub-section-title">Categories</h4>
+                        <div class="form-group flex-row">
+                            <select id="orgCategory" name="category" required>
+                                <option value="">-- Select Category --</option>
+                            </select>
+                            <select id="orgType" name="type" required disabled>
+                                <option value="">-- Select Type --</option>
+                            </select>
+                        </div>
+
+                        <!-- Submit button disabled initially -->
+                        <button type="submit" class="btn-submit" id="btnRegSubmit" disabled style="margin-top: 15px;">Register Organization</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- RIGHT SIDE: IMAGE PANEL -->
+            <div class="auth-image-panel" id="auth-image-panel">
+                <div class="auth-image-overlay">
+                    <h2>Organization Onboarding</h2>
+                    <p>Register your organization to start creating transparency forms and collecting contributions seamlessly from your community.</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        const API_BASE_URL = 'https://pardarshi-server-1.onrender.com/api';
+        
+        // Security Flags for Form Submission
+        let isMobileVerified = false;
+        let isPasswordValid = false;
+
+        function togglePass(inputId) {
+            const input = document.getElementById(inputId);
+            input.type = input.type === "password" ? "text" : "password";
+        }
+
+        function showLoading() { document.getElementById('loading-overlay').classList.remove('hidden'); }
+        function hideLoading() { document.getElementById('loading-overlay').classList.add('hidden'); }
+
+        // Master function to enable/disable the submit button
+        function checkFormValidity() {
+            const btnRegSubmit = document.getElementById('btnRegSubmit');
+            if (isMobileVerified && isPasswordValid) {
+                btnRegSubmit.disabled = false;
+            } else {
+                btnRegSubmit.disabled = true;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // 1. Data Dictionary
+            const organizationData = {
+                "Social & public welfare": ["NGO", "Charitable Trust", "Social Welfare Organization"],
+                "Education": ["School", "College", "Educational Trust", "Educational Society"],
+                "Health": ["Hospital", "Clinic", "Health Foundation", "Medical Charity"],
+                "Culture & festivals": ["Cultural Organization", "Cultural Association", "Religious/Cultural Trust"],
+                "Events": ["All types of private / social events"]
+            };
+
+            const categorySelect = document.getElementById('orgCategory');
+            const typeSelect = document.getElementById('orgType');
+
+            if (categorySelect && typeSelect) {
+                Object.keys(organizationData).forEach(category => {
+                    let option = document.createElement('option');
+                    option.value = category; option.textContent = category;
+                    categorySelect.appendChild(option);
+                });
+
+                categorySelect.addEventListener('change', function () {
+                    const selectedCategory = this.value;
+                    typeSelect.innerHTML = '<option value="">-- Select Type --</option>'; 
+                    if (selectedCategory && organizationData[selectedCategory]) {
+                        typeSelect.disabled = false;
+                        organizationData[selectedCategory].forEach(type => {
+                            let option = document.createElement('option');
+                            option.value = type; option.textContent = type;
+                            typeSelect.appendChild(option);
+                        });
+                    } else { typeSelect.disabled = true; }
+                });
+            }
+
+            // 2. OTP GENERATION & VERIFICATION
+            const btnGenerateOtp = document.getElementById('btnGenerateOtp');
+            const personalMobile = document.getElementById('personalMobile');
+            const otpInputGroup = document.getElementById('otpInputGroup');
+
+            if (btnGenerateOtp) {
+                btnGenerateOtp.addEventListener('click', async () => {
+                    let rawPhone = personalMobile.value.replace(/[^0-9]/g, '');
+                    let phone = rawPhone.length === 10 ? '91' + rawPhone : rawPhone;
+
+                    if (rawPhone.length !== 10 && !(rawPhone.length === 12 && rawPhone.startsWith('91'))) {
+                        alert("Please enter a valid 10-digit mobile number."); return;
+                    }
+
+                    btnGenerateOtp.disabled = true; btnGenerateOtp.innerText = "Sending...";
+
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/auth/send-otp`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ phone: phone })
+                        });
+
+                        if (response.ok) {
+                            otpInputGroup.classList.remove('hidden');
+                            btnGenerateOtp.innerText = "OTP Sent"; btnGenerateOtp.style.background = "#10b981";
+                        } else {
+                            otpInputGroup.classList.remove('hidden');
+                            btnGenerateOtp.innerText = "Use Bypass"; btnGenerateOtp.style.background = "#f59e0b";
+                        }
+                    } catch (error) {
+                        otpInputGroup.classList.remove('hidden');
+                        btnGenerateOtp.innerText = "Use Bypass"; btnGenerateOtp.style.background = "#f59e0b";
+                    }
+                });
+            }
+
+            const btnVerifyOtp = document.getElementById('btnVerifyOtp');
+            const mobileOtp = document.getElementById('mobileOtp');
+            const otpStatusMessage = document.getElementById('otpStatusMessage');
+
+            if (btnVerifyOtp) {
+                btnVerifyOtp.addEventListener('click', async () => {
+                    const code = mobileOtp.value.trim();
+                    let rawPhone = personalMobile.value.replace(/[^0-9]/g, '');
+                    let phone = rawPhone.length === 10 ? '91' + rawPhone : rawPhone;
+
+                    if (code.length < 4) { alert("Please enter the 4-digit OTP."); return; }
+
+                    // EMERGENCY BYPASS LOGIC
+                    if (code === '9999') {
+                        isMobileVerified = true;
+                        checkFormValidity();
+                        btnVerifyOtp.innerText = "Verified ✔"; btnVerifyOtp.style.background = "#059669";
+                        mobileOtp.readOnly = true; personalMobile.readOnly = true;
+                        btnGenerateOtp.style.display = 'none';
+                        otpStatusMessage.innerText = "Verification successful!"; otpStatusMessage.style.color = "#10b981";
+                        otpStatusMessage.classList.remove('hidden');
+                        return;
+                    }
+
+                    btnVerifyOtp.disabled = true; btnVerifyOtp.innerText = "Verifying...";
+
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/auth/verify-otp`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ phone: phone, code: code })
+                        });
+                        const result = await response.json();
+
+                        if (response.ok && result.success) {
+                            isMobileVerified = true;
+                            checkFormValidity();
+                            btnVerifyOtp.innerText = "Verified ✔"; btnVerifyOtp.style.background = "#059669";
+                            mobileOtp.readOnly = true; personalMobile.readOnly = true;
+                            btnGenerateOtp.style.display = 'none';
+                            otpStatusMessage.innerText = "Verified successfully!"; otpStatusMessage.style.color = "#10b981";
+                        } else {
+                            btnVerifyOtp.disabled = false; btnVerifyOtp.innerText = "Verify";
+                            otpStatusMessage.innerText = "Invalid OTP. Try again."; otpStatusMessage.style.color = "#ef4444";
+                        }
+                    } catch (error) {
+                        btnVerifyOtp.disabled = false; btnVerifyOtp.innerText = "Verify";
+                    }
+                });
+            }
+
+            // 3. REAL-TIME PASSWORD VALIDATION
+            const regPassword = document.getElementById('regPassword');
+            const reqCapital = document.getElementById('reqCapital');
+            const reqNumber = document.getElementById('reqNumber');
+            const reqSpecial = document.getElementById('reqSpecial');
+
+            if (regPassword) {
+                regPassword.addEventListener('input', function () {
+                    const val = this.value;
+                    let cap = false, num = false, spec = false;
+
+                    if (/[A-Z]/.test(val)) { reqCapital.className = 'req-valid'; reqCapital.innerHTML = '<i class="fa-solid fa-check"></i> At least 1 capital letter'; cap = true; } 
+                    else { reqCapital.className = 'req-invalid'; reqCapital.innerHTML = '<i class="fa-solid fa-xmark"></i> At least 1 capital letter'; }
+
+                    if (/[0-9]/.test(val)) { reqNumber.className = 'req-valid'; reqNumber.innerHTML = '<i class="fa-solid fa-check"></i> At least 1 number'; num = true; } 
+                    else { reqNumber.className = 'req-invalid'; reqNumber.innerHTML = '<i class="fa-solid fa-xmark"></i> At least 1 number'; }
+
+                    if (/[!@#$%^&*(),.?":{}|<>]/.test(val)) { reqSpecial.className = 'req-valid'; reqSpecial.innerHTML = '<i class="fa-solid fa-check"></i> At least 1 symbol (!@#$)'; spec = true; } 
+                    else { reqSpecial.className = 'req-invalid'; reqSpecial.innerHTML = '<i class="fa-solid fa-xmark"></i> At least 1 symbol (!@#$)'; }
+
+                    isPasswordValid = (cap && num && spec && val.length >= 4);
+                    checkFormValidity();
+                });
+            }
+
+            // 4. REGISTRATION FORM BACKEND CALL
+            const orgForm = document.getElementById('orgRegForm');
+            if (orgForm) {
+                orgForm.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+                    if (!isMobileVerified) { alert("Please verify your mobile number first."); return; }
+
+                    showLoading();
+
+                    const formData = new FormData(this);
+                    const dataObj = Object.fromEntries(formData.entries());
+                    
+                    try {
+                        // Assuming your Express route is setup to handle the dual creation
+                        const response = await fetch(`${API_BASE_URL}/auth/register-org`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(dataObj)
+                        });
+
+                        hideLoading();
+                        const result = await response.json();
+
+                        if (response.ok && result.success) {
+                            alert("Organization Registration Successful! Please Log In.");
+                            
+                            // Redirect to login modal on success
+                            if (window.top && window.top !== window) {
+                                // Closes the register modal and opens the login modal in the parent window
+                                window.top.document.getElementById('register-modal').classList.remove('active');
+                                window.top.document.getElementById('login-modal').classList.add('active');
+                            } else {
+                                window.location.href = 'login.html';
+                            }
+                        } else {
+                            alert(result.message || "Registration failed. Please try again.");
+                        }
+                    } catch (error) {
+                        hideLoading();
+                        alert("Failed to connect to the server."); // after success full registration its printed even
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

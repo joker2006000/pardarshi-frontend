@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PARDARSHI - Manage Forms</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- UI css of Sidebar -->
+    <link rel="stylesheet" href="style/structure.css">
+    <!-- Shared Dashboard CSS -->
+    <link rel="stylesheet" href="style/home.css">
+
+    <style>
+        /* Form specific styles */
+        .dashboard-content { padding: 30px; padding-bottom: 80px; overflow-y: auto; height: 100vh; box-sizing: border-box; }
+        
+        /* Views */
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        /* Form Cards */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
+        .form-card { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .form-status { font-size: 12px; padding: 4px 8px; border-radius: 4px; font-weight: 600; display: inline-block; margin-bottom: 10px; }
+        .status-draft { background: #fef08a; color: #854d0e; }
+        .status-published { background: #bbf7d0; color: #166534; }
+        .form-actions { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #f1f5f9; padding-top: 15px; }
+        .btn-action { flex: 1; padding: 8px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.2s; }
+        .btn-edit { background: #f1f5f9; color: #334155; }
+        .btn-publish { background: #3b82f6; color: #fff; }
+        /* Prevent header buttons from stretching */
+        .header-btn { 
+            flex: none !important; 
+            width: max-content !important; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 8px; 
+            padding: 8px 16px !important;
+        }
+        
+        /* Builder Styles */
+        .builder-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .builder-layout { grid-template-columns: 1fr; } }
+        .field-row { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; gap: 15px; align-items: flex-start; }
+        .input-group { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+        .standard-input { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; font-family: inherit; font-size: 14px; }
+        
+        /* Submissions Table */
+        .table-wrap { overflow-x: auto; background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+        th { background: #f8fafc; font-weight: 600; color: #475569; }
+    </style>
+</head>
+
+<body class="preload">
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="logo-1.png" alt="Logo" class="logo-small">
+            <img src="logo.png" alt="Full Logo" class="logo-large">
+        </div>
+        <div class="sidebar-toggle" id="sidebarToggle">>></div>
+        <nav class="nav-links">
+            <a href="home.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Home</span></a>
+            <a href="forms.html" class="nav-item active"><i class="fa-solid fa-file-lines"></i><span>Forms</span></a>
+            <a href="transactions.html" class="nav-item"><i class="fa-solid fa-wallet"></i><span>Transactions</span></a>
+            <a href="admin-support.html" class="nav-item"><i class="fa-solid fa-headset"></i><span>Support</span></a>
+        </nav>
+        <!-- Account section -->
+        <a href="register.html" class="account-section">
+            <div class="account-unregistered" id="unregistered-state">
+                <img src="https://ui-avatars.com/api/?name=Guest&background=e2e8f0&color=64748b" alt="Guest" class="profile-pic">
+                <span class="username">Please Register</span>
+            </div>
+            <div class="account-registered" id="registered-state" style="display: none;">
+                <img src="https://ui-avatars.com/api/?name=User&background=3b82f6&color=fff" alt="Profile" class="profile-pic">
+                <span class="username">User Profile</span>
+            </div>
+        </a>
+    </aside>
+
+    <main class="main-wrapper">
+        <div class="dashboard-content">
+            
+            <!-- VIEW 1: FORMS LIST -->
+            <div id="view-list" class="view-section active">
+                <div class="dash-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="dash-greeting">
+                        <h1><i class="fa-solid fa-file-lines"></i> Organization Forms</h1>
+                        <p>Manage your donation and data collection forms</p>
+                    </div>
+                    <button class="btn-action btn-publish header-btn" onclick="switchView('builder')" style="padding: 10px 20px; width: auto;">
+                        <i class="fa-solid fa-plus"></i> Create New Form
+                    </button>
+                </div>
+                
+                <div id="forms-grid" class="form-grid">
+                    <!-- Forms dynamically injected here -->
+                </div>
+            </div>
+
+                   <!-- VIEW 2: FORM BUILDER -->
+            <div id="view-builder" class="view-section">
+                <div class="dash-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="dash-greeting">
+                        <h1 id="builder-title"><i class="fa-solid fa-pen-to-square"></i> Create Form</h1>
+                        <p>Design your custom collection form</p>
+                    </div>
+                    <button class="btn-action btn-edit header-btn" onclick="switchView('list')" style="padding: 10px 20px; width: auto;">
+                        <i class="fa-solid fa-arrow-left"></i> Back to List
+                    </button>
+                </div>
+
+                <div class="builder-layout">
+                    <!-- Left Col: Form Settings -->
+                    <div class="dash-col">
+                        <div class="dash-card">
+                            <h2 class="dash-card-title">Basic Details</h2>
+                            <input type="hidden" id="form-id-input">
+                            <input type="hidden" id="existing-picture-url">
+                            
+                            <!-- NEW: Form Picture Upload -->
+                            <div class="input-group" style="margin-bottom: 15px;">
+                                <label class="data-label">Form Header Picture</label>
+                                <div id="form-pic-preview" style="display: none; margin-bottom: 10px; max-width: 200px; border-radius: 8px; overflow: hidden;">
+                                    <img id="form-pic-img" src="" style="width: 100%; height: auto;">
+                                </div>
+                                <input type="file" id="form-picture" accept="image/*" class="standard-input" style="padding: 5px;">
+                            </div>
+
+                            <div class="input-group" style="margin-bottom: 15px;">
+                                <label class="data-label">Form Title *</label>
+                                <input type="text" id="form-title" class="standard-input" placeholder="e.g. Annual Donation Drive" required>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 15px;">
+                                <label class="data-label">Description</label>
+                                <textarea id="form-desc" class="standard-input" rows="3" placeholder="Describe the purpose of this form..."></textarea>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 15px;">
+                                <label class="data-label">Thank You Message</label>
+                                <textarea id="form-thank-you" class="standard-input" rows="2" placeholder="Message shown after submission..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="dash-card">
+                            <div class="dash-card-header">
+                                <h2 class="dash-card-title">Form Fields ( For payments need Mobile & Name )</h2>
+                                <button class="btn-action btn-publish header-btn" onclick="addField()" style="width: auto; padding: 5px 15px;">+ Add Field</button>
+                            </div>
+                            <div id="fields-container">
+                                <!-- Fields dynamically added here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Col: Actions -->
+                    <div class="dash-col">
+                        <div class="dash-card">
+                            <h2 class="dash-card-title">Publishing</h2>
+                            <p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">Save as a draft before publishing to make it public.</p>
+                            <button id="btn-save-draft" class="standard-input" style="background: #22c55e; color: white; border: none; font-weight: bold; cursor: pointer; margin-bottom: 10px;" onclick="saveFormDraft()">
+                                <i class="fa-solid fa-floppy-disk"></i> Save Draft
+                            </button>
+                        </div>
+
+
+                         <!-- LIVE PREVIEW CARD -->
+                        <div class="dash-card" style="margin-top: 20px; padding: 15px; background: #f8fafc;">
+                            <h2 class="dash-card-title" style="margin-bottom: 15px; font-size: 15px;"><i class="fa-regular fa-eye"></i> Live Preview ( demo form )</h2>
+                            
+                            <!-- Miniature Form Wrapper -->
+                            <div style="border: 1px solid #cbd5e1; border-radius: 12px; overflow: hidden; background: #fffefe; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                                
+                                <!-- Mini Blended Image Header -->
+                                <div style="position: relative; width: 100%; height: 120px; background: #ffffff;">
+                                    <img id="preview-image" src="https://via.placeholder.com/400x200?text=Cover+Image" style="width: 100%; height: 100%; object-fit: cover; -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%); mask-image: linear-gradient(to bottom, black 40%, transparent 100%);">
+                                    <h3 id="preview-title" style="position: absolute; top: 15px; left: 0; right: 0; text-align: center; color: #ffffff; font-size: 14px; font-weight: 800; text-transform: uppercase; text-shadow: 0px 2px 6px rgb(0, 0, 0); margin: 0; padding: 0 10px; z-index: 10; line-height: 1.2;">Form Title</h3>
+                                </div>
+
+                                <!-- Mini Form Content -->
+                                <div id="preview-fields-container" style="padding: 0 15px 20px 15px; margin-top: -20px; position: relative; z-index: 20; display: flex; flex-direction: column; gap: 10px;">
+                                    <!-- JS injects fields here -->
+                                    <div style="text-align: center; color: #94a3b8; font-size: 11px; padding: 10px 0;">Add fields to see preview</div>
+                                </div>
+                                
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 3: SUBMISSIONS -->
+            <div id="view-submissions" class="view-section">
+                <div class="dash-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="dash-greeting">
+                        <h1><i class="fa-solid fa-users-rectangle"></i> Submissions</h1>
+                        <p id="submissions-subtitle">Loading...</p>
+                    </div>
+                    <button class="btn-action btn-edit header-btn" onclick="switchView('list')" style="padding: 10px 20px; width: auto;">
+                        <i class="fa-solid fa-arrow-left"></i> Back to List
+                    </button>
+                </div>
+                
+                <div class="table-wrap">
+                    <table id="submissions-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Name</th>
+                                <th>Mobile</th>
+                                <th>Answers</th>
+                            </tr>
+                        </thead>
+                        <tbody id="submissions-body">
+                            <!-- Injected rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- MOBILE BOTTOM NAVIGATION -->
+    <nav class="mobile-bottom-nav">
+        <a href="home.html" class="bottom-nav-item"><i class="fa-solid fa-house"></i></a>
+        <a href="forms.html" class="bottom-nav-item"><i class="fa-solid fa-file-lines"></i></a>
+        <a href="transactions.html" class="bottom-nav-item"><i class="fa-solid fa-wallet"></i></a>
+        <a href="admin-support.html" class="bottom-nav-item"><i class="fa-solid fa-headset"></i></a>
+    </nav>
+
+    <!-- UI Interaction Script -->
+    <script src="script/structure.js"></script>
+
+    <!-- FORMS API LOGIC -->
+    <script>
+        const BASE_URL = 'https://pardarshi-server-1.onrender.com';
+        const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+        const orgId = localStorage.getItem('currentOrgId');
+        
+       let currentFields = [];
+
+       // Note: For JSON calls, we use this. For FormData (file upload), we omit Content-Type.
+        const fetchOptionsJson = {
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+        };
+        const fetchOptionsForm = {
+            headers: { 'Authorization': `Bearer ${token}` }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!orgId) {
+                document.getElementById('forms-grid').innerHTML = '<p>Please connect to an organization first.</p>';
+                return;
+            }
+
+// Live Preview: Update Title
+            document.getElementById('form-title').addEventListener('input', function() {
+                document.getElementById('preview-title').textContent = this.value || 'Form Title';
+            });
+
+            // Live Preview: Update Image instantly when file is selected
+            document.getElementById('form-picture').addEventListener('change', function(e) {
+                if(this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('preview-image').src = e.target.result;
+                    }
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+
+            loadFormsList();
+        });
+
+        // --- NAVIGATION LOGIC ---
+        function switchView(viewName) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${viewName}`).classList.add('active');
+            
+            if(viewName === 'builder') {
+                // Reset form if opening fresh builder
+                document.getElementById('form-id-input').value = '';
+                document.getElementById('form-title').value = '';
+                document.getElementById('form-desc').value = '';
+                document.getElementById('form-thank-you').value = '';
+                currentFields = [];
+                renderFields();
+                document.getElementById('builder-title').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Create Form';
+            }
+        }
+
+       // --- 1. GET ALL FORMS (UPDATED TO SHOW HEADER PICTURE & QR CODE) ---
+async function loadFormsList() {
+    try {
+        const res = await fetch(`${BASE_URL}/api/forms/organization/${orgId}`, fetchOptionsJson);
+        const result = await res.json();
+
+        const grid = document.getElementById('forms-grid');
+        grid.innerHTML = '';
+
+        if (result.success && result.forms.length > 0) {
+            result.forms.forEach(form => {
+                const isPub = form.is_published;
+                
+                // 1. GENERATE FORM HEADER PICTURE HTML
+                let pictureHtml = '';
+                if (form.picture_url) {
+                    pictureHtml = `
+                        <div style="width: 100%; height: 140px; border-radius: 8px; overflow: hidden; margin-bottom: 15px; background: #f1f5f9;">
+                            <img src="${form.picture_url}" alt="Form Cover" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                    `;
+                }
+
+                // 2. GENERATE QR CODE HTML (Only if published)
+                let qrHtml = '';
+                if (isPub && form.qr_code_url) {
+                    qrHtml = `
+                        <div style="margin: 15px 0; text-align: center; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px dashed #cbd5e1;">
+                            <p style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 5px; text-transform: uppercase;">Scan to open</p>
+                            <img src="${form.qr_code_url}" alt="QR Code" style="width: 100px; height: 100px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                            <div style="margin-top: 5px;">
+                                <a href="${form.qr_code_url}" target="_blank" style="font-size: 12px; color: #3b82f6; font-weight: 600; text-decoration: none;">
+                                    <i class="fa-solid fa-download"></i> View / Download QR
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // 3. INJECT INTO GRID
+                grid.innerHTML += `
+                    <div class="form-card">
+                        ${pictureHtml} <!-- Header Picture Appears Here -->
+                        
+                        <span class="form-status ${isPub ? 'status-published' : 'status-draft'}">
+                            ${isPub ? 'Published' : 'Draft'}
+                        </span>
+                        
+                        <h3 style="margin-bottom: 8px; color: #334155;">${form.title}</h3>
+                        
+                        <p style="font-size: 13px; color: #64748b; margin-bottom: 10px;">
+                            ${form.public_url ? `<a href="${form.public_url}" target="_blank" style="color: #3b82f6; text-decoration: none; font-weight: 500;"><i class="fa-solid fa-link"></i> View Public Link</a>` : 'Not live yet'}
+                        </p>
+                        
+                        ${qrHtml} <!-- QR Code Appears Here -->
+                        
+                        <div class="form-actions">
+                            <button class="btn-action btn-edit" onclick="editForm(${form.form_id}, '${form.title.replace(/'/g, "\\'")}')">
+                                <i class="fa-solid fa-pen"></i> Edit
+                            </button>
+                            ${!isPub ? `
+                            <button class="btn-action btn-publish" onclick="publishForm(${form.form_id})">
+                                <i class="fa-solid fa-globe"></i> Publish
+                            </button>
+                            ` : `
+                            <button class="btn-action btn-publish" onclick="loadSubmissions(${form.form_id}, '${form.title.replace(/'/g, "\\'")}')">
+                                <i class="fa-solid fa-users"></i> Data
+                            </button>
+                            `}
+
+                             <!-- NEW DELETE BUTTON -->
+                            <button class="btn-action" id="delete-btn-${form.form_id}" style="background: #fee2e2; color: #ef4444;" onclick="deleteForm(${form.form_id})">
+                                <i class="fa-solid fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        } else {
+            grid.innerHTML = '<p style="color: #64748b;">No forms found. Create your first form!</p>';
+        }
+    } catch (err) {
+        console.error("Error loading forms:", err);
+    }
+}
+
+      // --- 2. BUILDER LOGIC (UPDATED WITH OPTIONS & PLACEHOLDERS) ---
+        function addField() {
+            currentFields.push({ label: '', field_type: 'text', is_required: false, placeholder: '', options: [] });
+            renderFields();
+        }
+
+        function removeField(index) {
+            currentFields.splice(index, 1);
+            renderFields();
+        }
+
+        function updateField(index, key, value) {
+            currentFields[index][key] = value;
+            if (key === 'field_type') renderFields(); // Re-render to show/hide options UI
+        }
+
+        function updateOptions(index, value) {
+            // Convert comma separated string back to array
+            currentFields[index].options = value.split(',').map(opt => opt.trim()).filter(opt => opt);
+        }
+
+        function renderFields() {
+            const container = document.getElementById('fields-container');
+            container.innerHTML = '';
+            
+            if(currentFields.length === 0) {
+                container.innerHTML = '<p style="font-size: 13px; color: #94a3b8;">No fields added yet.</p>';
+                return;
+            }
+
+            currentFields.forEach((field, index) => {
+                const needsOptions = ['select', 'radio', 'checkbox'].includes(field.field_type);
+                const needsPlaceholder = ['text', 'textarea', 'number', 'email', 'amount'].includes(field.field_type);
+                
+                const optionsStr = Array.isArray(field.options) ? field.options.join(', ') : '';
+
+                container.innerHTML += `
+                    <div class="field-row" style="flex-direction: column;">
+                        <div style="display: flex; gap: 15px; width: 100%;">
+                            <div class="input-group">
+                                <label style="font-size: 11px; font-weight: 600;">Field Label *</label>
+                                <input type="text" class="standard-input" value="${field.label}" onchange="updateField(${index}, 'label', this.value)" placeholder="Question title">
+                            </div>
+                            <div class="input-group">
+                                <label style="font-size: 11px; font-weight: 600;">Field Type</label>
+                                <select class="standard-input" onchange="updateField(${index}, 'field_type', this.value)">
+                                    <option value="text" ${field.field_type === 'text' ? 'selected' : ''}>Text</option>
+                                    <option value="textarea" ${field.field_type === 'textarea' ? 'selected' : ''}>Long Text (Textarea)</option>
+                                    <option value="email" ${field.field_type === 'email' ? 'selected' : ''}>Email</option>
+                                    <option value="number" ${field.field_type === 'number' ? 'selected' : ''}>Number</option>
+                                    <option value="amount" ${field.field_type === 'amount' ? 'selected' : ''}>Amount (Currency)</option>
+                                    <option value="select" ${field.field_type === 'select' ? 'selected' : ''}>Dropdown (Select)</option>
+                                    <option value="radio" ${field.field_type === 'radio' ? 'selected' : ''}>Single Choice (Radio)</option>
+                                    <option value="checkbox" ${field.field_type === 'checkbox' ? 'selected' : ''}>Multiple Choice (Checkbox)</option>
+                                    <option value="file" ${field.field_type === 'file' ? 'selected' : ''}>File Upload</option>
+                                </select>
+                            </div>
+                            <div style="padding-top: 25px;">
+                                <button onclick="removeField(${index})" style="background: none; border: none; color: #ef4444; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 15px; width: 100%; margin-top: 10px; align-items: center;">
+                            ${needsPlaceholder ? `
+                            <div class="input-group" style="flex: 2;">
+                                <label style="font-size: 11px; font-weight: 600;">Placeholder</label>
+                                <input type="text" class="standard-input" value="${field.placeholder || ''}" onchange="updateField(${index}, 'placeholder', this.value)" placeholder="Hint text shown inside input">
+                            </div>` : ''}
+
+                            ${needsOptions ? `
+                            <div class="input-group" style="flex: 2;">
+                                <label style="font-size: 11px; font-weight: 600;">Options (Comma separated)</label>
+                                <input type="text" class="standard-input" value="${optionsStr}" onchange="updateOptions(${index}, this.value)" placeholder="Option 1, Option 2, Option 3">
+                            </div>` : ''}
+                            
+                            <div class="input-group" style="flex: 1; align-items: flex-end;">
+                                <label style="font-size: 11px; font-weight: 600; cursor: pointer;">
+                                    <input type="checkbox" ${field.is_required ? 'checked' : ''} onchange="updateField(${index}, 'is_required', this.checked)"> 
+                                    Required Field
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                 updateLivePreview();
+            });
+
+           
+        }
+
+        // --- 3. SAVE DRAFT (UPDATED TO FORMDATA FOR IMAGE UPLOAD) ---
+        async function saveFormDraft() {
+            const title = document.getElementById('form-title').value.trim();
+            if(!title) return alert("Form Title is required.");
+            if(currentFields.some(f => !f.label.trim())) return alert("All fields must have a label.");
+
+            const btn = document.getElementById('btn-save-draft');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+            
+            const formData = new FormData();
+            formData.append('organization_id', orgId);
+            formData.append('form_id', document.getElementById('form-id-input').value || '');
+            formData.append('title', title);
+            formData.append('description', document.getElementById('form-desc').value);
+            formData.append('thank_you_message', document.getElementById('form-thank-you').value);
+            formData.append('existing_picture_url', document.getElementById('existing-picture-url').value);
+
+    
+            
+            // Append file if selected
+            const fileInput = document.getElementById('form-picture');
+            if (fileInput.files.length > 0) {
+                formData.append('picture', fileInput.files[0]);
+            }
+
+            // Stringify fields array
+            formData.append('fields', JSON.stringify(currentFields));
+
+            try {
+                const res = await fetch(`${BASE_URL}/api/forms/save`, {
+                    method: 'POST',
+                    headers: fetchOptionsForm.headers, // No content-type so browser sets multipart boundary
+                    body: formData
+                });
+                const result = await res.json();
+                if(result.success) {
+                    alert("Draft saved successfully!");
+                    document.getElementById('form-id-input').value = result.form_id; 
+                    if (result.picture_url) {
+                        document.getElementById('existing-picture-url').value = result.picture_url;
+                        document.getElementById('form-pic-img').src = result.picture_url;
+                        document.getElementById('form-pic-preview').style.display = 'block';
+                    }
+                    loadFormsList();
+                } else {
+                    alert(result.error || "Failed to save.");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Failed to connect to server.");
+            } finally {
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Draft';
+            }
+        }
+
+
+        // --- 4. PUBLISH FORM ---
+        async function publishForm(formId) {
+            if(!confirm("Are you sure you want to publish? Once published, a public URL and QR code will be generated.")) return;
+            
+            try {
+                const res = await fetch(`${BASE_URL}/api/forms/publish`,{
+                    method: 'POST',
+                    headers: fetchOptionsJson.headers,
+                    body: JSON.stringify({ form_id: formId, organization_id: orgId })
+                });
+                const result = await res.json();
+                if(result.success) {
+                    alert("Form Published! Live URL: " + result.public_url);
+                    loadFormsList();
+                } else {
+                    alert(result.error || "Failed to publish.");
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+
+       // --- 5. EDIT FORM (UPDATED TO LOAD PICTURE & OPTIONS) ---
+        async function editForm(formId, title) {
+            switchView('builder');
+            document.getElementById('builder-title').innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Loading...`;
+            document.getElementById('form-pic-preview').style.display = 'none';
+            document.getElementById('form-picture').value = '';
+
+            
+            try {
+                const res = await fetch(`${BASE_URL}/api/forms/${formId}`, fetchOptionsJson);
+                const result = await res.json();
+                
+                if (result.success) {
+                    const form = result.form;
+                    
+                    document.getElementById('form-id-input').value = form.form_id;
+                    document.getElementById('form-title').value = form.title || '';
+                    document.getElementById('form-desc').value = form.description || '';
+                    document.getElementById('form-thank-you').value = form.thank_you_message || '';
+                    document.getElementById('existing-picture-url').value = form.picture_url || '';
+                    
+                    if (form.picture_url) {
+                        document.getElementById('form-pic-img').src = form.picture_url;
+                        document.getElementById('form-pic-preview').style.display = 'block';
+                    }
+
+                    if (form.picture_url) {
+                    document.getElementById('form-pic-img').src = form.picture_url;
+                    document.getElementById('form-pic-preview').style.display = 'block';
+                    document.getElementById('preview-image').src = form.picture_url; // Update preview
+                } else {
+                    document.getElementById('preview-image').src = 'https://via.placeholder.com/400x200?text=Cover+Image';
+                }
+                document.getElementById('preview-title').textContent = form.title || 'Form Title';
+
+                    currentFields = result.fields.map(f => ({
+                        label: f.label,
+                        field_type: f.field_type,
+                        is_required: f.is_required,
+                        placeholder: f.placeholder,
+                        options: typeof f.options === 'string' ? JSON.parse(f.options) : (f.options || [])
+                    }));
+                    
+                    renderFields();
+                    document.getElementById('builder-title').innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Edit Form`;
+                } else {
+                    alert("Failed to load form details.");
+                    switchView('list');
+                }
+            } catch (err) {
+                alert("Network error.");
+                switchView('list');
+            }
+        }
+
+
+        // --- 6. VIEW SUBMISSIONS ---
+        async function loadSubmissions(formId, title) {
+            switchView('submissions');
+            document.getElementById('submissions-subtitle').textContent = `Submissions for: ${title}`;
+            const tbody = document.getElementById('submissions-body');
+            tbody.innerHTML = '<tr><td colspan="4">Loading data...</td></tr>';
+
+            try {
+                const res = await fetch(`${BASE_URL}/api/forms/${formId}/submissions`, fetchOptionsJson);
+                const result = await res.json();
+                
+                tbody.innerHTML = '';
+                if(result.success && result.submissions.length > 0) {
+                    result.submissions.forEach(sub => {
+                        const date = new Date(sub.submitted_at).toLocaleDateString();
+                        let answersHTML = '';
+                        try {
+                            const ansObj = typeof sub.answers === 'string' ? JSON.parse(sub.answers) : sub.answers;
+                            answersHTML = Object.entries(ansObj).map(([k, v]) => `<b>${k}:</b> ${v}`).join('<br>');
+                        } catch(e) { answersHTML = 'N/A'; }
+
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${date}</td>
+                                <td>${sub.contributor_name || 'Anonymous'}</td>
+                                <td>${sub.contributor_mobile || 'N/A'}</td>
+                                <td>${answersHTML}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No submissions yet.</td></tr>';
+                }
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = '<tr><td colspan="4" style="color: red;">Error loading data.</td></tr>';
+            }
+        }
+
+
+        function updateLivePreview() {
+            const container = document.getElementById('preview-fields-container');
+            container.innerHTML = '';
+            
+            if (currentFields.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #94a3b8; font-size: 11px; padding: 10px 0;">Add fields to see preview</div>';
+                return;
+            }
+
+            // Generate miniature fields
+            currentFields.forEach(field => {
+                const isTextArea = field.field_type === 'textarea';
+                const inputHeight = isTextArea ? '40px' : '25px';
+                
+                container.innerHTML += `
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-weight: 800; font-size: 9px; color: #2e2e2e; text-transform: uppercase;">
+                            ${field.label || 'New Field'} ${field.is_required ? '*' : ''}
+                        </label>
+                        <div style="width: 100%; height: ${inputHeight}; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);"></div>
+                    </div>
+                `;
+            });
+            
+            // Add miniature Submit Button
+            container.innerHTML += `
+                <div style="margin-top: 10px; display: flex; justify-content: center;">
+                    <div style="background: #6a88ff; color: white; padding: 5px 15px; border-radius: 20px; font-size: 9px; font-weight: bold; border: 1px solid black; text-transform: uppercase;">Submit Application</div>
+                </div>
+            `;
+        }
+        updateLivePreview();
+
+        // --- 7. DELETE FORM ---
+        async function deleteForm(formId) {
+            // Confirm with the user first
+            if(!confirm("Are you sure you want to permanently delete this form? All fields, settings, and submission data will be erased. This cannot be undone.")) {
+                return;
+            }
+
+            const btn = document.getElementById(`delete-btn-${formId}`);
+            const originalContent = btn.innerHTML;
+            
+            // Show loading state
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deleting...';
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+
+            try {
+                const res = await fetch(`${BASE_URL}/api/forms/${formId}`, {
+                    method: 'DELETE',
+                    headers: fetchOptionsJson.headers
+                });
+                const result = await res.json();
+                
+                if(result.success) {
+                    // Reload the grid to remove the deleted card instantly
+                    loadFormsList();
+                } else {
+                    alert(result.error || "Failed to delete form.");
+                    btn.innerHTML = originalContent;
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                }
+            } catch (err) {
+                console.error("Delete Error:", err);
+                alert("Network error occurred while trying to delete.");
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            }
+        }
+
+
+
+    </script>
+</body>
+</html>

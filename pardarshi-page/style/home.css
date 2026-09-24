@@ -1,0 +1,483 @@
+  
+        /* Dashboard Container Variables */
+        :root {
+            --card-bg: #ffffff;
+            --bg-body: #f4f7fe;
+            --text-main: #16253c;
+            --text-faint: #4d5969;
+            --red-btn: #fc6666e0;
+            --red-btn-hover: #dc2626;
+            --border-color: #f1f5f9;
+        }
+
+        .dashboard-content {
+            background-color: var(--bg-body);
+            min-height: 100%;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Top Header Override */
+        .dash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .dash-greeting h1 {
+            font-size: 24px;
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .dash-greeting h1 i { color: #3b82f6; }
+        .dash-greeting p {
+            color: var(--text-faint);
+            font-size: 14px;
+            margin: 5px 0 0 0;
+        }
+
+        .dash-org-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            cursor: pointer;
+        }
+        .dash-org-selector .heart-icon {
+            background: #fee2e2;
+            color: var(--red-btn);
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px;
+        }
+
+        /* Grid Layout */
+        .dash-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+        @media (min-width: 992px) {
+            .dash-grid { grid-template-columns: 1.2fr 1fr; }
+        }
+
+        /* Cards */
+       /* --- Let the card stretch downwards to fit all content --- */
+.dash-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    margin-bottom: 24px;
+    position: relative;
+    
+    /* NEW: Forces vertical stretching */
+    height: auto; 
+    min-height: fit-content; 
+    overflow: visible;
+}
+
+        .dash-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .dash-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin: 0;
+        }
+
+        .btn-red-pill {
+            background: var(--red-btn);
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-red-pill:hover { background: var(--red-btn-hover); }
+/* --- Keep Image Left, Text Right, but fix spacing --- */
+.profile-info-layout {
+    display: flex;
+    gap: 15px; /* Slightly reduced for mobile */
+    align-items: center; /* Keeps them vertically aligned */
+    flex-wrap: nowrap; /* Forces side-by-side layout on mobile */
+}
+
+        .profile-pic-wrapper {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            flex-shrink: 0;
+        }
+
+        /* Desktop/PC Adjustments */
+        @media (min-width: 992px) {
+            .profile-info-layout {
+                gap: 50px; /* Shifts the Name, Email, and Mobile to the right */
+            }
+            .profile-pic-wrapper {
+                width: 130px; /* Makes the profile picture bigger on PC */
+                height: 130px;
+            }
+            .profile-pic-circle i {
+                font-size: 50px; /* Makes the inner icon bigger to match */
+            }
+            .profile-edit-icon {
+                width: 32px; /* Scales the red edit button up slightly */
+                height: 32px;
+                font-size: 14px;
+                bottom: 2px;
+                right: 2px;
+            }
+        }
+
+        .profile-pic-circle {
+            width: 100%;
+            height: 100%;
+            background: #eef2ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #e0e7ff;
+            overflow: hidden;
+        }
+        .profile-pic-circle i { font-size: 40px; color: #c7d2fe; }
+
+        /* RED EDIT ICON ON BORDER */
+        .profile-edit-icon {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: var(--red-btn);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            border: 2px solid white;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .profile-edit-icon:hover { background: var(--red-btn-hover); }
+
+/* --- Prevent long text from stretching the card --- */
+.data-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex-grow: 1;
+    min-width: 0; /* CRITICAL: Stops the right side from pushing off-screen */
+}
+        
+/* --- Force the 3 bottom items to fit the screen --- */
+.data-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr)); /* Squeezes them equally */
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-color);
+}
+
+
+/* Add an override specifically for desktop/PC to restore the original layout */
+@media (min-width: 768px) {
+     .profile-info-layout {
+        gap: 50px; 
+        align-items: flex-start;
+    }
+    .data-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+     .data-grid-3 {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 16px;
+    }
+}
+
+        .data-label {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+      
+        /* --- Force long emails to wrap to the next line --- */
+.data-value-faint {
+    font-size: 14px;
+    color: var(--text-faint);
+    margin: 0;
+    word-break: break-word; /* CRITICAL: Breaks long emails safely */
+    overflow-wrap: break-word;
+}
+
+       /* Description Box */
+       
+/* --- Ensure the description box expands with the text --- */
+.desc-box {
+    background: #f8fafc;
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    color: var(--text-faint);
+    line-height: 1.6;
+    
+    /* NEW: Forces the box to grow based on the text inside */
+    height: auto !important;
+    min-height: fit-content;
+    white-space: pre-wrap; 
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+        /* WhatsApp Section */
+        .whatsapp-input-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            margin-top: 20px;
+        }
+        .whatsapp-icon-circle {
+            width: 45px; height: 45px;
+            background: #dcfce7;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: #22c55e;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        .whatsapp-input {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            padding: 10px 14px;
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+        }
+        .whatsapp-input:focus { border-color: var(--red-btn); }
+        
+        .whatsapp-submit-wrap {
+            display: flex;
+            justify-content: flex-end;
+        }
+        .btn-submit-large {
+            background: var(--red-btn);
+            color: white;
+            border: none;
+            padding: 10px 32px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        /* Members List */
+        .member-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .member-item:last-child { border-bottom: none; }
+        
+        .member-info { display: flex; align-items: center; gap: 12px; }
+        .member-avatar {
+            width: 40px; height: 40px;
+            background: #a5b4fc;
+            color: white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 600;
+        }
+        .remove-text {
+            color: var(--red-btn);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        /* -------------------------------------
+           PREVIOUS PROJECTS SECTION 
+        -------------------------------------- */
+        .projects-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 40px 0 20px 0;
+        }
+        .projects-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 0;
+        }
+
+        .project-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 24px;
+        }
+
+        .project-card-main {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+        @media (min-width: 992px) {
+            .project-card-main { grid-template-columns: 1fr 1.3fr; }
+        }
+
+        /* Image Slider Area */
+        .project-image-area {
+            background: #f8fafc;
+            border-radius: 12px;
+            min-height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            position: relative;
+        }
+        .project-image-area .placeholder-img {
+            font-size: 70px;
+            color: #e2e8f0;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .slider-arrow {
+            width: 32px;
+            height: 32px;
+            background: var(--red-btn);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            z-index: 2;
+            opacity: 0.9;
+            transition: 0.2s;
+        }
+        .slider-arrow:hover { opacity: 1; transform: scale(1.05); }
+
+        /* Project Info Area */
+        .project-info-area {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: relative;
+        }
+        
+        .btn-delete-project {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid #fee2e2;
+            background: white;
+            color: var(--red-btn);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: absolute;
+            top: 0;
+            right: 0;
+            transition: 0.2s;
+        }
+        .btn-delete-project:hover { background: #fee2e2; }
+
+        .project-fake-input {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: var(--text-faint);
+            font-size: 14px;
+            background: white;
+            margin-top: 8px;
+            width: calc(100% - 50px); /* Leave room for trash can */
+        }
+        
+        .project-fake-textarea {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: var(--text-faint);
+            font-size: 14px;
+            background: white;
+            min-height: 85px;
+            line-height: 1.6;
+            margin-top: 8px;
+        }
+
+        /* Project Card Footer */
+        .project-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+            margin-top: 24px;
+        }
+        .project-date-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .project-date-info i {
+            font-size: 22px;
+            color: #64748b;
+        }
+        .project-date-text span:first-child {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .project-date-text span:last-child {
+            font-size: 14px;
+            color: var(--text-faint);
+            display: block;
+        }
+        .btn-details {
+            padding: 8px 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
