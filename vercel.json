@@ -1,4 +1,5 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
@@ -7,7 +8,7 @@
       "destination": "/public-form.html" 
     },
     { 
-      "source": "/form/(.*)", 
+      "source": "/form/:slug*", 
       "destination": "/public-form.html" 
     },
     { 
@@ -15,7 +16,15 @@
       "destination": "/contributer-page/org.html" 
     },
     { 
+      "source": "/org/:match*", 
+      "destination": "/contributer-page/org.html" 
+    },
+    { 
       "source": "/project", 
+      "destination": "/contributer-page/project.html" 
+    },
+    { 
+      "source": "/project/:match*", 
       "destination": "/contributer-page/project.html" 
     },
     { 
@@ -23,17 +32,17 @@
       "destination": "/contributer-page/support.html" 
     },
     { 
-      "source": "/payment-status", 
-      "destination": "/payment-status.html" 
+      "source": "/support/:match*", 
+      "destination": "/contributer-page/support.html" 
     },
     { 
-      "source": "/payment-status/(.*)", 
+      "source": "/payment-status", 
       "destination": "/payment-status.html" 
     }
   ],
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/(.*\\.html)",
       "headers": [
         {
           "key": "Cache-Control",
