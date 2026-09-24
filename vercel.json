@@ -3,7 +3,11 @@
   "trailingSlash": false,
   "rewrites": [
     { 
-      "source": "/form/:slug*", 
+      "source": "/form", 
+      "destination": "/public-form.html" 
+    },
+    { 
+      "source": "/form/(.*)", 
       "destination": "/public-form.html" 
     },
     { 
@@ -19,13 +23,17 @@
       "destination": "/contributer-page/support.html" 
     },
     { 
-      "source": "/pardarshi-page/(.*)", 
-      "destination": "/pardarshi-page/$1.html" 
+      "source": "/payment-status", 
+      "destination": "/payment-status.html" 
+    },
+    { 
+      "source": "/payment-status/(.*)", 
+      "destination": "/payment-status.html" 
     }
   ],
   "headers": [
     {
-      "source": "/(.*\\.html)",
+      "source": "/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
