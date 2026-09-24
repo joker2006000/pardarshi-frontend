@@ -4,7 +4,7 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/form/:path*",
+      "source": "/form/:path+",
       "destination": "/public-form.html"
     },
     {
