@@ -349,24 +349,37 @@ async function enablePushNotifications() {
         const outputArray = new Uint8Array(rawData.length);
         for (let i = 0; i < rawData.length; ++i) { outputArray[i] = rawData.charCodeAt(i); }
 
+       // ... (Keep the VAPID and registration code above this exactly the same) ...
+
         const subscription = await register.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey: outputArray
         });
 
-        // Send to our new backend route
+        // Get the exact slug from the web address bar
         const orgSlug = new URLSearchParams(window.location.search).get('org');
         const guestToken = localStorage.getItem('pardarshi_guest_token');
         
-        // Note: You may need an extra API call here to resolve orgSlug to organization_id if it isn't readily available in the DOM context.
-        const orgId = typeof internalOrgId !== 'undefined' ? internalOrgId : 1; 
-
-        await fetch('https://pardarshi-server-1.onrender.com/api/push/subscribe', {
+        // Send to the backend
+        const response = await fetch('https://pardarshi-server-1.onrender.com/api/push/subscribe', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ guest_token: guestToken, organization_id: orgId, subscription })
+            body: JSON.stringify({ 
+                guest_token: guestToken, 
+                org_slug: orgSlug, 
+                subscription: subscription 
+            })
         });
-    } catch (err) { console.error('Push registration failed:', err); }
+
+        if (!response.ok) {
+            console.error("Backend refused the subscription:", await response.text());
+        } else {
+            console.log("Successfully subscribed to database!");
+        }
+        
+    } catch (err) { 
+        console.error('Push registration failed:', err); 
+    }
 }
 </script>
 
