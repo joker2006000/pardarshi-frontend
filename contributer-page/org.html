@@ -318,12 +318,18 @@
 </div>
 
 <script>
-const VAPID_PUBLIC_KEY = 'BDpdAV-nKyDO1zZKCu6UfpTGu9Q2Irq8IQc2lql55FQWPbA1QOhcrPj-_7FqDYOyexSn8A7GPkSKEYfK_ixtX8I'; // Replace with the key you generated
+const VAPID_PUBLIC_KEY = 'BDpdAV-nKyDO1zZKCu6UfpTGu9Q2Irq8IQc2lql55FQWPbA1QOhcrPj-_7FqDYOyexSn8A7GPkSKEYfK_ixtX8I'; 
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Check if browser supports push and we haven't asked recently
+document.addEventListener('DOMContentLoaded', async () => {
+    // Ensure browser supports Service Workers and Push
     if ('serviceWorker' in navigator && 'PushManager' in window) {
-        if (Notification.permission === 'default' && !localStorage.getItem('push_dismissed')) {
+        
+        // 1. SCALABLE FIX: If permission is already granted, silently sync with DB on load
+        if (Notification.permission === 'granted') {
+            await syncPushSubscription();
+        } 
+        // 2. If not asked yet, show the polite banner after 3 seconds
+        else if (Notification.permission === 'default' && !localStorage.getItem('push_dismissed')) {
             setTimeout(() => { document.getElementById('push-polite-banner').style.display = 'block'; }, 3000);
         }
     }
@@ -331,54 +337,62 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function dismissPushBanner() {
     document.getElementById('push-polite-banner').style.display = 'none';
-    localStorage.setItem('push_dismissed', 'true'); // Don't bother them again on this device
+    localStorage.setItem('push_dismissed', 'true'); 
 }
 
 async function enablePushNotifications() {
     document.getElementById('push-polite-banner').style.display = 'none';
     try {
         const permission = await Notification.requestPermission();
-        if (permission !== 'granted') return;
+        if (permission === 'granted') {
+            await syncPushSubscription();
+        }
+    } catch (err) { 
+        console.error('Push permission request failed:', err); 
+    }
+}
 
+// INDUSTRY STANDARD: Reusable function to handle the cryptography and API call
+async function syncPushSubscription() {
+    try {
         const register = await navigator.serviceWorker.register('/sw.js');
         
-        // Convert Base64 VAPID to Uint8Array
+        // Convert Base64 VAPID to Uint8Array safely
         const padding = '='.repeat((4 - VAPID_PUBLIC_KEY.length % 4) % 4);
         const base64 = (VAPID_PUBLIC_KEY + padding).replace(/\-/g, '+').replace(/_/g, '/');
         const rawData = window.atob(base64);
         const outputArray = new Uint8Array(rawData.length);
         for (let i = 0; i < rawData.length; ++i) { outputArray[i] = rawData.charCodeAt(i); }
 
-       // ... (Keep the VAPID and registration code above this exactly the same) ...
-
         const subscription = await register.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey: outputArray
         });
 
-        // Get the exact slug from the web address bar
+        // Get context variables securely
         const orgSlug = new URLSearchParams(window.location.search).get('org');
         const guestToken = localStorage.getItem('pardarshi_guest_token');
         
-        // Send to the backend
-        const response = await fetch('https://pardarshi-server-1.onrender.com/api/push/subscribe', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                guest_token: guestToken, 
-                org_slug: orgSlug, 
-                subscription: subscription 
-            })
-        });
+        // Failsafe: Only ping backend if we know which org we are looking at
+        if (orgSlug) {
+            const response = await fetch('https://pardarshi-server-1.onrender.com/api/push/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    guest_token: guestToken, 
+                    org_slug: orgSlug, 
+                    subscription: subscription 
+                })
+            });
 
-        if (!response.ok) {
-            console.error("Backend refused the subscription:", await response.text());
-        } else {
-            console.log("Successfully subscribed to database!");
+            if (!response.ok) {
+                console.error("Backend refused the subscription:", await response.text());
+            } else {
+                console.log("Successfully synced push subscription to database!");
+            }
         }
-        
-    } catch (err) { 
-        console.error('Push registration failed:', err); 
+    } catch (err) {
+        console.error('Push registration or sync failed:', err);
     }
 }
 </script>
