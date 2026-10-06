@@ -16,14 +16,16 @@
     "buildOptions": {
       "icon": "logo1" 
     },
-    "SplashScreen": {
-  "launchShowDuration": 3000,
-  "launchAutoHide": true,
-  "backgroundColor": "#ffffff",
-  "androidSplashResourceName": "logo1",
-  "showSpinner": true,
-  "spinnerStyle": "large",
-  "spinnerColor": "#4f46e5"
-}
+"SplashScreen": {
+      "launchShowDuration": 3000,
+      "launchAutoHide": true,
+      "backgroundColor": "#ffffff",
+      "androidSplashResourceName": "splash",
+      "showSpinner": true,
+      "spinnerStyle": "large",
+      "spinnerColor": "#4f46e5",
+      "splashFullScreen": true,
+      "splashImmersive": true
+    }
   }
 }

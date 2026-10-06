@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/joker2006000/pardarshi-frontend#readme",
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.5.2"
   }
 }
