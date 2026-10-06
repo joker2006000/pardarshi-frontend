@@ -14,7 +14,7 @@
   },
   "android": {
     "buildOptions": {
-      "icon": "logo-1.png" 
+      "icon": "logo1.png" 
     }
   }
 }
