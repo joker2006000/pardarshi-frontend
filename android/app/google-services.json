@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "361536089219",
+    "project_id": "pardarshi-34190",
+    "storage_bucket": "pardarshi-34190.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:361536089219:android:214804f926ec8cea37bfb6",
+        "android_client_info": {
+          "package_name": "com.pardarshi.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOalyZ11EpeMbcTGLYq4uNwDZbvrdY8IE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
