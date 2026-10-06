@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pardarshi App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; font-family: 'Inter', sans-serif; background: #f8fafc; display: flex; align-items: center; justify-content: center; height: 100vh; text-align: center; }
+        .card { background: white; padding: 40px 30px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); max-width: 320px; width: 90%; }
+        h1 { font-size: 20px; color: #0f172a; margin-bottom: 10px; }
+        p { font-size: 14px; color: #64748b; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <div class="card" id="message-card">
+        <h1>Welcome to Pardarshi</h1>
+        <p>To access your dashboard, please open this app by tapping the secure link sent to your email or WhatsApp.</p>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedToken = localStorage.getItem('pardarshi_guest_token');
+            const savedOrg = localStorage.getItem('pardarshi_last_org'); 
+            if (savedToken && savedOrg) {
+                document.getElementById('message-card').style.display = 'none';
+                window.location.replace(`/org?org=${savedOrg}`);
+            }
+        });
+    </script>
+</body>
+</html>

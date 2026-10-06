@@ -1,0 +1,15 @@
+{
+  "appId": "com.pardarshi.app",
+  "appName": "Pardarshi",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "https://pardarshi.vercel.app", 
+    "cleartext": true
+  },
+  "plugins": {
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    }
+  }
+}

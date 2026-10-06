@@ -26,6 +26,10 @@
     {
       "source": "/payment-status",
       "destination": "/payment-status.html"
+    },
+    {
+  "source": "/mobile-start",
+  "destination": "/mobile-start.html"
     }
   ],
   "headers": [
