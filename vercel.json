@@ -24,6 +24,14 @@
       "destination": "/contributer-page/support.html"
     },
     {
+      "source": "/assistant",
+      "destination": "/contributer-page/asistant.html"
+    },
+    {
+      "source": "/asistant",
+      "destination": "/contributer-page/asistant.html"
+    },
+    {
       "source": "/payment-status",
       "destination": "/payment-status.html"
     },

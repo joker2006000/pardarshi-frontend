@@ -233,6 +233,36 @@
             gap: 12px;
             margin-top: 15px;
         }
+        .gallery-modal-box { max-width: 760px; color: #0f172a; }
+        .gallery-modal-box .modal-title, .announcement-modal-box .modal-title { color: #111827; }
+        .gallery-modal-box .modal-sub, .announcement-modal-box .modal-sub { color: #64748b; }
+        .announcement-modal-box { color: #0f172a; }
+        .announcement-modal-box .form-input { color: #0f172a; }
+        .proof-type-switch { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 18px 0; border: 0; padding: 0; }
+        .proof-type-option { position: relative; }
+        .proof-type-option input { position: absolute; opacity: 0; pointer-events: none; }
+        .proof-type-option label {
+            min-height: 58px; display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+            border: 1px solid #e2e8f0; border-radius: 14px; color: #475569; background: #f8fafc;
+            cursor: pointer; font-size: 13px; font-weight: 700; transition: .2s ease;
+        }
+        .proof-type-option label i { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 11px; background: #e2e8f0; color: #64748b; font-size: 15px; }
+        .proof-type-option input:checked + label { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; box-shadow: 0 4px 12px rgba(37,99,235,.1); }
+        .proof-type-option input:checked + label i { background: #dbeafe; color: #2563eb; }
+        .gallery-category-heading { display: flex; justify-content: space-between; align-items: center; margin: 20px 0 0; color: #334155; font-size: 13px; font-weight: 700; }
+        .gallery-count { color: #64748b; font-size: 11px; font-weight: 600; }
+        .gallery-card { position: relative; min-width: 0; }
+        .gallery-card .gallery-img { display: block; }
+        .gallery-delete-button { position: absolute; z-index: 1; top: 6px; right: 6px; width: 28px; height: 28px; border: 0; border-radius: 50%; display: grid; place-items: center; color: #fff; background: rgba(220,38,38,.92); box-shadow: 0 2px 8px rgba(15,23,42,.25); cursor: pointer; }
+        .gallery-delete-button:hover { background: #b91c1c; transform: scale(1.06); }
+        .gallery-error { color: #b91c1c; font-size: 12px; margin: 10px 0 0; }
+        .btn-announcement { background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; padding: 5px 9px; border-radius: 7px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-announcement:hover { background: #ede9fe; }
+        .announcement-list { display: grid; gap: 8px; margin-top: 16px; }
+        .announcement-entry { border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 10px; padding: 11px 12px; color: #334155; font-size: 12px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+        .announcement-entry time { display: block; margin-top: 5px; color: #94a3b8; font-size: 10px; }
+        .announcement-delete-button { float: right; width: 26px; height: 26px; margin: -4px -4px 6px 8px; border: 0; border-radius: 50%; display: grid; place-items: center; background: #fee2e2; color: #dc2626; cursor: pointer; }
+        .announcement-delete-button:hover { background: #fecaca; }
         .gallery-img {
             width: 100%;
             height: 110px;
@@ -490,6 +520,7 @@
             <h3 class="modal-title" id="modal-title-text">Add Details</h3>
             <p class="modal-sub" id="modal-sub-text">Enter information below</p>
             
+            <div id="modal-expense-fields">
             <div class="form-group">
                 <label class="form-label" id="modal-label-name">Name / Title</label>
                 <input type="text" class="form-input" id="modal-input-name">
@@ -499,9 +530,21 @@
                 <label class="form-label">Amount (₹)</label>
                 <input type="number" class="form-input" id="modal-input-amount">
             </div>
+            </div>
+
+            <fieldset class="proof-type-switch" id="modal-proof-type-switch" aria-label="Picture type" style="display:none;">
+                <div class="proof-type-option">
+                    <input type="radio" name="modal-proof-type" id="modal-proof-invoice" value="invoice" checked>
+                    <label for="modal-proof-invoice"><i class="fa-solid fa-receipt"></i><span>Payment proof</span></label>
+                </div>
+                <div class="proof-type-option">
+                    <input type="radio" name="modal-proof-type" id="modal-proof-delivery" value="delivery">
+                    <label for="modal-proof-delivery"><i class="fa-solid fa-truck-fast"></i><span>Delivery picture</span></label>
+                </div>
+            </fieldset>
 
             <div class="form-group">
-                <label class="form-label">Upload Proof Documents <span style="color:#94a3b8; font-weight:500;">(optional)</span></label>
+                <label class="form-label" id="modal-upload-label">Upload Proof Documents <span style="color:#94a3b8; font-weight:500;">(optional)</span></label>
                 <div class="dropzone" id="modal-dropzone">
                     <i class="fa-solid fa-cloud-arrow-up"></i>
                     <p>Click or drag files here</p>
@@ -518,23 +561,48 @@
 
     <!-- GALLERY MODAL -->
     <div class="modal-overlay" id="gallery-modal">
-        <div class="modal-box">
+        <div class="modal-box gallery-modal-box">
             <button class="modal-close" onclick="closeGalleryModal()"><i class="fa-solid fa-xmark"></i></button>
-            <h3 class="modal-title">Expense Documents</h3>
-            <p class="modal-sub">Click on any image to view it full screen</p>
+            <h3 class="modal-title" id="gallery-expense-title">Expense</h3>
+            <p class="modal-sub">View payment proof and delivery pictures</p>
             
-            <div id="gallery-loading" style="display: none; text-align: center; padding: 30px;">
-                <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 24px; color: #3b82f6;"></i>
-                <p style="margin-top: 10px; color: #64748b; font-size: 13px;">Loading documents...</p>
+            <fieldset class="proof-type-switch" aria-label="Picture type">
+                <div class="proof-type-option">
+                    <input type="radio" name="gallery-proof-type" id="proof-type-invoice" value="invoice" checked>
+                    <label for="proof-type-invoice"><i class="fa-solid fa-receipt"></i><span>Payment proof</span></label>
+                </div>
+                <div class="proof-type-option">
+                    <input type="radio" name="gallery-proof-type" id="proof-type-delivery" value="delivery">
+                    <label for="proof-type-delivery"><i class="fa-solid fa-truck-fast"></i><span>Delivery picture</span></label>
+                </div>
+            </fieldset>
+
+            <p class="gallery-error" id="gallery-error" role="alert" style="display:none;"></p>
+
+            <div class="gallery-category-heading">
+                <span id="gallery-category-title">Payment proof</span>
+                <span class="gallery-count" id="gallery-count">0 pictures</span>
             </div>
-            
-            <div class="gallery-grid" id="gallery-grid">
-                <!-- Images will be injected here via JS -->
-            </div>
+            <div class="gallery-grid" id="gallery-grid"></div>
             
             <p id="gallery-empty" style="display: none; color: #64748b; font-size: 13px; text-align: center; padding: 30px; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1; margin-top: 15px;">
-                No documents uploaded for this transaction yet.
+                No pictures uploaded in this category yet.
             </p>
+        </div>
+    </div>
+
+    <!-- ANNOUNCEMENT MODAL -->
+    <div class="modal-overlay" id="announcement-modal">
+        <div class="modal-box announcement-modal-box">
+            <button class="modal-close" type="button" onclick="closeAnnouncementModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="modal-title" id="announcement-title">Create announcement</h3>
+            <p class="modal-sub" id="announcement-context"></p>
+            <div class="form-group">
+                <label class="form-label" for="announcement-text">Announcement</label>
+                <textarea class="form-input" id="announcement-text" rows="4" maxlength="2000" placeholder="Write an update for your organization..." style="resize:vertical;"></textarea>
+            </div>
+            <button class="btn-primary-full" type="button" id="announcement-submit"><i class="fa-solid fa-bullhorn"></i> Publish announcement</button>
+            <div class="announcement-list" id="announcement-list"></div>
         </div>
     </div>
 
@@ -729,6 +797,7 @@
         const statusHtml = `<span class="status-text ${statusVal}">${statusVal}</span>`; 
         
         const plusBtn = `<div class="tooltip-container"><button class="btn-plus-doc" onclick="openModal('edit_expense', ${e.expense_id}, '${escapeHtml(e.title)}', ${e.amount})"><i class="fa-solid fa-plus"></i></button></div>`;
+        const announcementBtn = `<button class="btn-announcement" onclick="openAnnouncementModal(${Number(e.expense_id)}, ${Number(e.project_id) || 'null'})"><i class="fa-solid fa-bullhorn"></i> Announce</button>`;
         
         return `
             <div class="list-item" style="align-items: center;">
@@ -751,6 +820,7 @@
                             <button class="btn-view-doc" style="margin: 0;" onclick="openGalleryModal(${e.expense_id})">
                                 <i class="fa-regular fa-image"></i> View docs
                             </button>
+                            ${announcementBtn}
                         </div>
                         <!-- Amount and Gateway Group -->
                         <div style="display: flex; align-items: center; gap: 8px;">
@@ -796,7 +866,18 @@
                         document.getElementById('stat-remaining').textContent = `₹${formatNum(result.totals.remaining_balance)}`;
                         
                         allContributions = result.contributions || [];
-                        allExpenses = result.expenses || [];
+                        allExpenses = (result.expenses || []).map(expense => {
+                            if (typeof expense.proofs === 'string') {
+                                try {
+                                    expense.proofs = JSON.parse(expense.proofs);
+                                } catch (error) {
+                                    console.error(`Invalid proof data for expense ${expense.expense_id}:`, error);
+                                    expense.proofs = [];
+                                }
+                            }
+                            if (!Array.isArray(expense.proofs)) expense.proofs = [];
+                            return expense;
+                        });
 
                         renderContributions();
                         renderExpenses();
@@ -859,6 +940,7 @@
                 currentModalType = type;
                 currentEditId = id;
                 stagedFiles = [];
+                fileInput.value = '';
                 document.getElementById('modal-file-chips').innerHTML = '';
                 
                 const titleEl = document.getElementById('modal-title-text');
@@ -866,9 +948,22 @@
                 const labelEl = document.getElementById('modal-label-name');
                 const nameInput = document.getElementById('modal-input-name');
                 const amtInput = document.getElementById('modal-input-amount');
+                const expenseFields = document.getElementById('modal-expense-fields');
+                const proofTypeSwitch = document.getElementById('modal-proof-type-switch');
+                const uploadLabel = document.getElementById('modal-upload-label');
+                const submitButton = document.getElementById('btn-submit-modal');
                 
                 nameInput.value = title;
                 amtInput.value = amount;
+                expenseFields.style.display = type === 'edit_expense' ? 'none' : '';
+                proofTypeSwitch.style.display = type === 'edit_expense' ? '' : 'none';
+                document.getElementById('modal-proof-invoice').checked = true;
+                uploadLabel.innerHTML = type === 'edit_expense'
+                    ? 'Add Documents or Images <span style="color:#94a3b8; font-weight:500;">(up to 5)</span>'
+                    : 'Upload Proof Documents <span style="color:#94a3b8; font-weight:500;">(optional)</span>';
+                submitButton.innerHTML = type === 'edit_expense'
+                    ? '<i class="fa-solid fa-cloud-arrow-up"></i> Add Documents'
+                    : '<i class="fa-solid fa-check"></i> Save Changes';
 
                 if (type === 'add_contrib') {
                     titleEl.textContent = 'Add Offline Contribution';
@@ -883,9 +978,8 @@
                     subEl.textContent = 'Log outgoing funds';
                     labelEl.textContent = 'Expense Title';
                 } else if (type === 'edit_expense') {
-                    titleEl.textContent = 'Edit Expense / Proofs';
-                    subEl.textContent = 'Update details or attach files';
-                    labelEl.textContent = 'Expense Title';
+                    titleEl.textContent = 'Add Expense Documents';
+                    subEl.textContent = `Attach images or documents to ${title}`;
                 }
                 
                 document.getElementById('unified-modal').classList.add('open');
@@ -898,15 +992,22 @@
             const fileInput = document.getElementById('modal-file-input');
             dropzone.onclick = () => fileInput.click();
             fileInput.onchange = (e) => {
-                Array.from(e.target.files).forEach(f => stagedFiles.push(f));
+                const selectedFiles = Array.from(e.target.files);
+                if (stagedFiles.length + selectedFiles.length > 5) {
+                    alert('You can upload up to 5 files at a time.');
+                    fileInput.value = '';
+                    return;
+                }
+                selectedFiles.forEach(f => stagedFiles.push(f));
                 document.getElementById('modal-file-chips').innerHTML = stagedFiles.map((f, i) => 
-                    `<div class="file-chip"><div class="file-chip-icon"><i class="fa-regular fa-file"></i></div><span>${f.name}</span><i class="fa-solid fa-xmark remove-chip" onclick="removeFile(${i})"></i></div>`
+                    `<div class="file-chip"><div class="file-chip-icon"><i class="fa-regular fa-file"></i></div><span>${escapeHtml(f.name)}</span><i class="fa-solid fa-xmark remove-chip" onclick="removeFile(${i})"></i></div>`
                 ).join('');
+                fileInput.value = '';
             };
             window.removeFile = (index) => {
                 stagedFiles.splice(index, 1);
                 document.getElementById('modal-file-chips').innerHTML = stagedFiles.map((f, i) => 
-                    `<div class="file-chip"><div class="file-chip-icon"><i class="fa-regular fa-file"></i></div><span>${f.name}</span><i class="fa-solid fa-xmark remove-chip" onclick="removeFile(${i})"></i></div>`
+                    `<div class="file-chip"><div class="file-chip-icon"><i class="fa-regular fa-file"></i></div><span>${escapeHtml(f.name)}</span><i class="fa-solid fa-xmark remove-chip" onclick="removeFile(${i})"></i></div>`
                 ).join('');
             };
 
@@ -916,13 +1017,13 @@
                 const amtVal = document.getElementById('modal-input-amount').value;
                 
                 const formData = new FormData();
-                stagedFiles.forEach(f => formData.append('proofs', f));
 
                 let endpoint = '';
                 let method = '';
 
                 // Setting exact payloads based on controller requirements
                 if (currentModalType === 'add_expense') {
+                    stagedFiles.forEach(f => formData.append('proofs', f));
                     endpoint = `${BASE_URL}/api/transactions/expense/offline`;
                     method = 'POST';
                     formData.append('organization_id', orgId);
@@ -936,18 +1037,20 @@
                     if (currentProjId) formData.append('project_id', currentProjId);
 
                 } else if (currentModalType === 'edit_expense') {
-                    endpoint = `${BASE_URL}/api/transactions/expense/${currentEditId}`;
-                    method = 'PUT';
-                    formData.append('title', nameVal);
-                    // Required by controller to prevent crashing:
-                    formData.append('description', 'Updated offline expense');
-                    formData.append('amount', amtVal);
-                    // Must be specifically named new_project_id for edits based on controller
-                    if (currentProjId) formData.append('new_project_id', currentProjId);
+                    if (stagedFiles.length === 0) {
+                        alert('Choose at least one document or image to upload.');
+                        return;
+                    }
+                    endpoint = `${BASE_URL}/api/transactions/expense/${currentEditId}/manage-file`;
+                    method = 'POST';
+                    formData.append('action', 'upload');
+                    formData.append('proof_type', document.querySelector('input[name="modal-proof-type"]:checked').value);
+                    stagedFiles.forEach(f => formData.append('documents', f));
 
                 } else if (currentModalType === 'add_contrib') {
                     endpoint = `${BASE_URL}/api/transactions/contribution/offline`;
                     method = 'POST';
+                    stagedFiles.forEach(f => formData.append('proofs', f));
                     formData.append('contributor_name', nameVal);
                     formData.append('amount', amtVal);
                     if (currentProjId) formData.append('project_id', currentProjId);
@@ -963,7 +1066,7 @@
 
                 const btn = document.getElementById('btn-submit-modal');
                 const originalHtml = btn.innerHTML;
-                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Uploading...';
                 btn.disabled = true;
 
                 try {
@@ -976,13 +1079,13 @@
                     
                     if(result.success) {
                         closeModal();
-                        loadAllData(); // Refresh complete data
+                        await loadAllData();
                     } else {
-                        alert(result.error || "Action failed. Note: If you are adding a contribution, ensure the backend route exists.");
+                        alert(result.error || "Action failed.");
                     }
                 } catch (err) { 
                     console.error("Submit error", err); 
-                    alert("Network error. If you are adding a contribution, the route is likely missing from your backend.");
+                    alert("Network error. Please try again.");
                 } finally {
                     btn.innerHTML = originalHtml;
                     btn.disabled = false;
@@ -990,46 +1093,93 @@
             });
 
             // ==========================================
-            // GALLERY & FULLSCREEN LOGIC (NEW)
+            // GALLERY & FULLSCREEN LOGIC
             // ==========================================
-            window.openGalleryModal = async (expenseId) => {
-                document.getElementById('gallery-modal').classList.add('open');
-                const grid = document.getElementById('gallery-grid');
+            let currentGalleryExpenseId = null;
+            let currentGalleryProofType = 'invoice';
+
+            const galleryGrid = document.getElementById('gallery-grid');
+            const galleryError = document.getElementById('gallery-error');
+            const proofTypeLabel = (type) => type === 'delivery' ? 'Delivery picture' : 'Payment proof';
+
+            function renderGallery() {
+                const expense = allExpenses.find(item => Number(item.expense_id) === Number(currentGalleryExpenseId));
+                const proofs = expense && Array.isArray(expense.proofs) ? expense.proofs : [];
+                const categoryProofs = proofs.filter(proof => {
+                    if ((proof.proof_type || 'invoice') !== currentGalleryProofType) return false;
+                    const fileName = proof.name || proof.file_name || proof.url || proof.file_url || '';
+                    return /\.(?:avif|bmp|gif|jpe?g|png|svg|webp)(?:$|[?#])/i.test(fileName);
+                });
                 const emptyState = document.getElementById('gallery-empty');
-                const loader = document.getElementById('gallery-loading');
-                
-                grid.innerHTML = '';
-                emptyState.style.display = 'none';
-                loader.style.display = 'block';
 
-                try {
-                    // Calls backend to fetch documents linked to the expense_id
-                    const res = await fetch(`${BASE_URL}/api/transactions/expense/${expenseId}/documents`, fetchOptions);
-                    const result = await res.json();
-                    
-                    loader.style.display = 'none';
+                document.getElementById('gallery-category-title').textContent = proofTypeLabel(currentGalleryProofType);
+                document.getElementById('gallery-count').textContent = `${categoryProofs.length} ${categoryProofs.length === 1 ? 'picture' : 'pictures'}`;
+                galleryGrid.innerHTML = categoryProofs.map(proof => {
+                    const id = Number(proof.id);
+                    const url = proof.url || proof.file_url || '';
+                    const name = proof.name || proof.file_name || 'Proof image';
+                    const safeUrl = escapeHtml(url);
+                    const safeName = escapeHtml(name);
+                    return `<div class="gallery-card"><img src="${safeUrl}" class="gallery-img gallery-preview" data-url="${safeUrl}" alt="${safeName}" loading="lazy"><button class="gallery-delete-button" type="button" data-file-id="${id}" aria-label="Delete ${safeName}" title="Delete picture"><i class="fa-solid fa-xmark"></i></button></div>`;
+                }).join('');
+                emptyState.style.display = categoryProofs.length ? 'none' : 'block';
+            }
 
-                    if (result.success && result.data && result.data.length > 0) {
-                        grid.innerHTML = result.data.map(doc => {
-                            if (doc.file_url.toLowerCase().endsWith('.pdf')) {
-                                return `
-                                <div class="gallery-img" style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:#f8fafc;" onclick="window.open('${doc.file_url}', '_blank')">
-                                    <i class="fa-solid fa-file-pdf" style="font-size: 32px; color: #ef4444;"></i>
-                                    <span style="font-size: 10px; margin-top: 5px; color: #64748b; font-weight: 600;">PDF Doc</span>
-                                </div>`;
-                            } else {
-                                return `<img src="${doc.file_url}" class="gallery-img" onclick="openFullscreen('${doc.file_url}')" alt="Document">`;
-                            }
-                        }).join('');
-                    } else {
-                        emptyState.style.display = 'block';
-                    }
-                } catch(e) {
-                    loader.style.display = 'none';
-                    emptyState.textContent = 'Failed to load documents. Please check your connection.';
-                    emptyState.style.display = 'block';
-                }
+            function setGalleryError(message = '') {
+                galleryError.textContent = message;
+                galleryError.style.display = message ? 'block' : 'none';
+            }
+
+            window.openGalleryModal = (expenseId) => {
+                currentGalleryExpenseId = expenseId;
+                currentGalleryProofType = 'invoice';
+                setGalleryError();
+                document.getElementById('proof-type-invoice').checked = true;
+                const expense = allExpenses.find(item => Number(item.expense_id) === Number(expenseId));
+                document.getElementById('gallery-expense-title').textContent = expense ? expense.title : 'Expense';
+                document.getElementById('gallery-modal').classList.add('open');
+                renderGallery();
             };
+
+            document.querySelectorAll('input[name="gallery-proof-type"]').forEach(input => {
+                input.addEventListener('change', () => {
+                    currentGalleryProofType = input.value;
+                    setGalleryError();
+                    renderGallery();
+                });
+            });
+
+            galleryGrid.addEventListener('click', async event => {
+                const deleteButton = event.target.closest('.gallery-delete-button');
+                if (deleteButton) {
+                    event.stopPropagation();
+                    const fileId = deleteButton.dataset.fileId;
+                    if (!fileId || !confirm('Delete this picture? This cannot be undone.')) return;
+                    deleteButton.disabled = true;
+                    try {
+                        const formData = new FormData();
+                        formData.append('action', 'delete');
+                        formData.append('proof_type', currentGalleryProofType);
+                        formData.append('file_id', fileId);
+                        const res = await fetch(`${BASE_URL}/api/transactions/expense/${currentGalleryExpenseId}/manage-file`, {
+                            method: 'POST',
+                            headers: fetchOptions.headers,
+                            body: formData
+                        });
+                        const result = await res.json();
+                        if (!res.ok || !result.success) throw new Error(result.error || 'Unable to delete picture.');
+                        await loadAllData();
+                        renderGallery();
+                    } catch (error) {
+                        console.error('Picture deletion error:', error);
+                        setGalleryError(error.message || 'Unable to delete picture. Please try again.');
+                        deleteButton.disabled = false;
+                    }
+                    return;
+                }
+                const preview = event.target.closest('.gallery-preview');
+                if (preview) window.openFullscreen(preview.dataset.url);
+            });
 
             window.closeGalleryModal = () => document.getElementById('gallery-modal').classList.remove('open');
 
@@ -1039,6 +1189,101 @@
             };
             
             window.closeFullscreen = () => document.getElementById('fullscreen-viewer').classList.remove('open');
+
+            // ==========================================
+            // ANNOUNCEMENTS
+            // ==========================================
+            let announcementExpenseId = null;
+            let announcementProjectId = null;
+
+            function renderAnnouncements(items) {
+                const list = document.getElementById('announcement-list');
+                list.innerHTML = items.length ? items.map(item => `
+                    <div class="announcement-entry">
+                        <button class="announcement-delete-button" type="button" data-announcement-id="${Number(item.announcement_id)}" aria-label="Delete announcement" title="Delete announcement"><i class="fa-solid fa-trash"></i></button>
+                        ${escapeHtml(item.text_information)}
+                        <time>${formatDateTime(item.created_at)}${item.status === 'hide' ? ' · Hidden' : ''}</time>
+                    </div>
+                `).join('') : '<p class="modal-sub">No announcements for this transaction yet.</p>';
+            }
+
+            window.openAnnouncementModal = async (expenseId = null, projectId = null) => {
+                if (!expenseId) return;
+                announcementExpenseId = expenseId;
+                announcementProjectId = projectId;
+                const expense = expenseId ? allExpenses.find(item => Number(item.expense_id) === Number(expenseId)) : null;
+                const heading = expense ? `Announcement · ${expense.title}` : 'Create announcement';
+                document.getElementById('announcement-title').textContent = heading;
+                document.getElementById('announcement-context').textContent = expense
+                    ? 'This update will be linked to this expense and shared with your organization.'
+                    : 'This update will be shared with your organization.';
+                document.getElementById('announcement-text').value = '';
+                document.getElementById('announcement-list').innerHTML = '<p class="modal-sub">Loading announcements…</p>';
+                document.getElementById('announcement-modal').classList.add('open');
+
+                try {
+                    const res = await fetch(`${BASE_URL}/api/transactions/${orgId}/announcements`, fetchOptions);
+                    const result = await res.json();
+                    if (!res.ok || !result.success) throw new Error(result.error || 'Unable to load announcements.');
+                    const matchingItems = (result.data || []).filter(item => Number(item.expense_id) === Number(announcementExpenseId));
+                    renderAnnouncements(matchingItems);
+                } catch (error) {
+                    console.error('Announcement fetch error:', error);
+                    document.getElementById('announcement-list').innerHTML = `<p class="gallery-error">${escapeHtml(error.message || 'Unable to load announcements.')}</p>`;
+                }
+            };
+
+            window.closeAnnouncementModal = () => document.getElementById('announcement-modal').classList.remove('open');
+            document.getElementById('announcement-list').addEventListener('click', async event => {
+                const button = event.target.closest('.announcement-delete-button');
+                if (!button) return;
+                const announcementId = button.dataset.announcementId;
+                if (!announcementId || !confirm('Delete this announcement? This cannot be undone.')) return;
+                button.disabled = true;
+                try {
+                    const res = await fetch(`${BASE_URL}/api/transactions/announcements/${announcementId}`, {
+                        method: 'DELETE',
+                        headers: fetchOptions.headers
+                    });
+                    const result = await res.json();
+                    if (!res.ok || !result.success) throw new Error(result.error || 'Unable to delete announcement.');
+                    await window.openAnnouncementModal(announcementExpenseId, announcementProjectId);
+                } catch (error) {
+                    console.error('Announcement deletion error:', error);
+                    alert(error.message || 'Unable to delete announcement. Please try again.');
+                    button.disabled = false;
+                }
+            });
+            document.getElementById('announcement-submit').addEventListener('click', async () => {
+                const text = document.getElementById('announcement-text').value.trim();
+                const button = document.getElementById('announcement-submit');
+                if (!announcementExpenseId || !text) {
+                    document.getElementById('announcement-text').focus();
+                    return;
+                }
+                button.disabled = true;
+                button.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Publishing…';
+                try {
+                    const body = { text_information: text, status: 'show' };
+                    if (announcementExpenseId) body.expense_id = announcementExpenseId;
+                    if (announcementProjectId) body.project_id = announcementProjectId;
+                    const res = await fetch(`${BASE_URL}/api/transactions/${orgId}/announcements`, {
+                        method: 'POST',
+                        headers: { ...fetchOptions.headers, 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    });
+                    const result = await res.json();
+                    if (!res.ok || !result.success) throw new Error(result.error || 'Unable to publish announcement.');
+                    document.getElementById('announcement-text').value = '';
+                    await window.openAnnouncementModal(announcementExpenseId, announcementProjectId);
+                } catch (error) {
+                    console.error('Announcement publish error:', error);
+                    alert(error.message || 'Unable to publish announcement. Please try again.');
+                } finally {
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fa-solid fa-bullhorn"></i> Publish announcement';
+                }
+            });
 
             // Initialize Page
             fetchProjects();

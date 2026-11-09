@@ -481,3 +481,385 @@
             gap: 8px;
             font-size: 14px;
         }
+
+        /* Organization anomaly reminders */
+        .dash-header-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            position: relative;
+            z-index: 20;
+        }
+
+        .anomaly-notification {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .anomaly-notification-toggle {
+            width: 44px;
+            height: 44px;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            background: #fff;
+            color: #334155;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 5px 16px rgba(15, 23, 42, 0.06);
+            transition: color 180ms ease, border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+        }
+
+        .anomaly-notification-toggle:hover {
+            color: #dc2626;
+            border-color: #fecaca;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1);
+        }
+
+        .anomaly-notification-toggle:focus-visible,
+        .anomaly-notification-close:focus-visible,
+        .anomaly-alert-dismiss:focus-visible,
+        .anomaly-notification-footer button:focus-visible {
+            outline: 3px solid rgba(59, 130, 246, 0.4);
+            outline-offset: 2px;
+        }
+
+        .anomaly-notification-count {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            min-width: 20px;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+            border: 2px solid #fff;
+            border-radius: 999px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .anomaly-notification-count[hidden],
+        .anomaly-notification-panel[hidden],
+        .anomaly-notification-footer button[hidden] {
+            display: none;
+        }
+
+        .anomaly-notification-panel {
+            position: absolute;
+            top: calc(100% + 12px);
+            right: 0;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            width: min(460px, calc(100vw - 32px));
+            max-height: min(74vh, 720px);
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            background: #fff;
+            box-shadow: 0 24px 70px rgba(15, 23, 42, 0.22);
+            animation: anomaly-panel-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+        }
+
+        @keyframes anomaly-panel-in {
+            from { opacity: 0; transform: translateY(-8px) scale(0.985); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .anomaly-notification-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 20px 20px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            background: linear-gradient(135deg, #fff 0%, #fff7f7 100%);
+        }
+
+        .anomaly-notification-eyebrow {
+            margin: 0 0 5px;
+            color: #dc2626;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .anomaly-notification-header h2 {
+            margin: 0;
+            color: #172033;
+            font-size: 18px;
+            font-weight: 750;
+        }
+
+        .anomaly-notification-summary {
+            margin: 5px 0 0;
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .anomaly-notification-close,
+        .anomaly-alert-dismiss {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #fff;
+            color: #64748b;
+            cursor: pointer;
+            transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+        }
+
+        .anomaly-notification-close {
+            width: 34px;
+            height: 34px;
+            font-size: 14px;
+        }
+
+        .anomaly-notification-close:hover,
+        .anomaly-alert-dismiss:hover {
+            border-color: #fecaca;
+            background: #fff1f2;
+            color: #dc2626;
+        }
+
+        .anomaly-notification-status {
+            margin: 0;
+            padding: 10px 20px 0;
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .anomaly-notification-status[data-error="true"] {
+            color: #b91c1c;
+        }
+
+        .anomaly-notification-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 12px 14px;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+
+        .anomaly-alert-card {
+            padding: 16px;
+            border: 1px solid #fee2e2;
+            border-radius: 16px;
+            background: linear-gradient(155deg, #fff 0%, #fffafa 100%);
+            box-shadow: 0 4px 12px rgba(127, 29, 29, 0.04);
+            animation: anomaly-card-in 240ms ease both;
+        }
+
+        @keyframes anomaly-card-in {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .anomaly-alert-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .anomaly-alert-card-header h3 {
+            margin: 0;
+            color: #1e293b;
+            font-size: 15px;
+            font-weight: 750;
+            overflow-wrap: anywhere;
+        }
+
+        .anomaly-alert-issue-count {
+            display: inline-block;
+            margin-top: 5px;
+            color: #9f1239;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .anomaly-alert-dismiss {
+            width: 30px;
+            height: 30px;
+            font-size: 12px;
+        }
+
+        .anomaly-alert-amount {
+            margin: 12px 0;
+            color: #0f172a;
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .anomaly-alert-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .anomaly-alert-meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+            padding: 7px 9px;
+            border-radius: 9px;
+            background: #f8fafc;
+        }
+
+        .anomaly-alert-meta-item span {
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .anomaly-alert-meta-item strong {
+            color: #334155;
+            font-size: 11px;
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
+
+        .anomaly-alert-issue {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #fee2e2;
+        }
+
+        .anomaly-alert-issue h4 {
+            margin: 0 0 5px;
+            color: #9f1239;
+            font-size: 13px;
+            font-weight: 750;
+        }
+
+        .anomaly-alert-code {
+            display: inline-block;
+            padding: 3px 7px;
+            border-radius: 6px;
+            background: #fff1f2;
+            color: #9f1239;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 10px;
+            overflow-wrap: anywhere;
+        }
+
+        .anomaly-alert-issue > p {
+            margin: 8px 0;
+            color: #475569;
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .anomaly-alert-proof {
+            display: inline-flex;
+            margin: 2px 0 8px;
+            color: #2563eb;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .anomaly-alert-proof:hover {
+            text-decoration: underline;
+        }
+
+        .anomaly-alert-details {
+            margin-top: 4px;
+            color: #475569;
+            font-size: 11px;
+        }
+
+        .anomaly-alert-details summary {
+            cursor: pointer;
+            font-weight: 650;
+        }
+
+        .anomaly-alert-details pre {
+            max-height: 220px;
+            margin: 8px 0 0;
+            padding: 10px;
+            overflow: auto;
+            border-radius: 9px;
+            background: #f1f5f9;
+            color: #334155;
+            font-size: 10px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .anomaly-notification-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 18px;
+            border-top: 1px solid #f1f5f9;
+            color: #64748b;
+            font-size: 10px;
+            line-height: 1.4;
+        }
+
+        .anomaly-notification-footer button {
+            flex: 0 0 auto;
+            padding: 7px 10px;
+            border: 0;
+            border-radius: 8px;
+            background: #fff1f2;
+            color: #b91c1c;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .anomaly-notification-footer button:hover {
+            background: #ffe4e6;
+        }
+
+        @media (max-width: 620px) {
+            .dash-header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .anomaly-notification-panel {
+                position: fixed;
+                top: max(12px, env(safe-area-inset-top));
+                right: 12px;
+                width: min(460px, calc(100vw - 24px));
+                max-height: calc(100vh - 24px);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .anomaly-notification-toggle,
+            .anomaly-notification-close,
+            .anomaly-alert-dismiss {
+                transition: none;
+            }
+
+            .anomaly-notification-panel,
+            .anomaly-alert-card {
+                animation: none;
+            }
+        }

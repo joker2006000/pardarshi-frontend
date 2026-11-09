@@ -17,96 +17,173 @@
             --text-muted: #6b7280;
             --input-bg: #f9fafb;
             --input-border: #e5e7eb;
-            --auth-image: url('login.png');
+            --auth-image-login: url('login.png');
+            --auth-image-register: url('register.png');
         }
 
         .theme-admin {
             --theme-primary: #d9381e;
             --theme-primary-hover: #b72b16;
             --theme-text-on-primary: #ffffff;
-            --auth-image: url('pics/login-2.jpeg');
+            --auth-image-login: url('pics/login-2.jpeg');
         }
 
         /* === BASE & TOP SECTION STYLES === */
-/* === BASE & TOP SECTION STYLES === */
-        body, html {
-            margin: 0; padding: 0;
+        html, body {
+            margin: 0;
+            padding: 0;
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--auth-bg-gradient);
-            box-sizing: border-box; color: var(--text-main);
-            overflow: hidden; 
-            height: 100%; /* Changed from 100vh to fix mobile iframe cut-off */
+            box-sizing: border-box;
+            color: var(--text-main);
+            min-height: 100%;
             width: 100%;
             background-color: transparent !important;
         }
 
         *, *:before, *:after { box-sizing: inherit; }
 
-        main { display: flex; justify-content: center; align-items: center; min-height: 80vh; padding: 20px 20px; }
+        body {
+            min-height: 100vh;
+            overflow-x: hidden;
+            overflow-y: auto;
+            background-image: radial-gradient(ellipse at 12% 12%, rgba(12, 90, 209, 0.12), transparent 38%), radial-gradient(ellipse at 90% 88%, rgba(99, 102, 241, 0.1), transparent 35%);
+        }
+
+        main {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 32px;
+        }
 
         .auth-card {
-            background: var(--auth-card-bg); width: 100%; max-width: 1200px; height: 690px;
-            border-radius: 50px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08); position: relative;
-            display: flex; overflow: hidden; transition: all 0.4s ease;
+            background: var(--auth-card-bg);
+            width: 100%;
+            max-width: 1120px;
+            height: min(690px, calc(100vh - 64px));
+            min-height: 520px;
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            border-radius: 30px;
+            box-shadow: 0 28px 80px rgba(23, 37, 60, 0.16), 0 4px 14px rgba(23, 37, 60, 0.06);
+            position: relative;
+            display: flex;
+            overflow: hidden;
         }
 
         .auth-forms-panel {
-            width: 50%; height: 100%; padding: 40px 60px; position: relative; z-index: 5;
-            transition: transform 0.7s cubic-bezier(0.76, 0, 0.24, 1); display: flex;
-            flex-direction: column; justify-content: center; background-color: var(--auth-card-bg); overflow-y: auto;
+            width: 50%;
+            height: 100%;
+            min-width: 0;
+            padding: 48px clamp(36px, 5vw, 72px);
+            position: relative;
+            z-index: 5;
+            transition: transform 0.7s cubic-bezier(0.76, 0, 0.24, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background-color: var(--auth-card-bg);
+            overflow-y: auto;
         }
 
         .auth-image-panel {
-            width: 50%; height: 100%; position: absolute; top: 0; left: 50%; z-index: 10;
+            width: 50%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            z-index: 10;
+            overflow: hidden;
+            background: #182b42;
             transition: transform 0.7s cubic-bezier(0.76, 0, 0.24, 1);
-            background-image: var(--auth-image); background-size: cover; background-position: center;
+        }
+
+        .auth-image-panel::before,
+        .auth-image-panel::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1), transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .auth-image-panel::before {
+            background-image: var(--auth-image-login);
+            transform: scale(1.025);
+        }
+
+        .auth-image-panel::after {
+            background-image: var(--auth-image-register);
+            opacity: 0;
+            transform: scale(1.06);
+        }
+
+        .auth-card.is-register .auth-image-panel::before {
+            opacity: 0;
+            transform: scale(1.06);
+        }
+
+        .auth-card.is-register .auth-image-panel::after {
+            opacity: 1;
+            transform: scale(1.025);
         }
 
         .auth-image-overlay {
-            position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.7) 100%);
-            display: flex; flex-direction: column; justify-content: flex-end; padding: 50px; color: white; text-align: left;
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(8, 18, 32, 0.02) 15%, rgba(8, 18, 32, 0.82) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: clamp(30px, 4vw, 56px);
+            color: white;
+            text-align: left;
         }
 
-        .auth-image-overlay h2 { font-size: 32px; margin: 0 0 10px 0; font-weight: 700; }
-        .auth-image-overlay p { font-size: 16px; margin: 0; opacity: 0.9; line-height: 1.5; }
+        .auth-image-overlay h2 { font-size: clamp(28px, 3vw, 38px); margin: 0 0 12px; font-weight: 700; letter-spacing: -0.04em; }
+        .auth-image-overlay p { font-size: 15px; margin: 0; opacity: 0.9; line-height: 1.65; max-width: 390px; }
 
         /* SLIDE ANIMATION */
         .auth-card.is-register .auth-forms-panel { transform: translateX(100%); }
         .auth-card.is-register .auth-image-panel { transform: translateX(-100%); }
 
-        .form-view { width: 100%; animation: fadeIn 0.5s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .form-view { width: 100%; animation: fadeIn 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
         .hidden { display: none !important; }
 
-        .form-view h2 { text-align: left; color: var(--text-main); font-size: 28px; margin-top: 0; margin-bottom: 25px; }
+        .form-view h2 { text-align: left; color: var(--text-main); font-size: 30px; letter-spacing: -0.04em; margin: 0 0 24px; }
 
-        .login-pic-container { display: flex; justify-content: flex-start; margin-bottom: 20px; }
-        .login-pic { width: 65px; height: 65px; background-color: var(--input-bg); border: 2px solid var(--input-border); border-radius: 18px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .login-pic-container { display: flex; justify-content: flex-start; margin-bottom: 22px; }
+        .login-pic { width: 62px; height: 62px; background-color: var(--input-bg); border: 1px solid var(--input-border); border-radius: 18px; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08); }
         .login-pic img { width: 100%; height: 100%; object-fit: cover; }
         .admin-pic { border-color: var(--theme-primary); }
 
-        .profile-upload-section { background: var(--input-bg); display: flex; align-items: center; margin-bottom: 20px; padding: 15px; border-radius: 20px; border: 1px dashed #cbd5e1; gap: 15px; }
+        .profile-upload-section { background: var(--input-bg); display: flex; align-items: center; margin-bottom: 20px; padding: 14px; border-radius: 16px; border: 1px dashed #cbd5e1; gap: 15px; }
         .profile-preview-container { width: 70px; height: 70px; border-radius: 50%; border: 2px solid #e2e8f0; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #ffffff; flex-shrink: 0; }
         .profile-preview-container img { width: 100%; height: 100%; object-fit: cover; }
         .profile-preview-placeholder { font-size: 10px; color: #94a3b8; text-align: center; font-weight: bold; }
         .upload-input-wrap { flex-grow: 1; }
         .warning-text { color: #ef4444; font-size: 11px; font-weight: bold; margin-top: 5px; }
 
-        .form-group { margin-bottom: 18px; }
-        .form-group input { width: 100%; background: var(--input-bg); padding: 16px 15px; border: 1px solid var(--input-border); border-radius: 16px; box-sizing: border-box; font-size: 15px; color: var(--text-main); transition: all 0.3s; }
-        .form-group input:focus { outline: none; border-color: var(--theme-primary); background: #ffffff; box-shadow: 0 0 0 3px rgba(76, 145, 242, 0.219); }
+        .form-group { margin-bottom: 16px; }
+        .form-group input { width: 100%; min-width: 0; background: var(--input-bg); padding: 15px 16px; border: 1px solid var(--input-border); border-radius: 13px; box-sizing: border-box; font-size: 15px; color: var(--text-main); transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s; }
+        .form-group input::placeholder { color: #8b95a5; }
+        .form-group input:focus { outline: none; border-color: var(--theme-primary); background: #ffffff; box-shadow: 0 0 0 4px rgba(76, 145, 242, 0.14); }
         .theme-admin .form-group input:focus { box-shadow: 0 0 0 3px rgba(217, 56, 30, 0.15); }
         .form-group input[type="file"] { padding: 10px; font-size: 13px; cursor: pointer; border: none; background: transparent; }
 
         .otp-flex { display: flex; gap: 10px; }
-        .btn-otp { background-color: var(--theme-primary); color: white; border: none; padding: 0 20px; border-radius: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; white-space: nowrap; }
+        .btn-otp { background-color: var(--theme-primary); color: white; border: none; padding: 0 16px; border-radius: 13px; font-weight: bold; cursor: pointer; transition: background-color 0.2s, transform 0.2s; white-space: nowrap; }
         .btn-otp:hover { background-color: var(--theme-primary-hover); }
+        .btn-otp:hover:not(:disabled) { transform: translateY(-1px); }
         .btn-verify { background-color: #10b981; }
         .btn-verify:hover { background-color: #059669; }
         .otp-status { font-size: 12px; margin-top: 5px; display: block; font-weight: 600; }
 
         .password-wrapper { position: relative; }
-        .eye-btn { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px; color: #9ca3af; }
+        .eye-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px; color: #778196; border-radius: 8px; padding: 6px; }
 
         .pass-note { font-size: 12px; color: var(--text-muted); margin-top: -5px; margin-bottom: 15px; display: block; }
         .pass-note.error { color: #ef4444; font-weight: bold; }
@@ -115,40 +192,141 @@
         .flex-links a { color: var(--text-muted); text-decoration: none; cursor: pointer; transition: color 0.2s; }
         .flex-links a:hover { color: var(--theme-primary); text-decoration: underline; }
 
-        .btn-submit { width: 100%; padding: 16px; background-color: var(--theme-primary); color: var(--theme-text-on-primary); border: none; border-radius: 16px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; margin-bottom: 20px; }
-        .btn-submit:hover:not(:disabled) { background-color: var(--theme-primary-hover); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.347); }
+        .btn-submit { width: 100%; padding: 16px; background-color: var(--theme-primary); color: var(--theme-text-on-primary); border: none; border-radius: 13px; font-weight: bold; font-size: 15px; cursor: pointer; transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s; margin-bottom: 20px; box-shadow: 0 8px 18px rgba(12, 90, 209, 0.18); }
+        .btn-submit:hover:not(:disabled) { background-color: var(--theme-primary-hover); transform: translateY(-2px); box-shadow: 0 12px 22px rgba(12, 90, 209, 0.24); }
         .btn-submit:disabled { cursor: not-allowed; opacity: 0.5; }
 
-        .bottom-link { text-align: left; font-size: 14px; color: var(--text-muted); }
-        .bottom-link span { color: var(--theme-primary); font-weight: 600; cursor: pointer; text-decoration: none; }
+        .bottom-link { text-align: left; font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+        .bottom-link span { color: var(--theme-primary); font-weight: 700; cursor: pointer; text-decoration: none; }
         .bottom-link span:hover { text-decoration: underline; }
 
-        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.39); backdrop-filter: blur(2px); border-radius: 52px; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999; }
+        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.62); backdrop-filter: blur(5px); border-radius: inherit; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999; }
         .spinner { width: 45px; height: 45px; border: 4px solid #e5e7eb; border-top: 4px solid var(--theme-primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
         .loading-text { margin-top: 15px; font-size: 15px; font-weight: 600; color: var(--text-main); }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-      @media (max-width: 900px) {
-            main { padding: 0; align-items: stretch; height: 100%; }
-            .auth-card { 
-                flex-direction: column; 
-                height: 100%; /* Changed from 100vh */
-                max-width: 100%; 
-                border-radius: 0; 
-                box-shadow: none; 
-                overflow-y: auto; 
+        .alert-modal {
+            position: fixed;
+            z-index: 1000;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(15, 23, 42, 0.42);
+            backdrop-filter: blur(7px);
+            opacity: 0;
+            transition: opacity 0.18s ease;
+        }
+
+        .alert-modal.is-visible { opacity: 1; }
+        .alert-dialog {
+            width: min(100%, 420px);
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 22px;
+            background: #ffffff;
+            box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+            text-align: center;
+            transform: translateY(12px) scale(0.98);
+            transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .alert-modal.is-visible .alert-dialog { transform: translateY(0) scale(1); }
+        .alert-icon {
+            display: grid;
+            place-items: center;
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 16px;
+            border-radius: 16px;
+            background: rgba(12, 90, 209, 0.1);
+            color: var(--theme-primary);
+            font-size: 23px;
+            font-weight: 700;
+        }
+
+        .alert-modal.is-success .alert-icon {
+            background: rgba(16, 185, 129, 0.12);
+            color: #059669;
+        }
+
+        .alert-modal.is-error .alert-icon {
+            background: rgba(239, 68, 68, 0.12);
+            color: #dc2626;
+        }
+
+        .alert-dialog h2 { margin: 0 0 8px; color: var(--text-main); font-size: 21px; letter-spacing: -0.02em; }
+        .alert-dialog p { margin: 0 0 24px; color: var(--text-muted); font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
+        .alert-dialog .btn-submit { margin: 0; }
+
+        @media (max-width: 900px) {
+            main { padding: 20px; }
+            .auth-card {
+                flex-direction: column;
+                height: auto;
+                min-height: 0;
+                max-width: 600px;
+                border-radius: 24px;
             }
-            .auth-forms-panel { width: 100%; padding: 25px 20px; transform: none !important; order: 2; overflow-y: visible; }
-            .auth-image-panel { position: relative; width: 100%; height: 140px; left: 0; transform: none !important; order: 1; flex-shrink: 0; }
-            .auth-image-overlay { padding: 15px 20px; }
-            .auth-image-overlay h2 { font-size: 18px; margin-bottom: 4px; }
-            .auth-image-overlay p { font-size: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+            .auth-forms-panel {
+                width: 100%;
+                height: auto;
+                padding: 34px clamp(24px, 7vw, 48px) 38px;
+                transform: none !important;
+                order: 2;
+                overflow-y: visible;
+            }
+            .auth-image-panel {
+                position: relative;
+                width: 100%;
+                height: 210px;
+                top: auto;
+                left: auto;
+                transform: none !important;
+                order: 1;
+                flex-shrink: 0;
+            }
+            .auth-image-overlay { padding: 24px 28px; }
+            .auth-image-overlay h2 { font-size: 26px; margin-bottom: 7px; }
+            .auth-image-overlay p { font-size: 13px; }
             .loading-overlay { position: fixed !important; width: 100vw; height: 100vh; border-radius: 0; }
+        }
+
+        @media (max-width: 560px) {
+            main { padding: 12px; }
+            .auth-card { border-radius: 20px; }
+            .auth-image-panel { height: 175px; }
+            .auth-image-overlay { padding: 20px 22px; }
+            .auth-image-overlay h2 { font-size: 23px; }
+            .auth-forms-panel { padding: 28px 22px 32px; }
+            .form-view h2 { font-size: 27px; margin-bottom: 20px; }
+            .otp-flex { gap: 7px; }
+            .btn-otp { padding: 0 11px; font-size: 12px; }
+            .alert-dialog { padding: 26px 22px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
         }
     </style>
 </head>
 
 <body>
+    <div id="alert-modal" class="alert-modal hidden" role="alertdialog" aria-modal="true" aria-labelledby="alert-title" aria-describedby="alert-message">
+        <div class="alert-dialog">
+            <div class="alert-icon" aria-hidden="true">!</div>
+            <h2 id="alert-title">Notification</h2>
+            <p id="alert-message"></p>
+            <button type="button" id="alert-confirm" class="btn-submit" onclick="closeAlert()">Continue</button>
+        </div>
+    </div>
+
     <main>
         <div class="auth-card" id="main-auth-card">
 
@@ -279,6 +457,58 @@
     </main>
 
     <script>
+        let alertConfirmAction = null;
+        let alertAutoCloseTimer = null;
+
+        function showAlert(message, onConfirm = null, options = {}) {
+            const modal = document.getElementById('alert-modal');
+            const icon = modal.querySelector('.alert-icon');
+            const confirmButton = document.getElementById('alert-confirm');
+            const { title = 'Notification', status = '', buttonLabel = 'Continue', autoCloseMs = null } = options;
+            clearTimeout(alertAutoCloseTimer);
+            alertAutoCloseTimer = null;
+            document.getElementById('alert-title').textContent = title;
+            document.getElementById('alert-message').textContent = message;
+            icon.textContent = status === 'success' ? '✓' : message === 'Failed to connect to the server.' ? '⚙️' : '!';
+            modal.classList.toggle('is-success', status === 'success');
+            modal.classList.toggle('is-error', status === 'error');
+            confirmButton.textContent = buttonLabel;
+            confirmButton.classList.toggle('hidden', autoCloseMs !== null);
+            alertConfirmAction = onConfirm;
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => modal.classList.add('is-visible'));
+
+            if (autoCloseMs !== null) {
+                alertAutoCloseTimer = setTimeout(() => {
+                    modal.classList.remove('is-visible');
+                    modal.classList.add('hidden');
+                    confirmButton.classList.remove('hidden');
+                    const action = alertConfirmAction;
+                    alertConfirmAction = null;
+                    alertAutoCloseTimer = null;
+                    if (action) action();
+                }, autoCloseMs);
+            } else {
+                confirmButton.focus();
+            }
+        }
+
+        function closeAlert() {
+            const modal = document.getElementById('alert-modal');
+            if (!modal.classList.contains('is-visible')) return;
+
+            clearTimeout(alertAutoCloseTimer);
+            alertAutoCloseTimer = null;
+            modal.classList.remove('is-visible');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.getElementById('alert-confirm').classList.remove('hidden');
+                const action = alertConfirmAction;
+                alertConfirmAction = null;
+                if (action) action();
+            }, 180);
+        }
+
         // API Base URL
         const API_BASE_URL = 'https://pardarshi-server-1.onrender.com/api';
 
@@ -384,19 +614,19 @@
                         localStorage.removeItem('currentOrgName');
                     }
                     
-                    alert("Login Successful!");
-                    
-                    if (window.top && window.top !== window) {
-                        window.top.location.href = 'pardarshi-page/home.html';
-                    } else {
-                        window.location.href = 'pardarshi-page/home.html';
-                    }
+                    showAlert("Your login was successful. Redirecting you to your account.", () => {
+                        if (window.top && window.top !== window) {
+                            window.top.location.href = 'pardarshi-page/home.html';
+                        } else {
+                            window.location.href = 'pardarshi-page/home.html';
+                        }
+                    }, { title: "Login Successful", status: "success", autoCloseMs: 1500 });
                 } else {
-                    alert(result.message || "Invalid credentials.");
+                    showAlert(result.message || "Invalid credentials.", null, { title: "Login Failed", status: "error", buttonLabel: "Retry" });
                 }
             } catch (error) {
                 hideLoading();
-                alert("Failed to connect to the server.");
+                showAlert("Failed to connect to the server.");
             }
         });
 
@@ -406,7 +636,7 @@
             const btn = document.getElementById(btnGenId);
 
             if (mobile.length !== 10 && !(mobile.length === 12 && mobile.startsWith('91'))) {
-                alert("Please enter a valid 10-digit mobile number."); return;
+                showAlert("Please enter a valid 10-digit mobile number."); return;
             }
 
             let phone = mobile.length === 10 ? '91' + mobile : mobile;
@@ -439,7 +669,7 @@
             const msgBox = document.getElementById(msgId);
             let phone = mobile.length === 10 ? '91' + mobile : mobile;
 
-            if (code.length < 4) { alert("Please enter the 4-digit OTP."); return; }
+            if (code.length < 4) { showAlert("Please enter the 4-digit OTP."); return; }
 
             if (code === '9999') {
                 btn.innerText = "Verified ✔"; btn.style.background = "#059669";
@@ -495,7 +725,7 @@
                 e.preventDefault();
                 
                 if (!isMobileVerified) {
-                    alert("Please verify your mobile number with OTP before creating an account.");
+                    showAlert("Please verify your mobile number with OTP before creating an account.");
                     return;
                 }
 
@@ -523,15 +753,16 @@
                     hideLoading();
 
                     if (response.ok && result.success) {
-                        alert("Member Registration Successful! Please Log-in.");
-                        this.reset();
-                        switchView('view-login');
+                        showAlert("Member Registration Successful! Please Log-in.", () => {
+                            this.reset();
+                            switchView('view-login');
+                        });
                     } else {
-                        alert(result.message || "Registration failed.");
+                        showAlert(result.message || "Registration failed.");
                     }
                 } catch (error) {
                     hideLoading();
-                    alert("Failed to connect to the server.");
+                    showAlert("Failed to connect to the server.");
                 }
             });
         }
@@ -554,11 +785,12 @@
                 });
                 hideLoading();
                 if(response.ok) {
-                    alert("Password Updated Successfully! Please Log-in.");
-                    document.getElementById('form-forgot-pass').reset();
-                    switchView('view-login');
+                    showAlert("Password Updated Successfully! Please Log-in.", () => {
+                        document.getElementById('form-forgot-pass').reset();
+                        switchView('view-login');
+                    });
                 } else {
-                    alert("Failed to update password.");
+                    showAlert("Failed to update password.");
                 }
             } catch(e) { hideLoading(); }
         });

@@ -193,10 +193,41 @@
                     <h1><i class="fa-solid fa-hexagon-nodes"></i> Good Morning</h1>
                     <p>Manage your organization profile and team settings</p>
                 </div>
-                <div class="dash-org-selector">
-                    <div class="heart-icon"><i class="fa-solid fa-heart"></i></div>
-                    <span style="font-size: 14px; font-weight: 500; color: #334155;">Select Organization</span>
-                    <i class="fa-solid fa-chevron-down" style="font-size: 12px; color: #94a3b8;"></i>
+                <div class="dash-header-actions">
+                    <div class="dash-org-selector">
+                        <div class="heart-icon"><i class="fa-solid fa-heart"></i></div>
+                        <span style="font-size: 14px; font-weight: 500; color: #334155;">Select Organization</span>
+                        <i class="fa-solid fa-chevron-down" style="font-size: 12px; color: #94a3b8;"></i>
+                    </div>
+                    <div class="anomaly-notification">
+                        <button class="anomaly-notification-toggle" id="anomaly-notification-toggle" type="button"
+                            aria-label="Open anomaly alerts" aria-expanded="false" aria-controls="anomaly-notification-panel">
+                            <i class="fa-regular fa-bell" aria-hidden="true"></i>
+                            <span class="anomaly-notification-count" id="anomaly-notification-count" hidden>0</span>
+                        </button>
+                        <section class="anomaly-notification-panel" id="anomaly-notification-panel"
+                            aria-labelledby="anomaly-notification-title" hidden>
+                            <div class="anomaly-notification-header">
+                                <div>
+                                    <p class="anomaly-notification-eyebrow">Organization reminders</p>
+                                    <h2 id="anomaly-notification-title">Transaction alerts</h2>
+                                    <p class="anomaly-notification-summary" id="anomaly-notification-summary">Checking for alerts...</p>
+                                </div>
+                                <button class="anomaly-notification-close" id="anomaly-notification-close" type="button"
+                                    aria-label="Close alerts panel">
+                                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                            <p class="anomaly-notification-status" id="anomaly-notification-status" role="status" aria-live="polite">
+                                Checking for alerts...
+                            </p>
+                            <div class="anomaly-notification-list" id="anomaly-notification-list"></div>
+                            <div class="anomaly-notification-footer">
+                                <span>Dismissal only hides this reminder; it does not change the server record.</span>
+                                <button id="anomaly-dismiss-all" type="button" hidden>Dismiss all</button>
+                            </div>
+                        </section>
+                    </div>
                 </div>
             </div>
 
@@ -604,8 +635,314 @@
                 }
             };
 
+            // ==========================================
+            // ORGANIZATION ANOMALY REMINDERS
+            // ==========================================
+            const anomalyToggle = document.getElementById('anomaly-notification-toggle');
+            const anomalyPanel = document.getElementById('anomaly-notification-panel');
+            const anomalyCount = document.getElementById('anomaly-notification-count');
+            const anomalyList = document.getElementById('anomaly-notification-list');
+            const anomalyStatus = document.getElementById('anomaly-notification-status');
+            const anomalySummary = document.getElementById('anomaly-notification-summary');
+            const dismissAllButton = document.getElementById('anomaly-dismiss-all');
+            const dismissedAnomalyStorageKey = `pardarshi-dismissed-anomalies:${orgId}`;
+            const dismissedAnomalyIds = new Set();
+            const observedAnomalyIds = new Set();
+            let latestAnomalyRows = [];
+            let anomalyRequestInFlight = false;
+
+            try {
+                const storedDismissedIds = JSON.parse(localStorage.getItem(dismissedAnomalyStorageKey) || '[]');
+                if (Array.isArray(storedDismissedIds)) {
+                    storedDismissedIds.forEach(id => dismissedAnomalyIds.add(String(id)));
+                } else {
+                    console.warn('Dismissed anomaly reminders are not stored as a list.');
+                }
+            } catch (error) {
+                console.error('Could not read dismissed anomaly reminders:', error);
+            }
+
+            function setAnomalyPanelOpen(isOpen) {
+                anomalyPanel.hidden = !isOpen;
+                anomalyToggle.setAttribute('aria-expanded', String(isOpen));
+                anomalyToggle.setAttribute('aria-label', isOpen ? 'Close anomaly alerts' : 'Open anomaly alerts');
+            }
+
+            function anomalyIdentity(anomaly) {
+                if (anomaly.anomaly_id !== undefined && anomaly.anomaly_id !== null) {
+                    return String(anomaly.anomaly_id);
+                }
+                return `${anomaly.expense_id || 'unknown'}:${anomaly.anomaly_text || 'anomaly'}:${anomaly.created_at || ''}`;
+            }
+
+            function anomalyLabel(code) {
+                const labels = {
+                    PRICE_MISMATCH: 'Amount mismatch',
+                    CONTEXT_MISMATCH: 'Receipt and expense do not match',
+                    FORGERY_DETECTED: 'Possible receipt tampering',
+                    CALCULATION_ERROR: 'Receipt calculation error',
+                    DUPLICATE_RECEIPT: 'Duplicate receipt',
+                    MISSING_DELIVERY_PHOTO: 'Delivery photo missing',
+                    DELIVERY_PHOTO_MISMATCH: 'Delivery photo does not match',
+                    FAKE_VENDOR_DETECTED: 'Vendor could not be verified',
+                    VENDOR_ADDRESS_MISMATCH: 'Vendor address mismatch'
+                };
+                return labels[code] || String(code || 'Anomaly').replace(/_/g, ' ').toLowerCase();
+            }
+
+            function anomalyDescription(code) {
+                const descriptions = {
+                    PRICE_MISMATCH: 'The submitted expense amount differs from the total detected on the receipt.',
+                    CONTEXT_MISMATCH: 'The items on the receipt may not match the stated expense purpose.',
+                    FORGERY_DETECTED: 'The uploaded receipt may have been digitally altered.',
+                    CALCULATION_ERROR: 'The receipt total may not match the sum of its listed items.',
+                    DUPLICATE_RECEIPT: 'This receipt appears to have been used for another expense.',
+                    MISSING_DELIVERY_PHOTO: 'No proof of delivery photo was attached.',
+                    DELIVERY_PHOTO_MISMATCH: 'The delivered items may not match the receipt.',
+                    FAKE_VENDOR_DETECTED: 'The receipt vendor could not be verified on Google Maps.',
+                    VENDOR_ADDRESS_MISMATCH: 'The receipt vendor address differs from the verified address.'
+                };
+                return descriptions[code] || 'The server flagged this transaction for review.';
+            }
+
+            function formatAnomalyDate(value) {
+                if (!value) return 'Not provided';
+                const date = new Date(value);
+                return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString();
+            }
+
+            function appendAnomalyMeta(container, label, value) {
+                if (value === undefined || value === null || value === '') return;
+                const item = document.createElement('div');
+                item.className = 'anomaly-alert-meta-item';
+                const term = document.createElement('span');
+                term.textContent = label;
+                const detail = document.createElement('strong');
+                detail.textContent = String(value);
+                item.append(term, detail);
+                container.appendChild(item);
+            }
+
+            function appendAnomalyProof(container, proofUrl) {
+                if (!proofUrl) return;
+                const proof = document.createElement('a');
+                proof.className = 'anomaly-alert-proof';
+                proof.textContent = 'View receipt / proof';
+                proof.target = '_blank';
+                proof.rel = 'noopener noreferrer';
+                try {
+                    const parsedUrl = new URL(proofUrl, BASE_URL);
+                    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') return;
+                    proof.href = parsedUrl.href;
+                    container.appendChild(proof);
+                } catch (error) {
+                    console.warn('An anomaly record has an invalid proof URL:', error);
+                }
+            }
+
+            function appendAnomalyServerRecord(container, anomaly) {
+                const details = document.createElement('details');
+                details.className = 'anomaly-alert-details';
+                const summary = document.createElement('summary');
+                summary.textContent = 'View full server record';
+                const record = document.createElement('pre');
+                record.textContent = JSON.stringify(anomaly, null, 2);
+                details.append(summary, record);
+                container.appendChild(details);
+            }
+
+            function appendAnomalyProofDetails(container, proofDetails) {
+                if (proofDetails === undefined || proofDetails === null || proofDetails === '') return;
+                let formattedDetails = proofDetails;
+                if (typeof proofDetails === 'string') {
+                    try {
+                        formattedDetails = JSON.stringify(JSON.parse(proofDetails), null, 2);
+                    } catch (error) {
+                        formattedDetails = proofDetails;
+                    }
+                } else {
+                    formattedDetails = JSON.stringify(proofDetails, null, 2);
+                }
+
+                const details = document.createElement('details');
+                details.className = 'anomaly-alert-details';
+                const summary = document.createElement('summary');
+                summary.textContent = 'View receipt analysis details';
+                const record = document.createElement('pre');
+                record.textContent = formattedDetails;
+                details.append(summary, record);
+                container.appendChild(details);
+            }
+
+            function renderAnomalyAlerts(rows) {
+                const activeRows = rows.filter(anomaly => !dismissedAnomalyIds.has(anomalyIdentity(anomaly)));
+                const groupedRows = new Map();
+                activeRows.forEach(anomaly => {
+                    const groupKey = anomaly.expense_id ? String(anomaly.expense_id) : anomalyIdentity(anomaly);
+                    if (!groupedRows.has(groupKey)) groupedRows.set(groupKey, []);
+                    groupedRows.get(groupKey).push(anomaly);
+                });
+                const groups = Array.from(groupedRows.values());
+                anomalyCount.textContent = activeRows.length > 99 ? '99+' : String(activeRows.length);
+                anomalyCount.hidden = activeRows.length === 0;
+                anomalySummary.textContent = `${groups.length} transaction${groups.length === 1 ? '' : 's'} · ${activeRows.length} issue${activeRows.length === 1 ? '' : 's'}`;
+                dismissAllButton.hidden = activeRows.length === 0;
+                anomalyList.replaceChildren();
+
+                if (groups.length === 0) {
+                    if (!anomalyStatus.dataset.error) anomalyStatus.textContent = 'You are all caught up. New pending anomaly alerts will appear here.';
+                    return;
+                }
+
+                groups.forEach(group => {
+                    const first = group[0];
+                    const card = document.createElement('article');
+                    card.className = 'anomaly-alert-card';
+
+                    const cardHeader = document.createElement('div');
+                    cardHeader.className = 'anomaly-alert-card-header';
+                    const titleBlock = document.createElement('div');
+                    const title = document.createElement('h3');
+                    title.textContent = first.expense_title || `Expense ${first.expense_id || ''}`.trim() || 'Expense transaction';
+                    const issueCount = document.createElement('span');
+                    issueCount.className = 'anomaly-alert-issue-count';
+                    issueCount.textContent = `${group.length} issue${group.length === 1 ? '' : 's'}`;
+                    titleBlock.append(title, issueCount);
+
+                    const dismissButton = document.createElement('button');
+                    dismissButton.className = 'anomaly-alert-dismiss';
+                    dismissButton.type = 'button';
+                    dismissButton.setAttribute('aria-label', `Dismiss alert for ${title.textContent}`);
+                    dismissButton.title = 'Dismiss reminder';
+                    dismissButton.innerHTML = '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
+                    dismissButton.addEventListener('click', event => {
+                        event.stopPropagation();
+                        dismissAnomalyGroup(group);
+                    });
+                    cardHeader.append(titleBlock, dismissButton);
+                    card.appendChild(cardHeader);
+
+                    const amount = document.createElement('p');
+                    amount.className = 'anomaly-alert-amount';
+                    if (first.expense_amount !== undefined && first.expense_amount !== null) {
+                        const numericAmount = Number(first.expense_amount);
+                        amount.textContent = Number.isFinite(numericAmount)
+                            ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(numericAmount)
+                            : String(first.expense_amount);
+                    } else {
+                        amount.textContent = 'Amount not provided';
+                    }
+                    card.appendChild(amount);
+
+                    const metadata = document.createElement('div');
+                    metadata.className = 'anomaly-alert-meta';
+                    appendAnomalyMeta(metadata, 'Expense ID', first.expense_id);
+                    appendAnomalyMeta(metadata, 'Project ID', first.project_id);
+                    card.appendChild(metadata);
+
+                    group.forEach(anomaly => {
+                        const issue = document.createElement('section');
+                        issue.className = 'anomaly-alert-issue';
+                        const issueTitle = document.createElement('h4');
+                        issueTitle.textContent = anomalyLabel(anomaly.anomaly_text);
+                        const issueCode = document.createElement('span');
+                        issueCode.className = 'anomaly-alert-code';
+                        issueCode.textContent = anomaly.anomaly_text || 'Unknown anomaly';
+                        const description = document.createElement('p');
+                        description.textContent = anomalyDescription(anomaly.anomaly_text);
+                        issue.append(issueTitle, issueCode, description);
+
+                        const issueMeta = document.createElement('div');
+                        issueMeta.className = 'anomaly-alert-meta';
+                        appendAnomalyMeta(issueMeta, 'Alert ID', anomaly.anomaly_id);
+                        appendAnomalyMeta(issueMeta, 'Verification', anomaly.verification_status);
+                        appendAnomalyMeta(issueMeta, 'Alert status', anomaly.alert_message_status);
+                        appendAnomalyMeta(issueMeta, 'Detected', formatAnomalyDate(anomaly.created_at));
+                        issue.appendChild(issueMeta);
+                        appendAnomalyProof(issue, anomaly.proof_url);
+                        appendAnomalyProofDetails(issue, anomaly.proof_details);
+                        appendAnomalyServerRecord(issue, anomaly);
+                        card.appendChild(issue);
+                    });
+                    anomalyList.appendChild(card);
+                });
+
+                if (!anomalyStatus.dataset.error) anomalyStatus.textContent = '';
+            }
+
+            function persistDismissedAnomalies() {
+                try {
+                    localStorage.setItem(dismissedAnomalyStorageKey, JSON.stringify(Array.from(dismissedAnomalyIds)));
+                    return true;
+                } catch (error) {
+                    console.error('Could not save dismissed anomaly reminders:', error);
+                    return false;
+                }
+            }
+
+            function dismissAnomalyGroup(group) {
+                group.forEach(anomaly => dismissedAnomalyIds.add(anomalyIdentity(anomaly)));
+                const saved = persistDismissedAnomalies();
+                anomalyStatus.dataset.error = '';
+                renderAnomalyAlerts(latestAnomalyRows);
+                anomalyStatus.textContent = saved
+                    ? 'Reminder dismissed. The anomaly record is unchanged on the server.'
+                    : 'Reminder dismissed for now, but this browser could not save the dismissal.';
+            }
+
+            anomalyToggle.addEventListener('click', () => setAnomalyPanelOpen(anomalyPanel.hidden));
+            document.getElementById('anomaly-notification-close').addEventListener('click', () => setAnomalyPanelOpen(false));
+            dismissAllButton.addEventListener('click', () => {
+                latestAnomalyRows.forEach(anomaly => dismissedAnomalyIds.add(anomalyIdentity(anomaly)));
+                const saved = persistDismissedAnomalies();
+                renderAnomalyAlerts(latestAnomalyRows);
+                anomalyStatus.textContent = saved
+                    ? 'All reminders dismissed. The anomaly records are unchanged on the server.'
+                    : 'Reminders dismissed for now, but this browser could not save the dismissals.';
+            });
+            document.addEventListener('click', event => {
+                if (event.target instanceof Element && !event.target.closest('.anomaly-notification') && !anomalyPanel.hidden) {
+                    setAnomalyPanelOpen(false);
+                }
+            });
+            document.addEventListener('keydown', event => {
+                if (event.key === 'Escape' && !anomalyPanel.hidden) setAnomalyPanelOpen(false);
+            });
+
+            async function fetchAnomalyAlerts() {
+                if (anomalyRequestInFlight) return;
+                anomalyRequestInFlight = true;
+                try {
+                    const response = await fetch(`${BASE_URL}/api/organization/${encodeURIComponent(orgId)}/anomalies`, fetchOptionsJson);
+                    if (!response.ok) throw new Error(`Anomaly request failed with status ${response.status}`);
+                    const result = await response.json();
+                    if (!result.success || !Array.isArray(result.data)) {
+                        throw new Error(result.error || result.message || 'The server returned an invalid anomaly list.');
+                    }
+
+                    let newActiveAnomalyFound = false;
+                    result.data.forEach(anomaly => {
+                        const id = anomalyIdentity(anomaly);
+                        if (!observedAnomalyIds.has(id) && !dismissedAnomalyIds.has(id)) newActiveAnomalyFound = true;
+                        observedAnomalyIds.add(id);
+                    });
+                    latestAnomalyRows = result.data;
+                    anomalyStatus.dataset.error = '';
+                    renderAnomalyAlerts(latestAnomalyRows);
+                    if (newActiveAnomalyFound) setAnomalyPanelOpen(true);
+                } catch (error) {
+                    console.error('Could not fetch organization anomaly alerts:', error);
+                    anomalyStatus.dataset.error = 'true';
+                    anomalyStatus.textContent = 'Could not load alerts. Refresh the page to try again.';
+                    if (latestAnomalyRows.length === 0) renderAnomalyAlerts(latestAnomalyRows);
+                } finally {
+                    anomalyRequestInFlight = false;
+                }
+            }
+
             // Initialize Dashboard
             loadDashboardData();
+            fetchAnomalyAlerts();
 
             async function loadDashboardData() {
                 try {

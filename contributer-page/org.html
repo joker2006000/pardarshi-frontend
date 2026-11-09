@@ -55,10 +55,15 @@
         /* Footer */
         .pardarshi-footer { text-align: center; padding: 30px 10px 20px 10px; margin-top: 20px; color: #94a3b8; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; }
 
+        .assistant-launcher { position: fixed; right: 22px; bottom: 24px; z-index: 110; width: 58px; height: 58px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; box-shadow: 0 3px 12px rgba(15, 23, 42, .24); overflow: hidden; }
+        .assistant-launcher img { display: block; width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
+        .assistant-launcher:focus-visible { outline: 3px solid #07875d; outline-offset: 3px; }
+
         /* MOBILE ADJUSTMENTS */
         @media (max-width: 768px) { 
             .dashboard-content { padding: 12px; padding-bottom: 130px; } /* Increased from 120px */
             .pardarshi-footer { padding-bottom: 80px; } /* Increased from 70px to lift the text */
+            .assistant-launcher { right: 16px; bottom: 88px; }
         }
     </style>
 </head>
@@ -132,6 +137,10 @@
         </div>
     </main>
 
+    <a id="assistant-launcher" class="assistant-launcher" href="/assistant" aria-label="Open PARDARSHI AI assistant" title="PARDARSHI AI assistant">
+        <img id="assistant-launcher-icon" src="/contributer-page/ailogo.ico" alt="">
+    </a>
+
     <script>
         // SECURITY UTILITIES
         const escapeHtml = (str) => String(str || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
@@ -157,6 +166,13 @@
             }
 
             const orgSlug = urlParams.get('org');
+            const assistantParams = new URLSearchParams({ org: orgSlug || '' });
+            const projectSlug = urlParams.get('proj');
+            if (projectSlug) assistantParams.set('proj', projectSlug);
+            document.getElementById('assistant-launcher').href = `/assistant?${assistantParams.toString()}`;
+            document.getElementById('assistant-launcher-icon').addEventListener('error', (event) => {
+                event.currentTarget.src = '/favicon.ico';
+            }, { once: true });
 
             if (!orgSlug) {
                 document.getElementById('skeleton-org').innerHTML = '<p>Organization not specified.</p>';
