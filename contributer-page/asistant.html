@@ -163,8 +163,15 @@
     .mic:active { transform: scale(.96); }
     .mic.barge-in { animation: barge-in .45s ease-out; }
     @keyframes barge-in { 50% { box-shadow: 0 0 0 12px rgba(66,133,244,.14), 0 8px 26px rgba(16,135,93,.14); } }
-    .mic-label { min-height: 10px; color: #64766c; font-size: 8px; font-weight: 650; letter-spacing: .11em; }
-    .mic:disabled { opacity: .55; cursor: wait; }
+    .mic-label, .audio-label { min-height: 10px; color: #64766c; font-size: 8px; font-weight: 650; letter-spacing: .11em; }
+    .mic:disabled, .audio-toggle:disabled { opacity: .55; cursor: wait; }
+    .audio-wrap { display: grid; justify-items: center; gap: 5px; }
+    .audio-toggle {
+      width: 44px; height: 44px; border: 1px solid rgba(25,55,40,.1); border-radius: 50%;
+      background: #ffffff; color: #64766c;
+    }
+    .audio-toggle.enabled { color: var(--green); border-color: rgba(16,135,93,.32); background: #f0faf4; }
+    .audio-toggle svg { width: 20px; height: 20px; }
     /* Branded startup overlay */
     .splash {
       position: fixed; inset: 0; z-index: 20; display: grid; place-items: center;
@@ -221,7 +228,12 @@
         <button id="btn-mic" class="control mic" type="button" aria-label="Microphone is live"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3.5M9 21.5h6"/></svg></span></button>
         <span id="mic-label" class="mic-label">MIC STARTING</span>
       </div>
-      <div aria-hidden="true" style="width:44px;height:44px"></div>
+      <div class="audio-wrap">
+        <button id="btn-audio" class="control audio-toggle" type="button" aria-label="Enable assistant audio" aria-pressed="false" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+        </button>
+        <span id="audio-label" class="audio-label">SOUND OFF</span>
+      </div>
     </footer>
   </div>
 
@@ -255,6 +267,8 @@
       mic: document.getElementById("btn-mic"),
       micLabel: document.getElementById("mic-label"),
       cancel: document.getElementById("btn-cancel"),
+      audio: document.getElementById("btn-audio"),
+      audioLabel: document.getElementById("audio-label"),
       splash: document.getElementById("splash"),
       splashStep: document.getElementById("splash-step"),
       progress: document.getElementById("progress-bar"),
@@ -709,6 +723,7 @@
       let processor = null;
       let processorKind = "";
       let mute = null;
+      let playbackAnalyser = null;
       let active = false;
       let onChunk = () => {};
       let onSpeechStart = () => {};
@@ -719,6 +734,8 @@
       let hasSpeech = false;
       let frame = null;
       let outputTime = 0;
+      let pendingAudioChunks = 0;
+      let playbackGeneration = 0;
       const playbackSources = new Set();
       const SPEECH_RMS = 0.022;
       const END_SILENCE_MS = 850;
@@ -731,12 +748,21 @@
           throw new Error("Microphone access requires HTTPS or localhost in a supported browser.");
         }
         stop();
+        context = new (window.AudioContext || window.webkitAudioContext)();
+        playbackAnalyser = context.createAnalyser();
+        playbackAnalyser.fftSize = 1024;
+        playbackAnalyser.smoothingTimeConstant = .35;
+        playbackAnalyser.connect(context.destination);
+        dom.audio.disabled = false;
+        try {
+          await context.resume();
+        } catch (error) {
+          console.warn("Audio playback needs to be enabled with the speaker button.", error);
+        }
         stream = await navigator.mediaDevices.getUserMedia({
           audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
           video: false
         });
-        context = new (window.AudioContext || window.webkitAudioContext)();
-        await context.resume();
         source = context.createMediaStreamSource(stream);
 
         mute = context.createGain();
@@ -855,6 +881,7 @@
         canvas.height = Math.max(1, Math.floor(rect.height * scale));
         const ctx = canvas.getContext("2d");
         const colors = ["#4285F4", "#EA4335", "#FBBC05", "#34A853", "#9C27B0"];
+        const audioSamples = new Uint8Array(1024);
         const render = timestamp => {
           if (!ctx) return;
           const width = canvas.width;
@@ -864,19 +891,41 @@
           const center = height / 2;
           const thinking = state === UIController.State.THINKING;
           const speaking = state === UIController.State.SPEAKING;
+          const hasOutputAudio = speaking && playbackAnalyser && context && context.state === "running"
+            && (playbackSources.size > 0 || pendingAudioChunks > 0);
           const phase = timestamp * (thinking ? .0018 : speaking ? .0025 : .0008);
           const amplitude = (thinking ? 6 : speaking ? 10 : 2.4) * scale;
           const gradient = ctx.createLinearGradient(0, 0, width, 0);
           colors.forEach((color, index) => gradient.addColorStop(index / (colors.length - 1), color));
 
           ctx.beginPath();
-          for (let x = 0; x <= width; x += 2 * scale) {
-            const progress = x / width;
-            const envelope = Math.sin(progress * Math.PI) * .8 + .2;
-            const y = center + Math.sin(progress * 11 - phase) * amplitude * envelope
-              + Math.sin(progress * 19 - phase * .72) * amplitude * .28;
-            if (x === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
+          if (hasOutputAudio) {
+            playbackAnalyser.getByteTimeDomainData(audioSamples);
+            let sumSquares = 0;
+            for (const sample of audioSamples) {
+              const normalized = (sample - 128) / 128;
+              sumSquares += normalized * normalized;
+            }
+            const rms = Math.sqrt(sumSquares / audioSamples.length);
+            const boost = Math.min(4, .16 / Math.max(rms, .001));
+            const points = Math.max(2, Math.floor(width / (2 * scale)));
+            for (let point = 0; point <= points; point++) {
+              const sampleIndex = Math.min(audioSamples.length - 1, Math.floor(point / points * audioSamples.length));
+              const normalized = (audioSamples[sampleIndex] - 128) / 128;
+              const y = center - normalized * boost * height * .42;
+              const x = point / points * width;
+              if (point === 0) ctx.moveTo(x, y);
+              else ctx.lineTo(x, y);
+            }
+          } else {
+            for (let x = 0; x <= width; x += 2 * scale) {
+              const progress = x / width;
+              const envelope = Math.sin(progress * Math.PI) * .8 + .2;
+              const y = center + Math.sin(progress * 11 - phase) * amplitude * envelope
+                + Math.sin(progress * 19 - phase * .72) * amplitude * .28;
+              if (x === 0) ctx.moveTo(x, y);
+              else ctx.lineTo(x, y);
+            }
           }
           ctx.strokeStyle = gradient;
           ctx.globalAlpha = thinking || speaking ? .95 : .56;
@@ -895,7 +944,7 @@
 
       window.addEventListener("assistant-state-change", drawVisualizer);
 
-      function playAudioChunk(base64, mimeType) {
+      async function playAudioChunk(base64, mimeType) {
         if (!context || context.state === "closed") throw new Error("Audio playback is not available.");
         const rateMatch = /rate=(\d+)/i.exec(mimeType);
         const sampleRate = rateMatch ? Number(rateMatch[1]) : 24000;
@@ -903,29 +952,55 @@
         if (!binary.length) return;
         if (binary.length % 2 !== 0) throw new Error("The AI server sent an incomplete audio sample.");
         if (!Number.isFinite(sampleRate) || sampleRate <= 0) throw new Error("The AI server sent an invalid audio sample rate.");
-        const audioBuffer = context.createBuffer(1, binary.length / 2, sampleRate);
-        const samples = audioBuffer.getChannelData(0);
-        const bytes = new Uint8Array(binary.length);
-        for (let index = 0; index < binary.length; index++) bytes[index] = binary.charCodeAt(index);
-        const view = new DataView(bytes.buffer);
-        for (let index = 0; index < samples.length; index++) {
-          samples[index] = view.getInt16(index * 2, true) / 32768;
-        }
+        pendingAudioChunks++;
+        const generation = playbackGeneration;
+        try {
+          await context.resume();
+          if (context.state !== "running") throw new Error("Tap the speaker button to enable assistant audio.");
+          if (generation !== playbackGeneration) return;
+          const audioBuffer = context.createBuffer(1, binary.length / 2, sampleRate);
+          const samples = audioBuffer.getChannelData(0);
+          const bytes = new Uint8Array(binary.length);
+          for (let index = 0; index < binary.length; index++) bytes[index] = binary.charCodeAt(index);
+          const view = new DataView(bytes.buffer);
+          for (let index = 0; index < samples.length; index++) {
+            samples[index] = view.getInt16(index * 2, true) / 32768;
+          }
 
-        const sourceNode = context.createBufferSource();
-        sourceNode.buffer = audioBuffer;
-        sourceNode.connect(context.destination);
-        sourceNode.onended = () => {
-          playbackSources.delete(sourceNode);
-          sourceNode.disconnect();
-        };
-        const startAt = Math.max(context.currentTime, outputTime);
-        sourceNode.start(startAt);
-        outputTime = startAt + audioBuffer.duration;
-        playbackSources.add(sourceNode);
+          const sourceNode = context.createBufferSource();
+          sourceNode.buffer = audioBuffer;
+          sourceNode.connect(playbackAnalyser);
+          sourceNode.onended = () => {
+            playbackSources.delete(sourceNode);
+            sourceNode.disconnect();
+          };
+          const startAt = Math.max(context.currentTime, outputTime);
+          sourceNode.start(startAt);
+          outputTime = startAt + audioBuffer.duration;
+          playbackSources.add(sourceNode);
+        } finally {
+          pendingAudioChunks--;
+        }
+      }
+
+      async function enablePlayback() {
+        if (!context || context.state === "closed") throw new Error("Audio playback is not available.");
+        await context.resume();
+        if (context.state !== "running") throw new Error("Device audio is still paused. Check the device's sound settings and try again.");
+      }
+
+      function isPlaybackReady() {
+        return Boolean(context && context.state === "running");
+      }
+
+      async function waitForPlayback() {
+        while (pendingAudioChunks > 0 || playbackSources.size > 0) {
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
       }
 
       function stopPlayback() {
+        playbackGeneration++;
         outputTime = 0;
         for (const sourceNode of playbackSources) {
           sourceNode.onended = null;
@@ -959,14 +1034,29 @@
         if (context) {
           const oldContext = context;
           context = null;
+          playbackAnalyser = null;
           oldContext.close().catch(error => console.error("Unable to close audio context.", error));
         }
+        dom.audio.disabled = true;
+        dom.audio.classList.remove("enabled");
+        dom.audio.setAttribute("aria-pressed", "false");
+        dom.audio.setAttribute("aria-label", "Enable assistant audio");
+        dom.audioLabel.textContent = "SOUND OFF";
         hasSpeech = false;
         voicedDuration = 0;
         silenceStartedAt = 0;
       }
 
-      return { start, stop, resize: drawVisualizer, playAudioChunk, stopPlayback };
+      return {
+        start,
+        stop,
+        resize: drawVisualizer,
+        playAudioChunk,
+        stopPlayback,
+        enablePlayback,
+        isPlaybackReady,
+        waitForPlayback
+      };
     })();
 
     const app = (() => {
@@ -1005,16 +1095,24 @@
           dom.progress.style.width = "68%";
           await LiveWebSocketClient.connect({
             onData: text => {
-              UIController.setState(UIController.State.SPEAKING, "Receiving assistant response");
+              UIController.setState(
+                UIController.State.SPEAKING,
+                AudioEngine.isPlaybackReady() ? "Playing assistant voice" : "Assistant voice ready · tap speaker to hear"
+              );
               UIController.appendAssistantText(text);
             },
             onAudio: (data, mimeType) => {
-              try {
-                AudioEngine.playAudioChunk(data, mimeType);
-              } catch (error) {
+              UIController.setState(
+                UIController.State.SPEAKING,
+                AudioEngine.isPlaybackReady() ? "Playing assistant voice" : "Assistant voice ready · tap speaker to hear"
+              );
+              void AudioEngine.playAudioChunk(data, mimeType).catch(error => {
                 console.error("Unable to play the AI audio response.", error);
-                UIController.setState(UIController.State.ERROR, "The AI audio response could not be played.");
-              }
+                UIController.setState(
+                  UIController.State.ERROR,
+                  error instanceof Error ? error.message : "The AI audio response could not be played."
+                );
+              });
             },
             onConnection: (connected, label, detail) => {
               const mode = connected ? "connected" : label === "Connecting" ? "pending" : "error";
@@ -1027,9 +1125,16 @@
               if (activity === "thinking") UIController.setState(UIController.State.THINKING);
               if (activity === "complete") {
                 UIController.finishAssistantResponse();
-                window.setTimeout(() => {
-                  if (sessionActive) UIController.setState(UIController.State.LISTENING);
-                }, 1200);
+                void AudioEngine.waitForPlayback().then(() => {
+                  if (sessionActive && UIController.getState() === UIController.State.SPEAKING) {
+                    UIController.setState(
+                      UIController.State.LISTENING,
+                      AudioEngine.isPlaybackReady()
+                        ? "Microphone is live · speaker ready"
+                        : "Microphone is live · tap speaker to hear responses"
+                    );
+                  }
+                });
               }
             }
           });
@@ -1040,8 +1145,17 @@
           }
           dom.progress.style.width = "100%";
           dom.splashStep.textContent = "Ready · microphone is live";
+          dom.audio.disabled = false;
+          const audioReady = AudioEngine.isPlaybackReady();
+          dom.audio.classList.toggle("enabled", audioReady);
+          dom.audio.setAttribute("aria-pressed", String(audioReady));
+          dom.audio.setAttribute("aria-label", audioReady ? "Assistant audio enabled" : "Enable assistant audio");
+          dom.audioLabel.textContent = audioReady ? "SOUND ON" : "ENABLE SOUND";
           UIController.setMicActive(true, "MIC LIVE");
-          UIController.setState(UIController.State.LISTENING);
+          UIController.setState(
+            UIController.State.LISTENING,
+            audioReady ? undefined : "Microphone is live · tap speaker to hear responses"
+          );
           startupTimeout = setTimeout(() => dom.splash.classList.add("hidden"), 450);
           dom.mic.disabled = false;
         } catch (error) {
@@ -1076,6 +1190,28 @@
 
       function setup() {
         dom.cancel.addEventListener("click", endSession);
+        dom.audio.addEventListener("click", async () => {
+          dom.audio.disabled = true;
+          try {
+            await AudioEngine.enablePlayback();
+            dom.audio.classList.add("enabled");
+            dom.audio.setAttribute("aria-pressed", "true");
+            dom.audio.setAttribute("aria-label", "Assistant audio enabled");
+            dom.audioLabel.textContent = "SOUND ON";
+            if (UIController.getState() === UIController.State.SPEAKING) {
+              UIController.setState(UIController.State.SPEAKING, "Playing assistant voice");
+            } else if (UIController.getState() === UIController.State.LISTENING) {
+              UIController.setState(UIController.State.LISTENING, "Microphone is live · speaker ready");
+            }
+          } catch (error) {
+            UIController.setState(
+              UIController.State.ERROR,
+              error instanceof Error ? error.message : "Assistant audio could not be enabled."
+            );
+          } finally {
+            dom.audio.disabled = false;
+          }
+        });
         dom.mic.addEventListener("click", () => {
           if (!sessionActive || UIController.getState() === UIController.State.ERROR) void startSession();
         });
