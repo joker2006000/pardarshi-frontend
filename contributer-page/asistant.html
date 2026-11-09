@@ -746,6 +746,7 @@
       let frame = null;
       let outputTime = 0;
       let pendingAudioChunks = 0;
+      let audioQueue = Promise.resolve();
       let playbackGeneration = 0;
       let bootAudioBuffer = null;
       let bootPlayed = false;
@@ -973,27 +974,31 @@
 
       window.addEventListener("assistant-state-change", drawVisualizer);
 
-      async function playAudioChunk(base64, mimeType) {
-        if (!context || context.state === "closed") throw new Error("Audio playback is not available.");
-        const rateMatch = /rate=(\d+)/i.exec(mimeType);
-        const sampleRate = rateMatch ? Number(rateMatch[1]) : 24000;
-        const binary = atob(base64);
-        if (!binary.length) return;
-        if (binary.length % 2 !== 0) throw new Error("The AI server sent an incomplete audio sample.");
-        if (!Number.isFinite(sampleRate) || sampleRate <= 0) throw new Error("The AI server sent an invalid audio sample rate.");
+      function playAudioChunk(base64, mimeType) {
         pendingAudioChunks++;
         const generation = playbackGeneration;
-        try {
+        const scheduled = audioQueue.then(async () => {
+          if (generation !== playbackGeneration) return;
+          if (!context || context.state === "closed") throw new Error("Audio playback is not available.");
+          const rateMatch = /(?:^|;)\s*rate=(\d+)/i.exec(mimeType);
+          const sampleRate = rateMatch ? Number(rateMatch[1]) : 24000;
+          const binary = atob(base64);
+          if (!binary.length) return;
+          if (binary.length % 2 !== 0) throw new Error("The AI server sent an incomplete audio sample.");
+          if (!Number.isInteger(sampleRate) || sampleRate < 3000 || sampleRate > 384000) {
+            throw new Error("The AI server sent an invalid audio sample rate.");
+          }
           await context.resume();
           if (context.state !== "running") throw new Error("Tap the speaker button to enable assistant audio.");
           if (generation !== playbackGeneration) return;
-          const audioBuffer = context.createBuffer(1, binary.length / 2, sampleRate);
-          const samples = audioBuffer.getChannelData(0);
           const bytes = new Uint8Array(binary.length);
           for (let index = 0; index < binary.length; index++) bytes[index] = binary.charCodeAt(index);
-          const view = new DataView(bytes.buffer);
+          const sampleCount = bytes.byteLength / Int16Array.BYTES_PER_ELEMENT;
+          const audioBuffer = context.createBuffer(1, sampleCount, sampleRate);
+          const samples = audioBuffer.getChannelData(0);
+          const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
           for (let index = 0; index < samples.length; index++) {
-            samples[index] = view.getInt16(index * 2, true) / 32768;
+            samples[index] = view.getInt16(index * Int16Array.BYTES_PER_ELEMENT, true) / 32768;
           }
 
           const sourceNode = context.createBufferSource();
@@ -1007,9 +1012,11 @@
           sourceNode.start(startAt);
           outputTime = startAt + audioBuffer.duration;
           playbackSources.add(sourceNode);
-        } finally {
+        });
+        audioQueue = scheduled.catch(() => {});
+        return scheduled.finally(() => {
           pendingAudioChunks--;
-        }
+        });
       }
 
       async function loadBootAudio() {
