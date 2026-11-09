@@ -172,6 +172,7 @@
     }
     .audio-toggle.enabled { color: var(--green); border-color: rgba(16,135,93,.32); background: #f0faf4; }
     .audio-toggle svg { width: 20px; height: 20px; }
+    .audio-detail { max-width: 118px; min-height: 10px; color: #64766c; font-size: 7px; line-height: 1.25; text-align: center; overflow-wrap: anywhere; }
     /* Branded startup overlay */
     .splash {
       position: fixed; inset: 0; z-index: 20; display: grid; place-items: center;
@@ -239,6 +240,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
         </button>
         <span id="audio-label" class="audio-label">SOUND OFF</span>
+        <span id="audio-detail" class="audio-detail" aria-live="polite">AI voice not received</span>
       </div>
     </footer>
   </div>
@@ -276,6 +278,7 @@
       cancel: document.getElementById("btn-cancel"),
       audio: document.getElementById("btn-audio"),
       audioLabel: document.getElementById("audio-label"),
+      audioDetail: document.getElementById("audio-detail"),
       start: document.getElementById("btn-start"),
       splash: document.getElementById("splash"),
       splashStep: document.getElementById("splash-step"),
@@ -744,6 +747,9 @@
       let outputTime = 0;
       let pendingAudioChunks = 0;
       let playbackGeneration = 0;
+      let bootAudioBuffer = null;
+      let bootPlayed = false;
+      let receivedAudioChunks = 0;
       const playbackSources = new Set();
       const SPEECH_RMS = 0.022;
       const END_SILENCE_MS = 850;
@@ -846,6 +852,8 @@
         processor.connect(mute);
         mute.connect(context.destination);
         active = true;
+        receivedAudioChunks = 0;
+        dom.audioDetail.textContent = "Microphone allowed · testing speaker";
         drawVisualizer();
         return context.sampleRate;
       }
@@ -1004,6 +1012,53 @@
         }
       }
 
+      async function loadBootAudio() {
+        if (bootAudioBuffer) return bootAudioBuffer;
+        const response = await fetch("/contributer-page/boot.mp3");
+        if (!response.ok) throw new Error(`Speaker test audio failed to load (${response.status}).`);
+        const audioData = await response.arrayBuffer();
+        if (!context || context.state === "closed") throw new Error("Audio playback is not available.");
+        bootAudioBuffer = await context.decodeAudioData(audioData);
+        return bootAudioBuffer;
+      }
+
+      async function playStartupSound() {
+        if (bootPlayed) return;
+        if (!context || context.state === "closed") throw new Error("Audio playback is not available.");
+        const audioBuffer = await loadBootAudio();
+        await context.resume();
+        if (context.state !== "running") throw new Error("Tap the speaker button to allow audio playback.");
+        const sourceNode = context.createBufferSource();
+        sourceNode.buffer = audioBuffer;
+        sourceNode.connect(playbackAnalyser);
+        playbackSources.add(sourceNode);
+        dom.audioDetail.textContent = "Startup sound playing";
+        await new Promise((resolve, reject) => {
+          sourceNode.onended = () => {
+            playbackSources.delete(sourceNode);
+            sourceNode.disconnect();
+            dom.audioDetail.textContent = "Startup sound played";
+            resolve();
+          };
+          try {
+            sourceNode.start();
+            bootPlayed = true;
+          } catch (error) {
+            playbackSources.delete(sourceNode);
+            sourceNode.disconnect();
+            reject(error);
+          }
+        });
+      }
+
+      function recordIncomingAudio(mimeType) {
+        receivedAudioChunks++;
+        const type = mimeType || "audio/pcm;rate=24000 (default)";
+        const rateMatch = /rate=(\d+)/i.exec(type);
+        const rate = rateMatch ? `${(Number(rateMatch[1]) / 1000).toFixed(rateMatch[1].length > 4 ? 1 : 0)} kHz` : "";
+        dom.audioDetail.textContent = `AI ${type.split(";")[0]}${rate ? ` · ${rate}` : ""} · ${receivedAudioChunks} chunks`;
+      }
+
       async function enablePlayback() {
         if (!context || context.state === "closed") throw new Error("Audio playback is not available.");
         await context.resume();
@@ -1063,6 +1118,9 @@
         dom.audio.setAttribute("aria-pressed", "false");
         dom.audio.setAttribute("aria-label", "Enable assistant audio");
         dom.audioLabel.textContent = "SOUND OFF";
+        dom.audioDetail.textContent = "AI voice not received";
+        bootAudioBuffer = null;
+        receivedAudioChunks = 0;
         hasSpeech = false;
         voicedDuration = 0;
         silenceStartedAt = 0;
@@ -1073,6 +1131,8 @@
         stop,
         resize: drawVisualizer,
         playAudioChunk,
+        playStartupSound,
+        recordIncomingAudio,
         stopPlayback,
         enablePlayback,
         isPlaybackReady,
@@ -1084,7 +1144,7 @@
       let sessionActive = true;
       let startupTimeout = null;
 
-      async function startSession() {
+      async function startSession({ playStartupSound = false } = {}) {
         sessionActive = true;
         UIController.finishAssistantResponse();
         dom.start.disabled = true;
@@ -1109,6 +1169,15 @@
               UIController.setState(UIController.State.THINKING);
             }
           });
+          if (playStartupSound) {
+            dom.splashStep.textContent = "Playing startup sound…";
+            try {
+              await AudioEngine.playStartupSound();
+            } catch (error) {
+              console.warn("Startup sound could not be played.", error);
+              dom.audioDetail.textContent = "Startup sound could not play";
+            }
+          }
           if (!sessionActive) {
             AudioEngine.stop();
             return;
@@ -1124,6 +1193,7 @@
               UIController.appendAssistantText(text);
             },
             onAudio: (data, mimeType) => {
+              AudioEngine.recordIncomingAudio(mimeType);
               UIController.setState(
                 UIController.State.SPEAKING,
                 AudioEngine.isPlaybackReady() ? "Playing assistant voice" : "Assistant voice ready · tap speaker to hear"
@@ -1217,7 +1287,7 @@
         dom.cancel.addEventListener("click", endSession);
         dom.start.addEventListener("click", () => {
           dom.start.textContent = "Starting assistant…";
-          void startSession();
+          void startSession({ playStartupSound: true });
         });
         dom.audio.addEventListener("click", async () => {
           dom.audio.disabled = true;
@@ -1227,10 +1297,11 @@
             dom.audio.setAttribute("aria-pressed", "true");
             dom.audio.setAttribute("aria-label", "Assistant audio enabled");
             dom.audioLabel.textContent = "SOUND ON";
+            dom.audioDetail.textContent = "AI voice output enabled";
             if (UIController.getState() === UIController.State.SPEAKING) {
               UIController.setState(UIController.State.SPEAKING, "Playing assistant voice");
             } else if (UIController.getState() === UIController.State.LISTENING) {
-              UIController.setState(UIController.State.LISTENING, "Microphone is live · speaker ready");
+              UIController.setState(UIController.State.LISTENING, "Microphone is live · AI voice ready");
             }
           } catch (error) {
             UIController.setState(
