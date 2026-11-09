@@ -183,6 +183,12 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .splash-title { color: var(--green); font-size: 13px; font-weight: 700; letter-spacing: .16em; }
     .splash-step { margin: 14px 0 10px; color: #718078; font-size: 11px; }
+    .start-assistant {
+      margin: 14px 0; padding: 12px 18px; border: 0; border-radius: 999px;
+      color: #fff; background: var(--green); font-size: 12px; font-weight: 650;
+      box-shadow: 0 5px 16px rgba(16,135,93,.2);
+    }
+    .start-assistant:disabled { opacity: .6; }
     .progress { height: 2px; overflow: hidden; background: #dce4df; border-radius: 2px; }
     .progress span { display: block; height: 100%; width: 10%; background: var(--green); transition: width .3s ease; }
     @media (min-width: 600px) {
@@ -225,7 +231,7 @@
     <footer>
       <button id="btn-cancel" class="control cancel" type="button" aria-label="End session and clear data">×</button>
       <div class="mic-wrap">
-        <button id="btn-mic" class="control mic" type="button" aria-label="Microphone is live"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3.5M9 21.5h6"/></svg></span></button>
+        <button id="btn-mic" class="control mic" type="button" aria-label="Microphone is live" disabled><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3.5M9 21.5h6"/></svg></span></button>
         <span id="mic-label" class="mic-label">MIC STARTING</span>
       </div>
       <div class="audio-wrap">
@@ -241,7 +247,8 @@
     <div class="splash-content">
       <div class="splash-orb"></div>
       <div class="splash-title">PARDARSHI AI</div>
-      <div id="splash-step" class="splash-step">Initializing AudioContext…</div>
+      <div id="splash-step" class="splash-step">Tap to start the assistant and enable voice playback.</div>
+      <button id="btn-start" class="start-assistant" type="button">Start &amp; enable sound</button>
       <div class="progress"><span id="progress-bar"></span></div>
     </div>
   </section>
@@ -269,6 +276,7 @@
       cancel: document.getElementById("btn-cancel"),
       audio: document.getElementById("btn-audio"),
       audioLabel: document.getElementById("audio-label"),
+      start: document.getElementById("btn-start"),
       splash: document.getElementById("splash"),
       splashStep: document.getElementById("splash-step"),
       progress: document.getElementById("progress-bar"),
@@ -1079,6 +1087,8 @@
       async function startSession() {
         sessionActive = true;
         UIController.finishAssistantResponse();
+        dom.start.disabled = true;
+        dom.start.hidden = true;
         dom.mic.disabled = true;
         dom.splash.classList.remove("hidden");
         dom.splashStep.textContent = "Initializing AudioContext…";
@@ -1181,7 +1191,10 @@
           UIController.setState(UIController.State.ERROR, error instanceof Error ? error.message : String(error));
           UIController.setMicActive(false, "MIC OFF");
           dom.mic.disabled = false;
-          setTimeout(() => dom.splash.classList.add("hidden"), 250);
+          dom.splashStep.textContent = error instanceof Error ? error.message : String(error);
+          dom.start.textContent = "Try again";
+          dom.start.disabled = false;
+          dom.start.hidden = false;
         }
       }
 
@@ -1202,6 +1215,10 @@
 
       function setup() {
         dom.cancel.addEventListener("click", endSession);
+        dom.start.addEventListener("click", () => {
+          dom.start.textContent = "Starting assistant…";
+          void startSession();
+        });
         dom.audio.addEventListener("click", async () => {
           dom.audio.disabled = true;
           try {
@@ -1225,7 +1242,8 @@
           }
         });
         dom.mic.addEventListener("click", () => {
-          if (!sessionActive || UIController.getState() === UIController.State.ERROR) void startSession();
+          if (!sessionActive || UIController.getState() === UIController.State.ERROR
+            || UIController.getState() === UIController.State.IDLE) void startSession();
         });
         dom.feed.addEventListener("scroll", () => {
           dom.scrollButton.hidden = UIController.isNearBottom();
@@ -1235,7 +1253,6 @@
           dom.scrollButton.hidden = true;
         });
         window.addEventListener("resize", () => AudioEngine.resize(), { passive: true });
-        void startSession();
       }
 
       return { setup, startSession };
