@@ -773,6 +773,13 @@
           let sum = 0;
           for (let i = 0; i < input.length; i++) sum += input[i] * input[i];
           const rms = Math.sqrt(sum / input.length);
+          if (isAssistantPlaybackActive()) {
+            UIController.setAudioLevel(0);
+            hasSpeech = false;
+            voicedDuration = 0;
+            silenceStartedAt = 0;
+            return;
+          }
           UIController.setAudioLevel(rms);
           onChunk(resampleToPcm16(input, context.sampleRate, PCM_RATE));
           updateVoiceActivity(rms, input.length / context.sampleRate * 1000);
@@ -870,6 +877,12 @@
             }
           }
         }
+      }
+
+      function isAssistantPlaybackActive() {
+        return pendingAudioChunks > 0
+          || playbackSources.size > 0
+          || Boolean(context && outputTime > context.currentTime);
       }
 
       function drawVisualizer() {
@@ -1076,7 +1089,6 @@
             onChunk: chunk => LiveWebSocketClient.sendAudioChunk(chunk),
             onSpeechStart: () => {
               if (!sessionActive) return;
-              AudioEngine.stopPlayback();
               UIController.setState(UIController.State.LISTENING, "Listening · speech detected");
               dom.mic.classList.remove("barge-in");
               void dom.mic.offsetWidth;
