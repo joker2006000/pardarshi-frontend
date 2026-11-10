@@ -817,7 +817,7 @@
         });
       }
 
-      // Clean card rendering: completely removed "AI उत्तर", "Live AI", "PARDARSHI AI" badges
+      // Clean response card rendering without artificial badges or labels
       function appendAssistantText(text) {
         if (typeof text !== "string" || !text) return;
         if (!currentResponse) {
@@ -975,9 +975,14 @@
 
       function sendAudioChunk(pcm16) {
         if (!connected || !socket || socket.readyState !== WebSocket.OPEN) return;
+        // Congestion guard: If WebSocket queue is overloaded (> 128 KB buffered), avoid flooding
+        if (socket.bufferedAmount > 131072) {
+          console.warn("⚠️ WebSocket buffer congested, skipping chunk to prevent lag.");
+          return;
+        }
         const bytes = new Uint8Array(pcm16.buffer, pcm16.byteOffset, pcm16.byteLength);
         let binary = "";
-        const chunkSize = 1024;
+        const chunkSize = 2048;
         for (let i = 0; i < bytes.length; i += chunkSize) {
           const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
           binary += String.fromCharCode.apply(null, chunk);
@@ -989,17 +994,12 @@
         }
       }
 
-      // Explicit turn completion triggers Gemini Live answer
+      // Explicit turn completion triggers Gemini Live answer (audio_stream_end only, no colliding clientContent)
       function finishInputTurn() {
         if (!connected || !socket || socket.readyState !== WebSocket.OPEN) return;
         try {
-          console.log("🎙️ Sending turn completion signals to Gemini Live...");
+          console.log("🎙️ Sending audio_stream_end signal to Gemini Live...");
           socket.send(JSON.stringify({ type: "audio_stream_end" }));
-          socket.send(JSON.stringify({
-            clientContent: {
-              turnComplete: true
-            }
-          }));
         } catch (error) {
           console.warn("Unable to send end of turn signal:", error);
         }
@@ -1123,6 +1123,8 @@
       let onChunk = () => {};
       let onSilenceDetected = () => {};
       let silenceTimer = null;
+      let idleTimeout = null;
+      let hasUserSpoken = false;
       let frame = null;
 
       // Rate-pacing buffer: Accumulates into uniform 100ms (1600 samples) chunks
@@ -1135,12 +1137,86 @@
       let bootSource = null;
       let bootGain = null;
       let receivedAudioChunks = 0;
+      let resampler = null;
+
+      // -----------------------------------------------------------------------
+      // Continuous Resampler: Zero sample loss, continuous phase, box decimation
+      // -----------------------------------------------------------------------
+      class ContinuousResampler {
+        constructor(inputRate, outputRate) {
+          this.inputRate = inputRate;
+          this.outputRate = outputRate;
+          this.ratio = inputRate / outputRate;
+          this.carryover = new Float32Array(0);
+        }
+
+        reset() {
+          this.carryover = new Float32Array(0);
+        }
+
+        process(input) {
+          // Native 1:1 match (e.g. 16kHz context) -> Zero resampling overhead
+          if (this.inputRate === this.outputRate) {
+            const pcm = new Int16Array(input.length);
+            for (let i = 0; i < input.length; i++) {
+              const s = Math.max(-1, Math.min(1, input[i]));
+              pcm[i] = s < 0 ? Math.round(s * 32768) : Math.round(s * 32767);
+            }
+            return pcm;
+          }
+
+          // Prepend unconsumed samples from previous audio quantum
+          const merged = new Float32Array(this.carryover.length + input.length);
+          merged.set(this.carryover, 0);
+          merged.set(input, this.carryover.length);
+
+          const maxOutputSamples = Math.floor((merged.length - 1) / this.ratio);
+          if (maxOutputSamples <= 0) {
+            this.carryover = merged;
+            return new Int16Array(0);
+          }
+
+          const pcm = new Int16Array(maxOutputSamples);
+          const filterStep = Math.max(1, Math.round(this.ratio));
+
+          for (let i = 0; i < maxOutputSamples; i++) {
+            const srcPos = i * this.ratio;
+            const posFloor = Math.floor(srcPos);
+
+            // Anti-aliasing decimation: average across downsampling ratio window
+            let sum = 0;
+            let count = 0;
+            for (let k = 0; k < filterStep; k++) {
+              const idx = posFloor + k;
+              if (idx < merged.length) {
+                sum += merged[idx];
+                count++;
+              }
+            }
+            const raw = count > 0 ? (sum / count) : merged[posFloor];
+            const clamped = Math.max(-1, Math.min(1, raw));
+            pcm[i] = clamped < 0 ? Math.round(clamped * 32768) : Math.round(clamped * 32767);
+          }
+
+          // Preserve exact fractional remainder across calls (zero dropped samples)
+          const consumedIndex = Math.floor(maxOutputSamples * this.ratio);
+          this.carryover = merged.slice(consumedIndex);
+          return pcm;
+        }
+      }
 
       async function initContext() {
         if (!context || context.state === "closed") {
-          context = new (window.AudioContext || window.webkitAudioContext)({
-            latencyHint: "interactive"
-          });
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          try {
+            // Attempt native 16kHz context for high-fidelity direct zero-resampling capture
+            context = new AudioContextClass({
+              sampleRate: 16000,
+              latencyHint: "interactive"
+            });
+          } catch (_) {
+            context = new AudioContextClass({ latencyHint: "interactive" });
+          }
         }
         if (context.state === "suspended") {
           await context.resume();
@@ -1168,6 +1244,7 @@
         pcmPlayer.connect(playbackAnalyser);
         playbackAnalyser.connect(context.destination);
 
+        resampler = new ContinuousResampler(context.sampleRate, PCM_RATE);
         dom.audio.disabled = false;
 
         stream = await navigator.mediaDevices.getUserMedia({
@@ -1198,35 +1275,40 @@
           if (isRecording) {
             UIController.setAudioLevel(rms);
 
-            // Downsample and append to clean 100ms streaming packet buffer
-            const pcm16 = resampleToPcm16(input, context.sampleRate, PCM_RATE);
-            const merged = new Int16Array(outgoingBuffer.length + pcm16.length);
-            merged.set(outgoingBuffer, 0);
-            merged.set(pcm16, outgoingBuffer.length);
-            outgoingBuffer = merged;
+            // Resample with anti-aliasing decimation and 0-sample loss
+            const pcm16 = resampler.process(input);
+            if (pcm16.length > 0) {
+              const merged = new Int16Array(outgoingBuffer.length + pcm16.length);
+              merged.set(outgoingBuffer, 0);
+              merged.set(pcm16, outgoingBuffer.length);
+              outgoingBuffer = merged;
 
-            // Send in uniform 100ms (1600 samples) chunks without socket congestion
-            while (outgoingBuffer.length >= OUTGOING_CHUNK_SAMPLES) {
-              const chunk = outgoingBuffer.slice(0, OUTGOING_CHUNK_SAMPLES);
-              outgoingBuffer = outgoingBuffer.slice(OUTGOING_CHUNK_SAMPLES);
-              totalSpeechBytes += chunk.byteLength;
-              totalSpeechChunks++;
-              onChunk(chunk);
+              // Send in uniform 100ms (1600 samples) chunks without socket congestion
+              while (outgoingBuffer.length >= OUTGOING_CHUNK_SAMPLES) {
+                const chunk = outgoingBuffer.slice(0, OUTGOING_CHUNK_SAMPLES);
+                outgoingBuffer = outgoingBuffer.slice(OUTGOING_CHUNK_SAMPLES);
+                totalSpeechBytes += chunk.byteLength;
+                totalSpeechChunks++;
+                onChunk(chunk);
+              }
             }
 
-            // Automatic silence fallback: 2.2 seconds of silence finishes turn
-            if (rms < 0.008) {
-              if (!silenceTimer) {
-                silenceTimer = setTimeout(() => {
-                  if (isRecording) {
-                    onSilenceDetected();
-                  }
-                }, 2200);
-              }
-            } else {
+            // Voice activity & automatic silence fallback
+            if (rms > 0.012) {
+              hasUserSpoken = true;
               if (silenceTimer) {
                 clearTimeout(silenceTimer);
                 silenceTimer = null;
+              }
+            } else if (hasUserSpoken && rms < 0.007) {
+              // Only start countdown once user has actually spoken
+              if (!silenceTimer) {
+                silenceTimer = setTimeout(() => {
+                  if (isRecording) {
+                    console.log("⏱️ Automatic silence timeout reached, submitting turn...");
+                    onSilenceDetected();
+                  }
+                }, 2000);
               }
             }
           }
@@ -1237,7 +1319,7 @@
             class PardarshiCaptureProcessor extends AudioWorkletProcessor {
               constructor() {
                 super();
-                this.buffer = new Float32Array(2048);
+                this.buffer = new Float32Array(1024);
                 this.offset = 0;
               }
               process(inputs, outputs) {
@@ -1251,7 +1333,7 @@
                   if (this.offset === this.buffer.length) {
                     const packet = this.buffer;
                     this.port.postMessage(packet, [packet.buffer]);
-                    this.buffer = new Float32Array(2048);
+                    this.buffer = new Float32Array(1024);
                     this.offset = 0;
                   }
                 }
@@ -1275,7 +1357,7 @@
         }
 
         if (!processor && typeof context.createScriptProcessor === "function") {
-          processor = context.createScriptProcessor(2048, 1, 1);
+          processor = context.createScriptProcessor(1024, 1, 1);
           processor.onaudioprocess = event => handleInput(event.inputBuffer.getChannelData(0));
         }
 
@@ -1300,17 +1382,40 @@
           clearTimeout(silenceTimer);
           silenceTimer = null;
         }
+        if (idleTimeout) {
+          clearTimeout(idleTimeout);
+          idleTimeout = null;
+        }
+        if (resampler) {
+          resampler.reset();
+        }
         outgoingBuffer = new Int16Array(0);
         totalSpeechBytes = 0;
         totalSpeechChunks = 0;
+        hasUserSpoken = false;
         isRecording = true;
+
+        // Inactivity timeout: If user clicks mic but says nothing for 10s, auto-cancel
+        idleTimeout = setTimeout(() => {
+          if (isRecording && !hasUserSpoken) {
+            console.log("⏱️ Mic idle timeout (no speech detected), returning to ready.");
+            stopRecording(() => {
+              UIController.setState(UIController.State.READY, "मायक्रोफोन तयार आहे · बोलण्यासाठी टॅप करा");
+            });
+          }
+        }, 10000);
       }
 
       function stopRecording(onFlushed) {
         isRecording = false;
+        hasUserSpoken = false;
         if (silenceTimer) {
           clearTimeout(silenceTimer);
           silenceTimer = null;
+        }
+        if (idleTimeout) {
+          clearTimeout(idleTimeout);
+          idleTimeout = null;
         }
         UIController.setAudioLevel(0);
 
@@ -1323,31 +1428,18 @@
           onChunk(finalChunk);
         }
 
-        console.log(`🎙️ Recording finished: Sent ${totalSpeechChunks} chunks (${totalSpeechBytes} bytes, ${(totalSpeechBytes / 32000).toFixed(2)}s)`);
+        const chunksSent = totalSpeechChunks;
+        const bytesSent = totalSpeechBytes;
+
+        console.log(`🎙️ Recording finished: Sent ${chunksSent} chunks (${bytesSent} bytes, ${(bytesSent / 32000).toFixed(2)}s)`);
 
         totalSpeechBytes = 0;
         totalSpeechChunks = 0;
 
         // Pacing delay (60ms) ensures final audio chunk is transmitted before turn complete signal
         if (typeof onFlushed === "function") {
-          setTimeout(onFlushed, 60);
+          setTimeout(() => onFlushed(chunksSent, bytesSent), 60);
         }
-      }
-
-      function resampleToPcm16(input, inputRate, outputRate) {
-        const ratio = inputRate / outputRate;
-        const length = Math.max(1, Math.floor(input.length / ratio));
-        const pcm = new Int16Array(length);
-        for (let i = 0; i < length; i++) {
-          const position = i * ratio;
-          const before = Math.floor(position);
-          const after = Math.min(before + 1, input.length - 1);
-          const fraction = position - before;
-          const sample = (input[before] * (1 - fraction) + input[after] * fraction) * 1.35;
-          const clamped = Math.max(-1, Math.min(1, sample));
-          pcm[i] = clamped < 0 ? Math.round(clamped * 32768) : Math.round(clamped * 32767);
-        }
-        return pcm;
       }
 
       function drawVisualizer() {
@@ -1736,10 +1828,15 @@
 
       function finishUserSpeakingTurn() {
         console.log("🛑 User stopped speaking: flushing audio and completing turn...");
-        UIController.setState(UIController.State.THINKING, "उत्तर तयार करत आहे...");
-        // Flush remaining buffer, wait 60ms pacing delay, then send turnComplete
-        AudioEngine.stopRecording(() => {
-          LiveWebSocketClient.finishInputTurn();
+        // Flush remaining buffer, wait 60ms pacing delay, then send audio_stream_end
+        AudioEngine.stopRecording((chunksSent, bytesSent) => {
+          if (chunksSent > 0 && bytesSent >= 3200) {
+            UIController.setState(UIController.State.THINKING, "उत्तर तयार करत आहे...");
+            LiveWebSocketClient.finishInputTurn();
+          } else {
+            console.log("⚠️ Recording was too brief or empty, returning to ready state.");
+            UIController.setState(UIController.State.READY, "बोलणे खूप लहान होते · पुन्हा प्रयत्न करा");
+          }
         });
       }
 
