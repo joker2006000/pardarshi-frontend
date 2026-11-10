@@ -437,6 +437,9 @@
 
         this.gainNode = this.ctx.createGain();
         this.gainNode.gain.value = 1.0;
+        try {
+          this.gainNode.connect(this.ctx.destination);
+        } catch (_) {}
       }
 
       connect(analyserNode) {
@@ -975,14 +978,13 @@
 
       function sendAudioChunk(pcm16) {
         if (!connected || !socket || socket.readyState !== WebSocket.OPEN) return;
-        // Congestion guard: If WebSocket queue is overloaded (> 128 KB buffered), avoid flooding
         if (socket.bufferedAmount > 131072) {
           console.warn("⚠️ WebSocket buffer congested, skipping chunk to prevent lag.");
           return;
         }
         const bytes = new Uint8Array(pcm16.buffer, pcm16.byteOffset, pcm16.byteLength);
         let binary = "";
-        const chunkSize = 2048;
+        const chunkSize = 1024;
         for (let i = 0; i < bytes.length; i += chunkSize) {
           const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
           binary += String.fromCharCode.apply(null, chunk);
@@ -1057,10 +1059,17 @@
             }
           }
 
-          const transcription = content.outputTranscription && content.outputTranscription.text;
+          const transRaw = content.outputTranscription || content.outputAudioTranscription || content.output_audio_transcription || content.output_transcription;
+          let transcription = "";
+          if (typeof transRaw === "string") {
+            transcription = transRaw;
+          } else if (transRaw && typeof transRaw.text === "string") {
+            transcription = transRaw.text;
+          }
+
           if (text) {
             onData(text);
-          } else if (typeof transcription === "string" && transcription) {
+          } else if (transcription) {
             onData(transcription);
           }
 
@@ -1123,8 +1132,6 @@
       let onChunk = () => {};
       let onSilenceDetected = () => {};
       let silenceTimer = null;
-      let idleTimeout = null;
-      let hasUserSpoken = false;
       let frame = null;
 
       // Rate-pacing buffer: Accumulates into uniform 100ms (1600 samples) chunks
@@ -1137,91 +1144,18 @@
       let bootSource = null;
       let bootGain = null;
       let receivedAudioChunks = 0;
-      let resampler = null;
-
-      // -----------------------------------------------------------------------
-      // Continuous Resampler: Zero sample loss, continuous phase, box decimation
-      // -----------------------------------------------------------------------
-      class ContinuousResampler {
-        constructor(inputRate, outputRate) {
-          this.inputRate = inputRate;
-          this.outputRate = outputRate;
-          this.ratio = inputRate / outputRate;
-          this.carryover = new Float32Array(0);
-        }
-
-        reset() {
-          this.carryover = new Float32Array(0);
-        }
-
-        process(input) {
-          // Native 1:1 match (e.g. 16kHz context) -> Zero resampling overhead
-          if (this.inputRate === this.outputRate) {
-            const pcm = new Int16Array(input.length);
-            for (let i = 0; i < input.length; i++) {
-              const s = Math.max(-1, Math.min(1, input[i]));
-              pcm[i] = s < 0 ? Math.round(s * 32768) : Math.round(s * 32767);
-            }
-            return pcm;
-          }
-
-          // Prepend unconsumed samples from previous audio quantum
-          const merged = new Float32Array(this.carryover.length + input.length);
-          merged.set(this.carryover, 0);
-          merged.set(input, this.carryover.length);
-
-          const maxOutputSamples = Math.floor((merged.length - 1) / this.ratio);
-          if (maxOutputSamples <= 0) {
-            this.carryover = merged;
-            return new Int16Array(0);
-          }
-
-          const pcm = new Int16Array(maxOutputSamples);
-          const filterStep = Math.max(1, Math.round(this.ratio));
-
-          for (let i = 0; i < maxOutputSamples; i++) {
-            const srcPos = i * this.ratio;
-            const posFloor = Math.floor(srcPos);
-
-            // Anti-aliasing decimation: average across downsampling ratio window
-            let sum = 0;
-            let count = 0;
-            for (let k = 0; k < filterStep; k++) {
-              const idx = posFloor + k;
-              if (idx < merged.length) {
-                sum += merged[idx];
-                count++;
-              }
-            }
-            const raw = count > 0 ? (sum / count) : merged[posFloor];
-            const clamped = Math.max(-1, Math.min(1, raw));
-            pcm[i] = clamped < 0 ? Math.round(clamped * 32768) : Math.round(clamped * 32767);
-          }
-
-          // Preserve exact fractional remainder across calls (zero dropped samples)
-          const consumedIndex = Math.floor(maxOutputSamples * this.ratio);
-          this.carryover = merged.slice(consumedIndex);
-          return pcm;
-        }
-      }
 
       async function initContext() {
         if (!context || context.state === "closed") {
-          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-          try {
-            // Attempt native 16kHz context for high-fidelity direct zero-resampling capture
-            context = new AudioContextClass({
-              sampleRate: 16000,
-              latencyHint: "interactive"
-            });
-          } catch (_) {
-            context = new AudioContextClass({ latencyHint: "interactive" });
-          }
+          context = new (window.AudioContext || window.webkitAudioContext)({
+            latencyHint: "interactive"
+          });
+          pcmPlayer = new ProductionPcmStreamPlayer(context);
         }
         if (context.state === "suspended") {
           await context.resume();
         }
-        if (!pcmPlayer) {
+        if (!pcmPlayer || pcmPlayer.ctx !== context) {
           pcmPlayer = new ProductionPcmStreamPlayer(context);
         }
         return context;
@@ -1235,16 +1169,34 @@
           throw new Error("मायक्रोफोन वापरण्यासाठी सुरक्षित HTTPS किंवा localhost कनेक्शन आवश्यक आहे.");
         }
 
-        stop();
+        // Clean up previous mic stream/processor without destroying the active audio context
+        if (processor) {
+          try { processor.disconnect(); } catch (_) {}
+          processor = null;
+        }
+        if (source) {
+          try { source.disconnect(); } catch (_) {}
+          source = null;
+        }
+        if (inputAnalyser) {
+          try { inputAnalyser.disconnect(); } catch (_) {}
+          inputAnalyser = null;
+        }
+        if (stream) {
+          try { stream.getTracks().forEach(track => track.stop()); } catch (_) {}
+          stream = null;
+        }
+
         await initContext();
 
-        playbackAnalyser = context.createAnalyser();
-        playbackAnalyser.fftSize = 512;
-        playbackAnalyser.smoothingTimeConstant = 0.3;
+        if (!playbackAnalyser) {
+          playbackAnalyser = context.createAnalyser();
+          playbackAnalyser.fftSize = 512;
+          playbackAnalyser.smoothingTimeConstant = 0.3;
+          playbackAnalyser.connect(context.destination);
+        }
         pcmPlayer.connect(playbackAnalyser);
-        playbackAnalyser.connect(context.destination);
 
-        resampler = new ContinuousResampler(context.sampleRate, PCM_RATE);
         dom.audio.disabled = false;
 
         stream = await navigator.mediaDevices.getUserMedia({
@@ -1275,40 +1227,35 @@
           if (isRecording) {
             UIController.setAudioLevel(rms);
 
-            // Resample with anti-aliasing decimation and 0-sample loss
-            const pcm16 = resampler.process(input);
-            if (pcm16.length > 0) {
-              const merged = new Int16Array(outgoingBuffer.length + pcm16.length);
-              merged.set(outgoingBuffer, 0);
-              merged.set(pcm16, outgoingBuffer.length);
-              outgoingBuffer = merged;
+            // Downsample and append to clean 100ms streaming packet buffer
+            const pcm16 = resampleToPcm16(input, context.sampleRate, PCM_RATE);
+            const merged = new Int16Array(outgoingBuffer.length + pcm16.length);
+            merged.set(outgoingBuffer, 0);
+            merged.set(pcm16, outgoingBuffer.length);
+            outgoingBuffer = merged;
 
-              // Send in uniform 100ms (1600 samples) chunks without socket congestion
-              while (outgoingBuffer.length >= OUTGOING_CHUNK_SAMPLES) {
-                const chunk = outgoingBuffer.slice(0, OUTGOING_CHUNK_SAMPLES);
-                outgoingBuffer = outgoingBuffer.slice(OUTGOING_CHUNK_SAMPLES);
-                totalSpeechBytes += chunk.byteLength;
-                totalSpeechChunks++;
-                onChunk(chunk);
-              }
+            // Send in uniform 100ms (1600 samples) chunks without socket congestion
+            while (outgoingBuffer.length >= OUTGOING_CHUNK_SAMPLES) {
+              const chunk = outgoingBuffer.slice(0, OUTGOING_CHUNK_SAMPLES);
+              outgoingBuffer = outgoingBuffer.slice(OUTGOING_CHUNK_SAMPLES);
+              totalSpeechBytes += chunk.byteLength;
+              totalSpeechChunks++;
+              onChunk(chunk);
             }
 
-            // Voice activity & automatic silence fallback
-            if (rms > 0.012) {
-              hasUserSpoken = true;
-              if (silenceTimer) {
-                clearTimeout(silenceTimer);
-                silenceTimer = null;
-              }
-            } else if (hasUserSpoken && rms < 0.007) {
-              // Only start countdown once user has actually spoken
+            // Automatic silence fallback: 2.2 seconds of silence finishes turn
+            if (rms < 0.008) {
               if (!silenceTimer) {
                 silenceTimer = setTimeout(() => {
                   if (isRecording) {
-                    console.log("⏱️ Automatic silence timeout reached, submitting turn...");
                     onSilenceDetected();
                   }
-                }, 2000);
+                }, 2200);
+              }
+            } else {
+              if (silenceTimer) {
+                clearTimeout(silenceTimer);
+                silenceTimer = null;
               }
             }
           }
@@ -1319,7 +1266,7 @@
             class PardarshiCaptureProcessor extends AudioWorkletProcessor {
               constructor() {
                 super();
-                this.buffer = new Float32Array(1024);
+                this.buffer = new Float32Array(2048);
                 this.offset = 0;
               }
               process(inputs, outputs) {
@@ -1333,7 +1280,7 @@
                   if (this.offset === this.buffer.length) {
                     const packet = this.buffer;
                     this.port.postMessage(packet, [packet.buffer]);
-                    this.buffer = new Float32Array(1024);
+                    this.buffer = new Float32Array(2048);
                     this.offset = 0;
                   }
                 }
@@ -1357,7 +1304,7 @@
         }
 
         if (!processor && typeof context.createScriptProcessor === "function") {
-          processor = context.createScriptProcessor(1024, 1, 1);
+          processor = context.createScriptProcessor(2048, 1, 1);
           processor.onaudioprocess = event => handleInput(event.inputBuffer.getChannelData(0));
         }
 
@@ -1382,40 +1329,17 @@
           clearTimeout(silenceTimer);
           silenceTimer = null;
         }
-        if (idleTimeout) {
-          clearTimeout(idleTimeout);
-          idleTimeout = null;
-        }
-        if (resampler) {
-          resampler.reset();
-        }
         outgoingBuffer = new Int16Array(0);
         totalSpeechBytes = 0;
         totalSpeechChunks = 0;
-        hasUserSpoken = false;
         isRecording = true;
-
-        // Inactivity timeout: If user clicks mic but says nothing for 10s, auto-cancel
-        idleTimeout = setTimeout(() => {
-          if (isRecording && !hasUserSpoken) {
-            console.log("⏱️ Mic idle timeout (no speech detected), returning to ready.");
-            stopRecording(() => {
-              UIController.setState(UIController.State.READY, "मायक्रोफोन तयार आहे · बोलण्यासाठी टॅप करा");
-            });
-          }
-        }, 10000);
       }
 
       function stopRecording(onFlushed) {
         isRecording = false;
-        hasUserSpoken = false;
         if (silenceTimer) {
           clearTimeout(silenceTimer);
           silenceTimer = null;
-        }
-        if (idleTimeout) {
-          clearTimeout(idleTimeout);
-          idleTimeout = null;
         }
         UIController.setAudioLevel(0);
 
@@ -1428,18 +1352,46 @@
           onChunk(finalChunk);
         }
 
-        const chunksSent = totalSpeechChunks;
-        const bytesSent = totalSpeechBytes;
-
-        console.log(`🎙️ Recording finished: Sent ${chunksSent} chunks (${bytesSent} bytes, ${(bytesSent / 32000).toFixed(2)}s)`);
+        console.log(`🎙️ Recording finished: Sent ${totalSpeechChunks} chunks (${totalSpeechBytes} bytes, ${(totalSpeechBytes / 32000).toFixed(2)}s)`);
 
         totalSpeechBytes = 0;
         totalSpeechChunks = 0;
 
         // Pacing delay (60ms) ensures final audio chunk is transmitted before turn complete signal
         if (typeof onFlushed === "function") {
-          setTimeout(() => onFlushed(chunksSent, bytesSent), 60);
+          setTimeout(onFlushed, 60);
         }
+      }
+
+      function resampleToPcm16(input, inputRate, outputRate) {
+        if (inputRate === outputRate) {
+          const pcm = new Int16Array(input.length);
+          for (let i = 0; i < input.length; i++) {
+            const clamped = Math.max(-1, Math.min(1, input[i]));
+            pcm[i] = clamped < 0 ? Math.round(clamped * 32768) : Math.round(clamped * 32767);
+          }
+          return pcm;
+        }
+        const ratio = inputRate / outputRate;
+        const length = Math.max(1, Math.floor(input.length / ratio));
+        const pcm = new Int16Array(length);
+        const filterStep = Math.max(1, Math.round(ratio));
+        for (let i = 0; i < length; i++) {
+          const startIdx = Math.floor(i * ratio);
+          let sum = 0;
+          let count = 0;
+          for (let k = 0; k < filterStep; k++) {
+            const idx = startIdx + k;
+            if (idx < input.length) {
+              sum += input[idx];
+              count++;
+            }
+          }
+          const sample = count > 0 ? (sum / count) : input[startIdx];
+          const clamped = Math.max(-1, Math.min(1, sample));
+          pcm[i] = clamped < 0 ? Math.round(clamped * 32768) : Math.round(clamped * 32767);
+        }
+        return pcm;
       }
 
       function drawVisualizer() {
@@ -1542,34 +1494,55 @@
       async function loadBootAudio() {
         if (bootAudioBuffer) return bootAudioBuffer;
         const candidateUrls = [
+          new URL("boot.opus", window.location.href).href,
           new URL("boot.mp3", window.location.href).href,
-          "/contributer-page/boot.mp3",
-          "boot.mp3"
+          "boot.opus",
+          "/contributer-page/boot.opus",
+          "boot.mp3",
+          "/contributer-page/boot.mp3"
         ];
         let audioData = null;
         for (const url of candidateUrls) {
           try {
             const resp = await fetch(url);
             if (resp.ok) {
-              audioData = await resp.arrayBuffer();
-              break;
+              const buf = await resp.arrayBuffer();
+              if (buf && buf.byteLength > 0) {
+                audioData = buf;
+                break;
+              }
             }
           } catch (_) {}
         }
-        if (!audioData) throw new Error("boot.mp3 सापडले नाही.");
+        if (!audioData) {
+          console.warn("Startup audio file not found, continuing without sound.");
+          return null;
+        }
         await initContext();
-        bootAudioBuffer = await context.decodeAudioData(audioData);
-        return bootAudioBuffer;
+        try {
+          bootAudioBuffer = await context.decodeAudioData(audioData.slice(0));
+          return bootAudioBuffer;
+        } catch (decodeErr) {
+          console.warn("Unable to decode startup audio:", decodeErr);
+          return null;
+        }
       }
 
       async function playStartupSoundBackground() {
         try {
           const audioBuffer = await loadBootAudio();
+          if (!audioBuffer) return;
           await initContext();
           if (!context || context.state === "closed") return;
 
+          if (bootSource) {
+            try { bootSource.stop(); } catch (_) {}
+            try { bootSource.disconnect(); } catch (_) {}
+            bootSource = null;
+          }
+
           bootGain = context.createGain();
-          bootGain.gain.setValueAtTime(0, context.currentTime);
+          bootGain.gain.setValueAtTime(0.001, context.currentTime);
           bootGain.gain.linearRampToValueAtTime(0.7, context.currentTime + 0.15);
           bootGain.connect(context.destination);
 
@@ -1644,6 +1617,7 @@
         cancelAnimationFrame(frame);
         stopStartupSound(80);
         stopPlayback();
+        pcmPlayer = null;
         if (processor) {
           try { processor.disconnect(); } catch (_) {}
           processor = null;
@@ -1828,15 +1802,10 @@
 
       function finishUserSpeakingTurn() {
         console.log("🛑 User stopped speaking: flushing audio and completing turn...");
-        // Flush remaining buffer, wait 60ms pacing delay, then send audio_stream_end
-        AudioEngine.stopRecording((chunksSent, bytesSent) => {
-          if (chunksSent > 0 && bytesSent >= 3200) {
-            UIController.setState(UIController.State.THINKING, "उत्तर तयार करत आहे...");
-            LiveWebSocketClient.finishInputTurn();
-          } else {
-            console.log("⚠️ Recording was too brief or empty, returning to ready state.");
-            UIController.setState(UIController.State.READY, "बोलणे खूप लहान होते · पुन्हा प्रयत्न करा");
-          }
+        UIController.setState(UIController.State.THINKING, "उत्तर तयार करत आहे...");
+        // Flush remaining buffer, wait 60ms pacing delay, then send turnComplete
+        AudioEngine.stopRecording(() => {
+          LiveWebSocketClient.finishInputTurn();
         });
       }
 
