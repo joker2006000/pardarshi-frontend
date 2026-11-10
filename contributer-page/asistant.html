@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#f5f7f6">
-  <title>PARDARSHI AI Assistant · पारदर्शी आवाज सहाय्यक</title>
+  <title>PARDARSHI Assistant</title>
   <link rel="icon" type="image/x-icon" href="ailogo.ico">
   <style>
     /* Mobile-first light interface */
@@ -38,7 +38,7 @@
       background: radial-gradient(ellipse at 50% 100%, rgba(16,135,93,.055), transparent 44%), #f5f7f6;
     }
     header {
-      min-height: 62px;
+      min-height: 58px;
       padding: 9px 14px 8px;
       display: flex;
       align-items: center;
@@ -98,22 +98,28 @@
       border-radius: 14px 14px 3px 14px;
       background: var(--green);
       color: #ffffff;
-      font-size: 12px;
+      font-size: 12.5px;
       line-height: 1.5;
       box-shadow: 0 3px 10px rgba(16,135,93,.18);
     }
 
+    /* Clean response card without redundant labels */
     .data-card {
       width: 100%;
-      padding: 15px;
+      padding: 14px 16px;
       border: 1px solid var(--line);
       border-radius: 16px;
-      background: linear-gradient(145deg, #ffffff, #f8faf9);
-      box-shadow: 0 8px 24px rgba(25,55,40,.06);
-      animation: card-in .28s ease both;
+      background: #ffffff;
+      box-shadow: 0 4px 16px rgba(25,55,40,.05);
+      animation: card-in .26s ease both;
     }
-    .response-content { margin-top: 10px; color: #34443b; font-size: 12px; line-height: 1.65; overflow-wrap: anywhere; }
-    .response-content h1, .response-content h2, .response-content h3 { margin: 12px 0 6px; color: #23332a; font-size: 13.5px; font-weight: 650; }
+    .response-content {
+      color: #23332a;
+      font-size: 12.5px;
+      line-height: 1.65;
+      overflow-wrap: anywhere;
+    }
+    .response-content h1, .response-content h2, .response-content h3 { margin: 10px 0 6px; color: #17211b; font-size: 13.5px; font-weight: 650; }
     .response-content p, .response-content ul, .response-content ol, .response-content blockquote, .response-content pre { margin: 7px 0; }
     .response-content ul, .response-content ol { padding-left: 20px; }
     .response-content li { margin-bottom: 3px; }
@@ -124,18 +130,7 @@
     .response-content a { color: #08734f; text-decoration: underline; font-weight: 500; }
     .response-content hr { margin: 10px 0; border: 0; border-top: 1px solid var(--line); }
     @keyframes card-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-    .card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-    .card-kicker { color: var(--green); font-size: 8.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
-    .card-title { margin: 3px 0 0; font-size: 14px; line-height: 1.35; font-weight: 650; color: #1c2a22; }
-    .verified {
-      flex: none; padding: 4px 7px; border-radius: 999px;
-      color: #08734f; background: rgba(16,135,93,.10);
-      font-size: 8.5px; font-weight: 650; white-space: nowrap;
-    }
-    .metric-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; margin: 12px 0; }
-    .metric { padding: 10px; border-radius: 10px; background: #f1f5f2; }
-    .metric span { display: block; color: #728078; font-size: 9.5px; }
-    .metric strong { display: block; margin-top: 4px; color: #1c2a22; font-size: 14px; font-variant-numeric: tabular-nums; }
+
     .table-wrap { width: 100%; overflow-x: auto; margin: 10px 0; border-radius: 9px; border: 1px solid var(--line); }
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 11px; background: #ffffff; }
     th { padding: 8px 7px; color: #627269; font-size: 9px; font-weight: 650; letter-spacing: .05em; text-transform: uppercase; background: #f4f7f5; border-bottom: 1px solid var(--line); }
@@ -143,7 +138,8 @@
     tbody tr:last-child td { border-bottom: 0; }
     tbody tr:hover td { background: rgba(16,135,93,.02); }
     .amount { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; font-weight: 600; color: #182b20; }
-    .card-footer { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--line); color: #718078; font-size: 9.5px; }
+    .card-footer { display: flex; justify-content: flex-end; margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(25,55,40,.06); color: #8c9b92; font-size: 9.5px; }
+    
     .scroll-bottom {
       position: absolute; z-index: 3; left: 50%; bottom: calc(140px + var(--safe-bottom));
       transform: translateX(-50%); padding: 8px 13px; border: 1px solid var(--line); border-radius: 999px;
@@ -291,7 +287,7 @@
     @media (min-width: 600px) {
       .app { max-width: 480px; margin: auto; height: 100dvh; border-inline: 1px solid rgba(25,55,40,.06); }
       body { background: #e9eeeb; }
-      .data-card { padding: 18px; }
+      .data-card { padding: 16px 18px; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
@@ -303,11 +299,11 @@
     <header>
       <div class="connection" aria-live="polite">
         <div class="connection-main"><span id="connection-dot" class="status-dot pending"></span><span id="connection-label" class="connection-label">सत्र जोडत आहे…</span></div>
-        <span id="latency-label" class="latency-label">ऑडिओ तयार करत आहे...</span>
+        <span id="latency-label" class="latency-label">तयार होत आहे...</span>
       </div>
       <div class="brand">
         <img class="brand-logo" src="ailogo.ico" onerror="this.src='/contributer-page/ailogo.ico'" alt="Pardarshi">
-        <div class="brand-text"><strong>PARDARSHI</strong><span>AI ASSISTANT</span></div>
+        <div class="brand-text"><strong>PARDARSHI</strong><span>ASSISTANT</span></div>
       </div>
     </header>
 
@@ -317,7 +313,7 @@
           <img src="ailogo.ico" onerror="this.src='/contributer-page/ailogo.ico'" alt="PARDARSHI">
         </div>
         <h1>थेट बोला किंवा प्रश्न विचारा</h1>
-        <p>बोलण्यासाठी खालील माइक बटण दाबा. तुम्ही मराठीत किंवा इंग्रजीत मोकळेपणाने प्रश्न विचारू शकता — AI थेट आवाजात आणि स्क्रीनवर उत्तर देईल.</p>
+        <p>बोलण्यासाठी खालील माइक बटण दाबा. तुम्ही थेट प्रश्न विचारू शकता — सर्व माहिती आणि जमा-खर्च स्क्रीनवर दिसेल.</p>
       </div>
     </main>
     <button id="scroll-bottom" class="scroll-bottom" type="button" hidden>↓ &nbsp; नवीनतम माहिती</button>
@@ -350,8 +346,8 @@
         <div class="splash-pulse-ring"></div>
         <img class="splash-logo" src="ailogo.ico" onerror="this.src='/contributer-page/ailogo.ico'" alt="PARDARSHI Logo">
       </div>
-      <div class="splash-title">PARDARSHI AI</div>
-      <span class="splash-subtitle">पारदर्शी आवाज सहाय्यक · Live Voice &amp; Data</span>
+      <div class="splash-title">PARDARSHI</div>
+      <span class="splash-subtitle">पारदर्शी सहाय्यक · Live Voice &amp; Data</span>
       <div id="splash-org-badge" class="splash-org-tag">संस्था: तपासत आहे...</div>
 
       <div class="loading-waves" id="loading-waves" style="display:none;" aria-hidden="true">
@@ -425,7 +421,7 @@
     };
 
     // -------------------------------------------------------------------------
-    // B. PRODUCTION-GRADE STREAMING AUDIO PLAYER (Zero Collisions & Jitter-Free)
+    // B. PRODUCTION STREAMING AUDIO PLAYER (Zero Collisions & Time Dislocation)
     // -------------------------------------------------------------------------
     class ProductionPcmStreamPlayer {
       constructor(audioContext) {
@@ -498,10 +494,10 @@
         combined.set(newSamples, this.sampleBuffer.length);
         this.sampleBuffer = combined;
 
-        // Schedule smooth 100ms contiguous blocks without node boundaries clicking
+        // Schedule smooth 100ms contiguous blocks without node boundary clicking
         while (this.sampleBuffer.length >= this.CHUNK_SIZE) {
-          const block = this.sampleBuffer.subarray(0, this.CHUNK_SIZE);
-          this.sampleBuffer = this.sampleBuffer.subarray(this.CHUNK_SIZE);
+          const block = this.sampleBuffer.slice(0, this.CHUNK_SIZE);
+          this.sampleBuffer = this.sampleBuffer.slice(this.CHUNK_SIZE);
           this._scheduleBlock(block);
         }
       }
@@ -566,7 +562,7 @@
     }
 
     // -------------------------------------------------------------------------
-    // C. UI CONTROLLER (No Hardcoding · Dynamic Markdown Feed)
+    // C. UI CONTROLLER (Clean Content · No Redundant Labels)
     // -------------------------------------------------------------------------
     const UIController = (() => {
       const State = Object.freeze({
@@ -589,11 +585,10 @@
           READY: "मायक्रोफोन तयार आहे · बोलण्यासाठी टॅप करा",
           RECORDING: "🎙️ रेकॉर्डिंग सुरू आहे · बोला...",
           THINKING: "उत्तर तयार करत आहे…",
-          SPEAKING: "AI उत्तर देत आहे...",
+          SPEAKING: "उत्तर देत आहे...",
           ERROR: "त्रुटी आढळली"
         })[next];
 
-        // Update mic button styles
         dom.mic.classList.toggle("recording", next === State.RECORDING);
         if (next === State.RECORDING) {
           dom.micLabel.textContent = "RECORDING";
@@ -822,40 +817,25 @@
         });
       }
 
+      // Clean card rendering: completely removed "AI उत्तर", "Live AI", "PARDARSHI AI" badges
       function appendAssistantText(text) {
         if (typeof text !== "string" || !text) return;
         if (!currentResponse) {
           currentResponseText = "";
           currentResponse = document.createElement("article");
           currentResponse.className = "data-card";
-          const heading = document.createElement("div");
-          heading.className = "card-heading";
-          const titleGroup = document.createElement("div");
-          const kicker = document.createElement("div");
-          kicker.className = "card-kicker";
-          kicker.textContent = "PARDARSHI AI";
-          const title = document.createElement("h2");
-          title.className = "card-title";
-          title.textContent = "AI उत्तर";
-          titleGroup.append(kicker, title);
-          heading.append(titleGroup);
-
-          const badge = document.createElement("span");
-          badge.className = "verified";
-          badge.textContent = "✓ Live AI";
-          heading.append(badge);
 
           const content = document.createElement("div");
           content.className = "response-content";
+
           const footer = document.createElement("div");
           footer.className = "card-footer";
-          const source = document.createElement("span");
-          source.textContent = "PARDARSHI System";
           const time = document.createElement("time");
           time.dateTime = new Date().toISOString();
           time.textContent = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date());
-          footer.append(source, time);
-          currentResponse.append(heading, content, footer);
+          footer.append(time);
+
+          currentResponse.append(content, footer);
           dom.empty.hidden = true;
           dom.feed.append(currentResponse);
         }
@@ -1013,7 +993,7 @@
       function finishInputTurn() {
         if (!connected || !socket || socket.readyState !== WebSocket.OPEN) return;
         try {
-          console.log("🎙️ Sending turn completion to Gemini Live...");
+          console.log("🎙️ Sending turn completion signals to Gemini Live...");
           socket.send(JSON.stringify({ type: "audio_stream_end" }));
           socket.send(JSON.stringify({
             clientContent: {
@@ -1126,7 +1106,7 @@
     })();
 
     // -------------------------------------------------------------------------
-    // E. AUDIO ENGINE (Microphone Capture & Playback Router)
+    // E. AUDIO ENGINE (Optimal 100ms Paced Sender & Sample-Accurate Player)
     // -------------------------------------------------------------------------
     const AudioEngine = (() => {
       let context = null;
@@ -1144,6 +1124,12 @@
       let onSilenceDetected = () => {};
       let silenceTimer = null;
       let frame = null;
+
+      // Rate-pacing buffer: Accumulates into uniform 100ms (1600 samples) chunks
+      const OUTGOING_CHUNK_SAMPLES = 1600; // 100ms of 16kHz audio = 3200 bytes
+      let outgoingBuffer = new Int16Array(0);
+      let totalSpeechBytes = 0;
+      let totalSpeechChunks = 0;
 
       let bootAudioBuffer = null;
       let bootSource = null;
@@ -1211,7 +1197,22 @@
 
           if (isRecording) {
             UIController.setAudioLevel(rms);
-            onChunk(resampleToPcm16(input, context.sampleRate, PCM_RATE));
+
+            // Downsample and append to clean 100ms streaming packet buffer
+            const pcm16 = resampleToPcm16(input, context.sampleRate, PCM_RATE);
+            const merged = new Int16Array(outgoingBuffer.length + pcm16.length);
+            merged.set(outgoingBuffer, 0);
+            merged.set(pcm16, outgoingBuffer.length);
+            outgoingBuffer = merged;
+
+            // Send in uniform 100ms (1600 samples) chunks without socket congestion
+            while (outgoingBuffer.length >= OUTGOING_CHUNK_SAMPLES) {
+              const chunk = outgoingBuffer.slice(0, OUTGOING_CHUNK_SAMPLES);
+              outgoingBuffer = outgoingBuffer.slice(OUTGOING_CHUNK_SAMPLES);
+              totalSpeechBytes += chunk.byteLength;
+              totalSpeechChunks++;
+              onChunk(chunk);
+            }
 
             // Automatic silence fallback: 2.2 seconds of silence finishes turn
             if (rms < 0.008) {
@@ -1299,16 +1300,38 @@
           clearTimeout(silenceTimer);
           silenceTimer = null;
         }
+        outgoingBuffer = new Int16Array(0);
+        totalSpeechBytes = 0;
+        totalSpeechChunks = 0;
         isRecording = true;
       }
 
-      function stopRecording() {
+      function stopRecording(onFlushed) {
         isRecording = false;
         if (silenceTimer) {
           clearTimeout(silenceTimer);
           silenceTimer = null;
         }
         UIController.setAudioLevel(0);
+
+        // Flush any remaining samples immediately
+        if (outgoingBuffer.length > 0) {
+          const finalChunk = outgoingBuffer;
+          outgoingBuffer = new Int16Array(0);
+          totalSpeechBytes += finalChunk.byteLength;
+          totalSpeechChunks++;
+          onChunk(finalChunk);
+        }
+
+        console.log(`🎙️ Recording finished: Sent ${totalSpeechChunks} chunks (${totalSpeechBytes} bytes, ${(totalSpeechBytes / 32000).toFixed(2)}s)`);
+
+        totalSpeechBytes = 0;
+        totalSpeechChunks = 0;
+
+        // Pacing delay (60ms) ensures final audio chunk is transmitted before turn complete signal
+        if (typeof onFlushed === "function") {
+          setTimeout(onFlushed, 60);
+        }
       }
 
       function resampleToPcm16(input, inputRate, outputRate) {
@@ -1575,7 +1598,7 @@
     })();
 
     // -------------------------------------------------------------------------
-    // F. APPLICATION COORDINATOR (Production-Level Talk Flow & Chunks Management)
+    // F. APPLICATION COORDINATOR (Clean Talk Flow & Accurate Audio Pacing)
     // -------------------------------------------------------------------------
     const app = (() => {
       let sessionActive = true;
@@ -1612,14 +1635,14 @@
             return;
           }
 
-          dom.splashStep.textContent = "२. पारदर्शी AI सर्व्हरशी संपर्क जोडत आहे...";
+          dom.splashStep.textContent = "२. सर्व्हरशी संपर्क जोडत आहे...";
           dom.progress.style.width = "60%";
 
           await LiveWebSocketClient.connect({
             onData: text => {
               UIController.setState(
                 UIController.State.SPEAKING,
-                !AudioEngine.isMuted() ? "AI उत्तर देत आहे..." : "AI उत्तर तयार आहे (म्यूट)"
+                !AudioEngine.isMuted() ? "उत्तर देत आहे..." : "उत्तर तयार आहे (म्यूट)"
               );
               UIController.appendAssistantText(text);
             },
@@ -1627,7 +1650,7 @@
               AudioEngine.recordIncomingAudio(mimeType);
               UIController.setState(
                 UIController.State.SPEAKING,
-                !AudioEngine.isMuted() ? "AI उत्तर देत आहे..." : "AI उत्तर तयार आहे (म्यूट)"
+                !AudioEngine.isMuted() ? "उत्तर देत आहे..." : "उत्तर तयार आहे (म्यूट)"
               );
               AudioEngine.playAudioChunk(data);
             },
@@ -1669,7 +1692,7 @@
           }
 
           dom.progress.style.width = "100%";
-          dom.splashStep.textContent = "३. सत्र तयार झाले! आवाज सहाय्यक सुरू होत आहे...";
+          dom.splashStep.textContent = "३. सत्र तयार झाले! सुरू होत आहे...";
 
           dom.audio.disabled = false;
           dom.audio.classList.add("enabled");
@@ -1712,10 +1735,12 @@
       }
 
       function finishUserSpeakingTurn() {
-        console.log("🛑 Recording stopped: sending full audio to Gemini Live...");
-        AudioEngine.stopRecording();
+        console.log("🛑 User stopped speaking: flushing audio and completing turn...");
         UIController.setState(UIController.State.THINKING, "उत्तर तयार करत आहे...");
-        LiveWebSocketClient.finishInputTurn();
+        // Flush remaining buffer, wait 60ms pacing delay, then send turnComplete
+        AudioEngine.stopRecording(() => {
+          LiveWebSocketClient.finishInputTurn();
+        });
       }
 
       async function endSession() {
@@ -1747,14 +1772,10 @@
           dom.audio.setAttribute("aria-pressed", String(!muted));
           dom.audio.setAttribute("aria-label", muted ? "Enable assistant audio" : "Mute assistant audio");
           dom.audioLabel.textContent = muted ? "MUTED" : "SOUND ON";
-          dom.audioDetail.textContent = muted ? "आवाज म्यूट केला आहे" : "AI आवाज सुरू आहे";
+          dom.audioDetail.textContent = muted ? "आवाज म्यूट केला आहे" : "आवाज सुरू आहे";
         });
 
-        // =====================================================================
-        // MIC TOGGLE:
-        // - Click 1: Recording ON -> speak as long as you want without cutoff!
-        // - Click 2: Recording OFF -> sends audio turn -> AI speaks!
-        // =====================================================================
+        // Mic Button: Tap to Speak / Tap to Stop & Send
         dom.mic.addEventListener("click", () => {
           const currentState = UIController.getState();
           if (!sessionActive || currentState === UIController.State.ERROR || currentState === UIController.State.IDLE) {
