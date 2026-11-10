@@ -1,10 +1,11 @@
 <!doctype html>
-<html lang="en">
+<html lang="mr">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#f5f7f6">
-  <title>PARDARSHI AI Assistant</title>
+  <title>PARDARSHI AI Assistant · पारदर्शी आवाज सहाय्यक</title>
+  <link rel="icon" type="image/x-icon" href="ailogo.ico">
   <style>
     /* Mobile-first light interface */
     :root {
@@ -14,6 +15,8 @@
       color: #17211b;
       font-synthesis: none;
       --green: #07875d;
+      --green-light: rgba(16,135,93,.08);
+      --green-border: rgba(16,135,93,.25);
       --muted: #718078;
       --panel: #ffffff;
       --line: rgba(25,55,40,.11);
@@ -42,17 +45,22 @@
       justify-content: space-between;
       gap: 12px;
       border-bottom: 1px solid rgba(25,55,40,.08);
+      background: rgba(255,255,255,.8);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 10;
     }
     .connection { display: grid; gap: 3px; font-size: 10px; color: var(--muted); }
     .connection-main { display: flex; align-items: center; gap: 6px; color: #34443b; font-size: 11px; font-weight: 600; }
     .connection-label[hidden], .latency-label[hidden] { display: none; }
-    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #aab4ae; box-shadow: 0 0 0 3px rgba(104,113,108,.12); }
-    .status-dot.connected { background: var(--green); box-shadow: 0 0 0 3px rgba(16,135,93,.14); }
-    .status-dot.pending { background: #f5b942; animation: blink 1s infinite alternate; }
-    .status-dot.error { background: #aab4ae; box-shadow: 0 0 0 3px rgba(104,113,108,.08); }
-    .brand { text-align: right; line-height: 1.15; }
-    .brand strong { display: block; color: var(--green); font-size: 12px; letter-spacing: .1em; }
-    .brand span { display: block; margin-top: 3px; color: #7d8982; font-size: 9px; letter-spacing: .13em; text-transform: uppercase; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #aab4ae; box-shadow: 0 0 0 3px rgba(104,113,108,.12); transition: background .3s, box-shadow .3s; }
+    .status-dot.connected { background: var(--green); box-shadow: 0 0 0 3px rgba(16,135,93,.18); }
+    .status-dot.pending { background: #f5b942; box-shadow: 0 0 0 3px rgba(245,185,66,.2); animation: blink 1s infinite alternate; }
+    .status-dot.error { background: #ef5c5c; box-shadow: 0 0 0 3px rgba(239,92,92,.18); }
+    .brand { text-align: right; line-height: 1.15; display: flex; align-items: center; gap: 8px; }
+    .brand-logo { width: 26px; height: 26px; border-radius: 7px; object-fit: contain; box-shadow: 0 2px 6px rgba(0,0,0,.08); }
+    .brand-text strong { display: block; color: var(--green); font-size: 12px; letter-spacing: .08em; }
+    .brand-text span { display: block; margin-top: 2px; color: #7d8982; font-size: 8.5px; letter-spacing: .12em; text-transform: uppercase; }
     @keyframes blink { to { opacity: .35; } }
 
     .feed {
@@ -60,74 +68,125 @@
       min-height: 0;
       overflow: auto;
       overscroll-behavior: contain;
-      padding: 22px 16px 14px;
+      padding: 16px 14px 10px;
       display: flex;
       flex-direction: column;
       gap: 14px;
       scrollbar-width: thin;
       scrollbar-color: #c6d0ca transparent;
+      scroll-behavior: smooth;
     }
-    .feed-empty { margin: auto; max-width: 290px; text-align: center; color: #69776f; }
+    .feed-empty { margin: auto; max-width: 320px; text-align: center; color: #69776f; padding: 12px; }
     .empty-mark {
-      width: 56px; height: 56px; margin: 0 auto 15px; border-radius: 20px;
+      width: 58px; height: 58px; margin: 0 auto 14px; border-radius: 18px;
       display: grid; place-items: center; color: var(--green);
       border: 1px solid rgba(16,135,93,.22); background: rgba(16,135,93,.06);
-      box-shadow: 0 0 35px rgba(16,135,93,.08);
+      box-shadow: 0 4px 20px rgba(16,135,93,.1);
     }
-    .empty-mark svg { width: 26px; height: 26px; }
-    .feed-empty h1 { margin: 0 0 8px; color: #23332a; font-size: 16px; font-weight: 600; }
-    .feed-empty p { margin: 0; font-size: 12px; line-height: 1.65; }
+    .empty-mark img { width: 34px; height: 34px; border-radius: 8px; object-fit: contain; }
+    .feed-empty h1 { margin: 0 0 6px; color: #23332a; font-size: 15px; font-weight: 650; }
+    .feed-empty p { margin: 0 0 16px; font-size: 11.5px; line-height: 1.6; color: #64756c; }
+
+    .suggestion-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      justify-content: center;
+      margin-top: 6px;
+    }
+    .chip-btn {
+      padding: 7px 11px;
+      border: 1px solid var(--green-border);
+      border-radius: 999px;
+      background: #ffffff;
+      color: var(--green);
+      font-size: 10.5px;
+      font-weight: 550;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(16,135,93,.06);
+      transition: all .18s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .chip-btn:hover, .chip-btn:active {
+      background: var(--green);
+      color: #ffffff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(16,135,93,.22);
+    }
+
+    .user-query-card {
+      align-self: flex-end;
+      max-width: 84%;
+      animation: card-in .24s ease both;
+      margin-bottom: 2px;
+    }
+    .user-query-bubble {
+      padding: 9px 13px;
+      border-radius: 14px 14px 3px 14px;
+      background: var(--green);
+      color: #ffffff;
+      font-size: 12px;
+      line-height: 1.5;
+      box-shadow: 0 3px 10px rgba(16,135,93,.18);
+    }
+
     .data-card {
       width: 100%;
-      padding: 16px;
+      padding: 15px;
       border: 1px solid var(--line);
-      border-radius: 17px;
+      border-radius: 16px;
       background: linear-gradient(145deg, #ffffff, #f8faf9);
-      box-shadow: 0 12px 30px rgba(25,55,40,.07);
+      box-shadow: 0 8px 24px rgba(25,55,40,.06);
       animation: card-in .28s ease both;
     }
-    .response-content { margin-top: 12px; color: #34443b; font-size: 12px; line-height: 1.65; overflow-wrap: anywhere; }
-    .response-content h1, .response-content h2, .response-content h3 { margin: 12px 0 6px; color: #23332a; font-size: 14px; }
-    .response-content p, .response-content ul, .response-content ol, .response-content blockquote, .response-content pre { margin: 8px 0; }
-    .response-content ul, .response-content ol { padding-left: 22px; }
-    .response-content blockquote { padding-left: 10px; border-left: 2px solid rgba(16,135,93,.35); color: #617168; }
-    .response-content pre { overflow-x: auto; padding: 10px; border-radius: 8px; background: #f1f5f2; }
-    .response-content code { padding: 1px 4px; border-radius: 4px; background: #f1f5f2; font-family: ui-monospace, monospace; }
+    .response-content { margin-top: 10px; color: #34443b; font-size: 12px; line-height: 1.65; overflow-wrap: anywhere; }
+    .response-content h1, .response-content h2, .response-content h3 { margin: 12px 0 6px; color: #23332a; font-size: 13.5px; font-weight: 650; }
+    .response-content p, .response-content ul, .response-content ol, .response-content blockquote, .response-content pre { margin: 7px 0; }
+    .response-content ul, .response-content ol { padding-left: 20px; }
+    .response-content li { margin-bottom: 3px; }
+    .response-content blockquote { padding-left: 10px; border-left: 3px solid rgba(16,135,93,.4); color: #57675f; margin: 8px 0; font-style: italic; }
+    .response-content pre { overflow-x: auto; padding: 9px; border-radius: 8px; background: #f0f4f1; border: 1px solid var(--line); font-size: 11px; }
+    .response-content code { padding: 1px 4px; border-radius: 4px; background: #f0f4f1; font-family: ui-monospace, monospace; font-size: 11px; color: #1f3b2c; }
     .response-content pre code { padding: 0; background: transparent; }
-    .response-content a { color: #08734f; }
+    .response-content a { color: #08734f; text-decoration: underline; font-weight: 500; }
     .response-content hr { margin: 10px 0; border: 0; border-top: 1px solid var(--line); }
-    @keyframes card-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    .card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-    .card-kicker { color: var(--green); font-size: 9px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
-    .card-title { margin: 5px 0 0; font-size: 15px; line-height: 1.35; font-weight: 650; }
+    @keyframes card-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .card-kicker { color: var(--green); font-size: 8.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .card-title { margin: 3px 0 0; font-size: 14px; line-height: 1.35; font-weight: 650; color: #1c2a22; }
     .verified {
-      flex: none; padding: 5px 8px; border-radius: 999px;
+      flex: none; padding: 4px 7px; border-radius: 999px;
       color: #08734f; background: rgba(16,135,93,.10);
-      font-size: 9px; font-weight: 650; white-space: nowrap;
+      font-size: 8.5px; font-weight: 650; white-space: nowrap;
     }
-    .metric-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; margin: 14px 0; }
-    .metric { padding: 11px; border-radius: 11px; background: #f1f5f2; }
-    .metric span { display: block; color: #728078; font-size: 10px; }
-    .metric strong { display: block; margin-top: 5px; color: #1c2a22; font-size: 15px; font-variant-numeric: tabular-nums; }
-    .table-wrap { width: 100%; overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 11px; }
-    th { padding: 9px 7px; color: #718078; font-size: 9px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; border-bottom: 1px solid var(--line); }
-    td { padding: 10px 7px; color: #34443b; border-bottom: 1px solid rgba(25,55,40,.07); vertical-align: top; }
+    .metric-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; margin: 12px 0; }
+    .metric { padding: 10px; border-radius: 10px; background: #f1f5f2; }
+    .metric span { display: block; color: #728078; font-size: 9.5px; }
+    .metric strong { display: block; margin-top: 4px; color: #1c2a22; font-size: 14px; font-variant-numeric: tabular-nums; }
+    .table-wrap { width: 100%; overflow-x: auto; margin: 10px 0; border-radius: 9px; border: 1px solid var(--line); }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 11px; background: #ffffff; }
+    th { padding: 8px 7px; color: #627269; font-size: 9px; font-weight: 650; letter-spacing: .05em; text-transform: uppercase; background: #f4f7f5; border-bottom: 1px solid var(--line); }
+    td { padding: 8px 7px; color: #34443b; border-bottom: 1px solid rgba(25,55,40,.07); vertical-align: top; }
     tbody tr:last-child td { border-bottom: 0; }
-    .amount { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-    .card-footer { display: flex; justify-content: space-between; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); color: #718078; font-size: 10px; }
+    tbody tr:hover td { background: rgba(16,135,93,.02); }
+    .amount { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; font-weight: 600; color: #182b20; }
+    .card-footer { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--line); color: #718078; font-size: 9.5px; }
     .scroll-bottom {
-      position: absolute; z-index: 3; left: 50%;       bottom: calc(145px + var(--safe-bottom));
-      transform: translateX(-50%); padding: 9px 13px; border: 1px solid var(--line); border-radius: 999px;
-      color: #26372d; background: #ffffff; font-size: 11px; box-shadow: 0 4px 16px rgba(25,55,40,.14);
+      position: absolute; z-index: 3; left: 50%; bottom: calc(140px + var(--safe-bottom));
+      transform: translateX(-50%); padding: 8px 13px; border: 1px solid var(--line); border-radius: 999px;
+      color: #26372d; background: #ffffff; font-size: 11px; font-weight: 550; box-shadow: 0 4px 16px rgba(25,55,40,.14);
+      cursor: pointer;
     }
     .scroll-bottom[hidden] { display: none; }
 
     .live-status { min-height: 18px; padding: 0 16px; display: flex; align-items: center; justify-content: center; gap: 6px; color: #718078; font-size: 10px; }
-    .live-status .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+    .live-status .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); transition: background .2s; }
     .live-status[data-state="THINKING"] .live-dot { background: #f5b942; animation: blink .7s infinite alternate; }
+    .live-status[data-state="SPEAKING"] .live-dot { background: #4285F4; box-shadow: 0 0 6px rgba(66,133,244,.6); }
     .live-status[data-state="ERROR"] .live-dot { background: #ef5c5c; }
-    .visualizer { position: relative; height: 66px; flex: none; overflow: hidden; }
+    .visualizer { position: relative; height: 62px; flex: none; overflow: hidden; background: transparent; }
     #waveform { width: 100%; height: 100%; display: block; }
     .interrupt-ripple { position: absolute; left: 50%; top: 50%; width: 16px; height: 16px; border: 1px solid rgba(66,133,244,.8); border-radius: 50%; opacity: 0; transform: translate(-50%,-50%) scale(.6); pointer-events: none; }
     .interrupt-ripple.active { animation: ripple .55s ease-out; }
@@ -140,58 +199,120 @@
     .control:active { transform: scale(.94); }
     .control:focus-visible { outline: 2px solid var(--green); outline-offset: 4px; }
     .cancel {
-      position: relative; z-index: 21; width: 44px; height: 44px; border: 1px solid rgba(25,55,40,.1); border-radius: 50%;
-      background: #ffffff; color: #cf4e4e; font-size: 19px;
+      position: relative; z-index: 15; width: 44px; height: 44px; border: 1px solid rgba(25,55,40,.1); border-radius: 50%;
+      background: #ffffff; color: #cf4e4e; font-size: 19px; box-shadow: 0 2px 8px rgba(0,0,0,.04);
     }
     .mic-wrap { display: grid; justify-items: center; gap: 5px; }
     .mic {
       width: 64px; height: 64px; position: relative; border: 1px solid rgba(16,135,93,.32);
       border-radius: 50%; background: radial-gradient(circle at 50% 40%, #ffffff, #e8f4ee);
-      box-shadow: 0 0 0 7px rgba(16,135,93,.045), 0 10px 30px rgba(16,135,93,.16), inset 0 1px 3px #fff;
+      box-shadow: 0 0 0 6px rgba(16,135,93,.045), 0 10px 28px rgba(16,135,93,.16), inset 0 1px 3px #fff;
       color: #07875d;
       isolation: isolate;
       transition: transform .2s ease, box-shadow .25s ease, background .25s ease;
     }
     .mic > span { position: relative; z-index: 1; width: 28px; height: 28px; display: grid; place-items: center; }
-    .mic svg { width: 25px; height: 25px; display: block; }
+    .mic svg { width: 24px; height: 24px; display: block; }
     .mic::before, .mic::after { content: ""; position: absolute; z-index: -1; inset: -8px; border: 1px solid rgba(16,135,93,.16); border-radius: 50%; opacity: 0; transform: scale(.92); pointer-events: none; }
     .mic.active::before, .mic.active::after { opacity: 1; }
     .mic.active::before { inset: calc(-7px - var(--voice-ring, 0px)); border-color: rgba(16,135,93,.4); transform: scale(var(--voice-scale, 1)); transition: inset 120ms ease-out, transform 120ms ease-out; animation: mic-idle-pulse 2.2s ease-in-out infinite; }
     .mic.active::after { inset: calc(-14px - var(--voice-outer, 0px)); border-color: rgba(16,135,93,.2); transform: scale(var(--voice-scale, 1)); transition: inset 150ms ease-out, transform 150ms ease-out; animation: mic-idle-pulse 2.2s .55s ease-in-out infinite; }
     @keyframes mic-idle-pulse { 50% { opacity: .42; } }
-    .mic.active.voice-detected { background: radial-gradient(circle at 50% 38%, #f5fff9, #d9f3e5); box-shadow: 0 0 0 7px rgba(16,135,93,.07), 0 10px 34px rgba(16,135,93,.26), inset 0 1px 3px #fff; }
+    .mic.active.voice-detected { background: radial-gradient(circle at 50% 38%, #f5fff9, #d9f3e5); box-shadow: 0 0 0 8px rgba(16,135,93,.08), 0 10px 32px rgba(16,135,93,.26), inset 0 1px 3px #fff; }
     .mic:active { transform: scale(.96); }
     .mic.barge-in { animation: barge-in .45s ease-out; }
-    @keyframes barge-in { 50% { box-shadow: 0 0 0 12px rgba(66,133,244,.14), 0 8px 26px rgba(16,135,93,.14); } }
+    @keyframes barge-in { 50% { box-shadow: 0 0 0 12px rgba(66,133,244,.16), 0 8px 26px rgba(16,135,93,.16); } }
     .mic-label, .audio-label { min-height: 10px; color: #64766c; font-size: 8px; font-weight: 650; letter-spacing: .11em; }
     .mic:disabled, .audio-toggle:disabled { opacity: .55; cursor: wait; }
     .audio-wrap { display: grid; justify-items: center; gap: 5px; }
     .audio-toggle {
       width: 44px; height: 44px; border: 1px solid rgba(25,55,40,.1); border-radius: 50%;
-      background: #ffffff; color: #64766c;
+      background: #ffffff; color: #64766c; box-shadow: 0 2px 8px rgba(0,0,0,.04);
     }
     .audio-toggle.enabled { color: var(--green); border-color: rgba(16,135,93,.32); background: #f0faf4; }
     .audio-toggle svg { width: 20px; height: 20px; }
-    .audio-detail { max-width: 118px; min-height: 10px; color: #64766c; font-size: 7px; line-height: 1.25; text-align: center; overflow-wrap: anywhere; }
+    .audio-detail { max-width: 120px; min-height: 10px; color: #64766c; font-size: 7.5px; line-height: 1.25; text-align: center; overflow-wrap: anywhere; }
+
     /* Branded startup overlay */
     .splash {
-      position: fixed; inset: 0; z-index: 20; display: grid; place-items: center;
-      padding: 24px; background: #f5f7f6; transition: opacity .45s ease, visibility .45s ease;
+      position: fixed; inset: 0; z-index: 100; display: grid; place-items: center;
+      padding: 24px; background: rgba(245, 247, 246, 0.98);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      transition: opacity .45s cubic-bezier(0.4, 0, 0.2, 1), visibility .45s;
     }
     .splash.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-    .splash-content { width: min(290px,100%); text-align: center; }
-    .splash-orb { width: 54px; height: 54px; margin: 0 auto 20px; border: 2px solid rgba(16,135,93,.18); border-top-color: var(--green); border-radius: 50%; animation: spin 1s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .splash-title { color: var(--green); font-size: 13px; font-weight: 700; letter-spacing: .16em; }
-    .splash-step { margin: 14px 0 10px; color: #718078; font-size: 11px; }
-    .start-assistant {
-      margin: 14px 0; padding: 12px 18px; border: 0; border-radius: 999px;
-      color: #fff; background: var(--green); font-size: 12px; font-weight: 650;
-      box-shadow: 0 5px 16px rgba(16,135,93,.2);
+    .splash-content { width: min(320px, 100%); text-align: center; }
+
+    .splash-logo-wrap {
+      width: 72px; height: 72px; margin: 0 auto 16px;
+      border-radius: 22px;
+      background: radial-gradient(circle at 40% 30%, #ffffff, #eaf5ef);
+      box-shadow: 0 0 0 1px rgba(16,135,93,.16), 0 14px 34px rgba(16,135,93,.16);
+      display: grid; place-items: center;
+      position: relative;
     }
-    .start-assistant:disabled { opacity: .6; }
-    .progress { height: 2px; overflow: hidden; background: #dce4df; border-radius: 2px; }
-    .progress span { display: block; height: 100%; width: 10%; background: var(--green); transition: width .3s ease; }
+    .splash-logo { width: 44px; height: 44px; border-radius: 12px; object-fit: contain; }
+    .splash-pulse-ring {
+      position: absolute; inset: -6px; border-radius: 26px;
+      border: 1.5px solid rgba(16,135,93,.25);
+      animation: ring-pulse 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes ring-pulse {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.08); opacity: 0.25; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+
+    .splash-title { color: var(--green); font-size: 15px; font-weight: 750; letter-spacing: .1em; margin-bottom: 2px; }
+    .splash-subtitle { color: #53655c; font-size: 11px; font-weight: 500; margin-bottom: 6px; display: block; }
+    .splash-org-tag {
+      display: inline-block; padding: 3px 9px; border-radius: 999px;
+      background: rgba(16,135,93,.08); color: var(--green);
+      font-size: 9px; font-weight: 600; margin-bottom: 14px;
+    }
+
+    .splash-step { margin: 12px 0 10px; color: #64756c; font-size: 11px; line-height: 1.45; min-height: 28px; }
+
+    /* Animated audio intro waves */
+    .loading-waves {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      height: 20px;
+      margin: 8px auto 14px;
+    }
+    .loading-waves span {
+      display: block; width: 3px; height: 8px; border-radius: 2px;
+      background: var(--green); opacity: 0.65;
+      animation: wave-bounce 1s ease-in-out infinite alternate;
+    }
+    .loading-waves span:nth-child(2) { animation-delay: .2s; }
+    .loading-waves span:nth-child(3) { animation-delay: .4s; }
+    .loading-waves span:nth-child(4) { animation-delay: .6s; }
+    .loading-waves span:nth-child(5) { animation-delay: .8s; }
+    @keyframes wave-bounce {
+      from { height: 4px; opacity: 0.3; }
+      to { height: 18px; opacity: 1; }
+    }
+
+    .start-assistant {
+      margin: 10px 0 14px; padding: 12px 22px; border: 0; border-radius: 999px;
+      color: #fff; background: var(--green); font-size: 12px; font-weight: 650;
+      box-shadow: 0 6px 18px rgba(16,135,93,.25);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all .2s ease;
+    }
+    .start-assistant:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(16,135,93,.32); }
+    .start-assistant:active { transform: scale(.97); }
+    .start-assistant:disabled { opacity: .6; cursor: wait; }
+
+    .progress { height: 3px; overflow: hidden; background: #dce4df; border-radius: 3px; margin-top: 6px; }
+    .progress span { display: block; height: 100%; width: 0%; background: var(--green); transition: width .35s cubic-bezier(0.4, 0, 0.2, 1); }
+
     @media (min-width: 600px) {
       .app { max-width: 480px; margin: auto; height: 100dvh; border-inline: 1px solid rgba(25,55,40,.06); }
       body { background: #e9eeeb; }
@@ -206,31 +327,39 @@
   <div class="app">
     <header>
       <div class="connection" aria-live="polite">
-        <div class="connection-main"><span id="connection-dot" class="status-dot pending"></span><span id="connection-label" class="connection-label">Starting…</span></div>
-        <span id="latency-label" class="latency-label">Waiting for audio</span>
+        <div class="connection-main"><span id="connection-dot" class="status-dot pending"></span><span id="connection-label" class="connection-label">सत्र जोडत आहे…</span></div>
+        <span id="latency-label" class="latency-label">ऑडिओ तयार करत आहे...</span>
       </div>
-      <div class="brand"><strong>PARDARSHI</strong><span>AI Assistant</span></div>
+      <div class="brand">
+        <img class="brand-logo" src="ailogo.ico" onerror="this.src='/contributer-page/ailogo.ico'" alt="Pardarshi">
+        <div class="brand-text"><strong>PARDARSHI</strong><span>AI ASSISTANT</span></div>
+      </div>
     </header>
 
     <main id="data-feed" class="feed" aria-label="Assistant responses" aria-live="polite">
       <div id="empty-state" class="feed-empty">
         <div class="empty-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v18M5.6 6.2l12.8 11.6M18.4 6.2 5.6 17.8M3 12h18"/><circle cx="12" cy="12" r="8.5"/></svg>
+          <img src="ailogo.ico" onerror="this.src='/contributer-page/ailogo.ico'" alt="PARDARSHI">
         </div>
-        <h1>Listening for your request</h1>
-        <p>Your microphone stays on while this session is active. Assistant responses and tables will appear here.</p>
+        <h1>तुमचा प्रश्न विचारा किंवा बोला</h1>
+        <p>मायक्रोफोन सुरू आहे. तुम्ही थेट मराठीत प्रश्न विचारू शकता — सर्व आर्थिक माहिती, जमा-खर्च आणि पावती पडताळणी स्क्रीनवर दिसेल.</p>
+        <div class="suggestion-chips" id="suggestion-chips">
+          <button class="chip-btn" type="button" data-text="एकूण जमा आणि शिल्लक रक्कम किती आहे?">💰 एकूण शिल्लक</button>
+          <button class="chip-btn" type="button" data-text="संस्थेचे चालू प्रकल्प आणि खर्च दाखवा">📊 चालू प्रकल्प व खर्च</button>
+          <button class="chip-btn" type="button" data-text="काही संशयास्पद किंवा अनधिकृत खर्च आढळले आहेत का?">🔍 संशयास्पद खर्च तपासणी</button>
+        </div>
       </div>
     </main>
-    <button id="scroll-bottom" class="scroll-bottom" type="button" hidden>↓ &nbsp; Latest data</button>
+    <button id="scroll-bottom" class="scroll-bottom" type="button" hidden>↓ &nbsp; नवीनतम माहिती</button>
 
     <div id="live-status" class="live-status" data-state="IDLE" role="status" aria-live="polite">
-      <span class="live-dot"></span><span id="live-status-text">Microphone starting…</span>
+      <span class="live-dot"></span><span id="live-status-text">मायक्रोफोन सुरू होत आहे…</span>
     </div>
     <div id="visualizer" class="visualizer" aria-hidden="true">
       <canvas id="waveform"></canvas>
     </div>
     <footer>
-      <button id="btn-cancel" class="control cancel" type="button" aria-label="End session and clear data">×</button>
+      <button id="btn-cancel" class="control cancel" type="button" aria-label="सत्र संपवा">×</button>
       <div class="mic-wrap">
         <button id="btn-mic" class="control mic" type="button" aria-label="Microphone is live" disabled><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3.5M9 21.5h6"/></svg></span></button>
         <span id="mic-label" class="mic-label">MIC STARTING</span>
@@ -239,18 +368,31 @@
         <button id="btn-audio" class="control audio-toggle" type="button" aria-label="Enable assistant audio" aria-pressed="false" disabled>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
         </button>
-        <span id="audio-label" class="audio-label">SOUND OFF</span>
-        <span id="audio-detail" class="audio-detail" aria-live="polite">AI voice not received</span>
+        <span id="audio-label" class="audio-label">SOUND ON</span>
+        <span id="audio-detail" class="audio-detail" aria-live="polite">तयार आहे</span>
       </div>
     </footer>
   </div>
 
-  <section id="splash" class="splash" aria-label="Initializing assistant">
+  <section id="splash" class="splash" aria-label="सहाय्यक सुरू करत आहे">
     <div class="splash-content">
-      <div class="splash-orb"></div>
+      <div class="splash-logo-wrap">
+        <div class="splash-pulse-ring"></div>
+        <img class="splash-logo" src="ailogo.ico" onerror="this.src='/contributer-page/ailogo.ico'" alt="PARDARSHI Logo">
+      </div>
       <div class="splash-title">PARDARSHI AI</div>
-      <div id="splash-step" class="splash-step">Tap to start the assistant and enable voice playback.</div>
-      <button id="btn-start" class="start-assistant" type="button">Start &amp; enable sound</button>
+      <span class="splash-subtitle">पारदर्शी आवाज सहाय्यक · Live Voice &amp; Data</span>
+      <div id="splash-org-badge" class="splash-org-tag">संस्था: तपासत आहे...</div>
+
+      <div class="loading-waves" id="loading-waves" style="display:none;" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+
+      <div id="splash-step" class="splash-step">सत्र सुरू करण्यासाठी खालील बटण दाबा.</div>
+      <button id="btn-start" class="start-assistant" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        सुरू करा (Start Assistant)
+      </button>
       <div class="progress"><span id="progress-bar"></span></div>
     </div>
   </section>
@@ -258,11 +400,39 @@
   <script>
     "use strict";
 
-    const LIVE_WS_URL = "wss://pardarshi-server-1.onrender.com/ai-stream";
-    const PCM_RATE = 16000;
+    // -------------------------------------------------------------------------
+    // A. WEBSOCKET CONFIGURATION & DYNAMIC ENVIRONMENT SWITCH
+    // -------------------------------------------------------------------------
+    const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
     const assistantParams = new URLSearchParams(window.location.search);
-    const orgSlug = assistantParams.get("org") || localStorage.getItem("pardarshi_last_org") || "";
-    const projectSlug = assistantParams.get("proj") || assistantParams.get("project") || "";
+    
+    // Explicit override if provided in URL parameter ?ws=...
+    const customWs = assistantParams.get("ws") || assistantParams.get("ws_url");
+    const LIVE_WS_URL = customWs || (isLocal 
+      ? `ws://${window.location.hostname}:3000/ai-stream` 
+      : "wss://pardarshi-server-1.onrender.com/ai-stream");
+
+    const PCM_RATE = 16000;
+
+    // Resolve Organization and Project Slugs from URL params or localStorage
+    let orgSlug = assistantParams.get("org") || assistantParams.get("orgSlug") || assistantParams.get("organization") || localStorage.getItem("pardarshi_last_org") || "";
+    let projectSlug = assistantParams.get("proj") || assistantParams.get("project") || "";
+
+    // Fallback for direct testing if neither is set
+    if (!orgSlug) {
+      orgSlug = "uddan-foundation";
+    }
+    try {
+      localStorage.setItem("pardarshi_last_org", orgSlug);
+    } catch (_) {}
+
+    // Update Splash Org Badge
+    const orgBadgeEl = document.getElementById("splash-org-badge");
+    if (orgBadgeEl) {
+      orgBadgeEl.textContent = projectSlug 
+        ? `संस्था: ${orgSlug} / प्रकल्प: ${projectSlug}`
+        : `संस्था: ${orgSlug}`;
+    }
 
     const dom = {
       feed: document.getElementById("data-feed"),
@@ -283,10 +453,15 @@
       splash: document.getElementById("splash"),
       splashStep: document.getElementById("splash-step"),
       progress: document.getElementById("progress-bar"),
+      loadingWaves: document.getElementById("loading-waves"),
       scrollButton: document.getElementById("scroll-bottom"),
       canvas: document.getElementById("waveform"),
+      suggestionChips: document.getElementById("suggestion-chips"),
     };
 
+    // -------------------------------------------------------------------------
+    // B. UI CONTROLLER (Optimized DOM updates & Markdown rendering)
+    // -------------------------------------------------------------------------
     const UIController = (() => {
       const State = Object.freeze({ IDLE: "IDLE", LISTENING: "LISTENING", THINKING: "THINKING", SPEAKING: "SPEAKING", ERROR: "ERROR" });
       let state = State.IDLE;
@@ -296,11 +471,11 @@
         state = next;
         dom.status.dataset.state = next;
         dom.statusText.textContent = message || ({
-          IDLE: "Microphone is off",
-          LISTENING: "Microphone is live · waiting for speech",
-          THINKING: "Organizing structured data…",
-          SPEAKING: "Receiving structured data…",
-          ERROR: ""
+          IDLE: "मायक्रोफोन बंद आहे",
+          LISTENING: "मायक्रोफोन सुरू आहे · बोला...",
+          THINKING: "माहिती तपासत आहे व उत्तर तयार करत आहे…",
+          SPEAKING: "उत्तर देत आहे...",
+          ERROR: "त्रुटी आढळली"
         })[next];
         window.dispatchEvent(new Event("assistant-state-change"));
       }
@@ -321,7 +496,7 @@
         dom.mic.style.setProperty("--voice-ring", `${(level * 10).toFixed(1)}px`);
         dom.mic.style.setProperty("--voice-outer", `${(level * 16).toFixed(1)}px`);
         dom.mic.style.setProperty("--voice-scale", (1 + level * .12).toFixed(3));
-        dom.mic.classList.toggle("voice-detected", level > .12);
+        dom.mic.classList.toggle("voice-detected", level > .10);
       }
 
       function setMicActive(active, label) {
@@ -333,6 +508,7 @@
 
       let currentResponse = null;
       let currentResponseText = "";
+      let renderScheduled = false;
 
       function appendInlineMarkdown(parent, text) {
         const pattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|\*\*(.+?)\*\*|__(.+?)__|~~(.+?)~~|`([^`]+)`|\*([^*]+)\*|_([^_]+)_/g;
@@ -389,6 +565,13 @@
         return cells;
       }
 
+      const isTableRule = line => {
+        const cells = tableCells(line);
+        return cells.length > 0 && cells.every(cell => /^:?-+:?$/.test(cell.trim()));
+      };
+
+      const isAmount = text => /^[₹$€£]?\s*[\d,.]+(?:\/-)?$/.test(text.trim());
+
       function appendMarkdown(container, text) {
         const lines = text.split(/\r?\n/);
         let paragraph = [];
@@ -403,10 +586,6 @@
           paragraph = [];
         };
         const isListItem = line => /^\s*(?:[-+*]|\d+[.)])\s+/.test(line);
-        const isTableRule = line => {
-          const cells = tableCells(line);
-          return cells.length > 0 && cells.every(cell => /^:?-{3,}:?$/.test(cell));
-        };
 
         for (let index = 0; index < lines.length;) {
           const line = lines[index];
@@ -436,6 +615,7 @@
             const headerRow = document.createElement("tr");
             headers.forEach(value => {
               const cell = document.createElement("th");
+              if (isAmount(value)) cell.className = "amount";
               appendInlineMarkdown(cell, value);
               headerRow.append(cell);
             });
@@ -447,6 +627,7 @@
               const row = document.createElement("tr");
               tableCells(lines[index++]).forEach(value => {
                 const cell = document.createElement("td");
+                if (isAmount(value)) cell.className = "amount";
                 appendInlineMarkdown(cell, value);
                 row.append(cell);
               });
@@ -503,9 +684,26 @@
         flushParagraph();
       }
 
+      function scheduleRender() {
+        if (renderScheduled) return;
+        renderScheduled = true;
+        requestAnimationFrame(() => {
+          renderScheduled = false;
+          if (!currentResponse) return;
+          const content = currentResponse.querySelector(".response-content");
+          if (!content) return;
+          content.replaceChildren();
+          appendMarkdown(content, currentResponseText);
+          if (isNearBottom()) {
+            dom.feed.scrollTo({ top: dom.feed.scrollHeight, behavior: "smooth" });
+          } else {
+            dom.scrollButton.hidden = false;
+          }
+        });
+      }
+
       function appendAssistantText(text) {
         if (typeof text !== "string" || !text) return;
-        const wasNearBottom = isNearBottom();
         if (!currentResponse) {
           currentResponseText = "";
           currentResponse = document.createElement("article");
@@ -515,18 +713,23 @@
           const titleGroup = document.createElement("div");
           const kicker = document.createElement("div");
           kicker.className = "card-kicker";
-          kicker.textContent = "AI response";
+          kicker.textContent = "पारदर्शी AI सहाय्यक";
           const title = document.createElement("h2");
           title.className = "card-title";
-          title.textContent = "PARDARSHI Assistant";
+          title.textContent = "अधिकृत आर्थिक विश्लेषण";
           titleGroup.append(kicker, title);
           heading.append(titleGroup);
+          const badge = document.createElement("span");
+          badge.className = "verified";
+          badge.textContent = "✓ सत्यापित";
+          heading.append(badge);
+
           const content = document.createElement("div");
           content.className = "response-content";
           const footer = document.createElement("div");
           footer.className = "card-footer";
           const source = document.createElement("span");
-          source.textContent = "PARDARSHI AI";
+          source.textContent = "PARDARSHI System · Live Gemini 3.8";
           const time = document.createElement("time");
           time.dateTime = new Date().toISOString();
           time.textContent = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date());
@@ -536,14 +739,24 @@
           dom.feed.append(currentResponse);
         }
         currentResponseText += text;
-        const content = currentResponse.querySelector(".response-content");
-        content.replaceChildren();
-        appendMarkdown(content, currentResponseText);
-        if (wasNearBottom) dom.feed.scrollTo({ top: dom.feed.scrollHeight, behavior: "smooth" });
-        else dom.scrollButton.hidden = false;
+        scheduleRender();
+      }
+
+      function appendUserQuery(text) {
+        if (!text) return;
+        const queryCard = document.createElement("div");
+        queryCard.className = "user-query-card";
+        queryCard.innerHTML = `<div class="user-query-bubble"><span class="user-query-text"></span></div>`;
+        queryCard.querySelector(".user-query-text").textContent = text;
+        dom.empty.hidden = true;
+        dom.feed.append(queryCard);
+        dom.feed.scrollTo({ top: dom.feed.scrollHeight, behavior: "smooth" });
       }
 
       function finishAssistantResponse() {
+        if (currentResponse) {
+          scheduleRender();
+        }
         currentResponse = null;
         currentResponseText = "";
       }
@@ -559,6 +772,7 @@
         setConnection,
         setMicActive,
         appendAssistantText,
+        appendUserQuery,
         finishAssistantResponse,
         isNearBottom,
         setAudioLevel,
@@ -566,6 +780,9 @@
       };
     })();
 
+    // -------------------------------------------------------------------------
+    // C. WEBSOCKET CLIENT (Handshake, PCM relay, End-of-Turn & Marathi relay)
+    // -------------------------------------------------------------------------
     const LiveWebSocketClient = (() => {
       let socket = null;
       let connected = false;
@@ -584,7 +801,7 @@
         onActivity = handlers.onActivity || (() => {});
         onError = handlers.onError || (() => {});
         closedByUser = false;
-        if (!orgSlug) return Promise.reject(new Error("Organization is missing. Return to the organization page and open the assistant there."));
+
         return new Promise((resolve, reject) => {
           let settled = false;
           const fail = error => {
@@ -593,32 +810,50 @@
             clearTimeout(connectTimer);
             reject(error);
           };
+
           connectTimer = setTimeout(() => {
-            fail(new Error("Timed out waiting for the server to complete the assistant handshake."));
+            fail(new Error("सर्व्हरशी संपर्क वेळेत पूर्ण होऊ शकला नाही (Timeout)."));
             if (socket && socket.readyState === WebSocket.OPEN) socket.close();
-          }, 30000);
+          }, 35000);
+
           try {
+            console.log(`🔌 Connecting to AI WebSocket: ${LIVE_WS_URL}`);
             const connectionSocket = new WebSocket(LIVE_WS_URL);
             socket = connectionSocket;
+
             connectionSocket.onopen = () => {
-              onConnection(false, "Connecting");
-              const data = { orgSlug };
-              if (projectSlug) data.projectSlug = projectSlug;
+              console.log("✅ WebSocket opened. Sending auth_handshake...");
+              onConnection(false, "Connecting", "हातमिळवणी (Handshake) सुरू आहे...");
+              
+              const handshakePayload = {
+                type: "auth_handshake",
+                data: {
+                  orgSlug: orgSlug,
+                  projectSlug: projectSlug
+                }
+              };
               try {
-                connectionSocket.send(JSON.stringify({ type: "auth_handshake", data }));
+                connectionSocket.send(JSON.stringify(handshakePayload));
               } catch (error) {
                 fail(error instanceof Error ? error : new Error(String(error)));
               }
             };
-            connectionSocket.onerror = () => fail(new Error("Unable to connect to the PARDARSHI AI server."));
-            connectionSocket.onclose = () => {
+
+            connectionSocket.onerror = (e) => {
+              console.error("❌ WebSocket error:", e);
+              fail(new Error("PARDARSHI सर्व्हरशी संपर्क जोडता आला नाही."));
+            };
+
+            connectionSocket.onclose = (event) => {
+              console.log(`🔌 WebSocket closed: code=${event.code}, reason=${event.reason}`);
               connected = false;
-              fail(new Error("The PARDARSHI AI server closed the connection before the handshake completed."));
+              fail(new Error("सर्व्हरने संपर्क बंद केला."));
               if (!closedByUser) {
-                onConnection(false, "Connection lost");
-                onError(new Error("Connection to the PARDARSHI AI server was lost."));
+                onConnection(false, "Connection lost", "सर्व्हर संपर्क तुटला");
+                onError(new Error("सर्व्हरशी संपर्क तुटला आहे. पुन्हा प्रयत्न करा."));
               }
             };
+
             connectionSocket.onmessage = event => handleServerMessage(event.data, {
               fail,
               completeHandshake: context => {
@@ -626,10 +861,10 @@
                 if (!settled) {
                   settled = true;
                   clearTimeout(connectTimer);
-                  resolve();
+                  resolve(context);
                 }
                 const detail = [context.organization, context.scope].filter(Boolean).join(" · ");
-                onConnection(true, "Connected", detail || "Organization data loaded");
+                onConnection(true, "Connected", detail || "संस्थेची माहिती लोड झाली");
               }
             });
           } catch (error) {
@@ -642,12 +877,36 @@
         if (!connected || !socket || socket.readyState !== WebSocket.OPEN) return;
         const bytes = new Uint8Array(pcm16.buffer, pcm16.byteOffset, pcm16.byteLength);
         let binary = "";
-        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        const chunkSize = 1024;
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+          const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+          binary += String.fromCharCode.apply(null, chunk);
+        }
         try {
           socket.send(JSON.stringify({ type: "realtime_audio", audioBase64: btoa(binary) }));
         } catch (error) {
           console.error("Unable to send microphone audio to the AI server.", error);
-          onError(new Error("Microphone audio could not be sent to the AI server."));
+          onError(new Error("मायक्रोफोनचा आवाज सर्व्हरकडे पाठवता आला नाही."));
+        }
+      }
+
+      // CRITICAL FIX: Explicit End-of-Turn Signal to trigger Gemini Live response
+      function finishInputTurn() {
+        if (!connected || !socket || socket.readyState !== WebSocket.OPEN) return;
+        try {
+          console.log("🎙️ Sending audio_stream_end to Gemini Live...");
+          socket.send(JSON.stringify({ type: "audio_stream_end" }));
+        } catch (error) {
+          console.warn("Unable to send end of turn signal:", error);
+        }
+      }
+
+      function sendTextMessage(text) {
+        if (!connected || !socket || socket.readyState !== WebSocket.OPEN) return;
+        try {
+          socket.send(JSON.stringify({ type: "client_text", text: text }));
+        } catch (error) {
+          console.warn("Unable to send text message:", error);
         }
       }
 
@@ -655,43 +914,62 @@
         let message;
         try { message = JSON.parse(raw); }
         catch (error) {
-          console.error("Invalid message from live bridge.", error);
-          onError(new Error("The AI server sent an invalid response."));
+          console.error("Invalid JSON message from server:", error);
           return;
         }
+
         if (message.type === "handshake_success") {
+          console.log("🎉 Handshake success:", message.context);
           callbacks.completeHandshake(message.context || {});
           return;
         }
+
         if (message.type === "error") {
-          const error = new Error(typeof message.message === "string" ? message.message : "The AI server reported an error.");
+          const errorMsg = typeof message.message === "string" ? message.message : "AI सर्व्हरवर त्रुटी झाली.";
+          console.error("❌ Server error message:", errorMsg);
+          const error = new Error(errorMsg);
           if (!connected) callbacks.fail(error);
           onError(error);
           return;
         }
+
         if (message.type === "ai_disconnected") {
           connected = false;
-          const error = new Error("The AI service disconnected the session.");
-          onConnection(false, "AI disconnected");
+          const error = new Error("AI सेवा खंडित झाली (Disconnected).");
+          onConnection(false, "AI disconnected", "AI सत्र बंद झाले");
           callbacks.fail(error);
           onError(error);
           return;
         }
+
         const content = message.serverContent;
         if (content) {
-          const parts = content.modelTurn && content.modelTurn.parts;
+          if (content.interrupted) {
+            console.log("⚠️ Assistant turn interrupted by user speech.");
+            onActivity("interrupted");
+            return;
+          }
+
           let text = "";
+          const parts = content.modelTurn && content.modelTurn.parts;
           if (Array.isArray(parts)) {
             for (const part of parts) {
               if (typeof part.text === "string") text += part.text;
               const audio = part.inlineData || part.inline_data;
-              if (audio && typeof audio.data === "string") onAudio(audio.data, audio.mimeType || audio.mime_type || "");
+              if (audio && typeof audio.data === "string") {
+                onAudio(audio.data, audio.mimeType || audio.mime_type || "audio/pcm;rate=24000");
+              }
             }
           }
+
           const transcription = content.outputTranscription && content.outputTranscription.text;
-          if (text) onData(text);
-          else if (typeof transcription === "string" && transcription) onData(transcription);
-          if (content.turnComplete || content.interrupted) {
+          if (text) {
+            onData(text);
+          } else if (typeof transcription === "string" && transcription) {
+            onData(transcription);
+          }
+
+          if (content.turnComplete) {
             onActivity("complete");
           }
         }
@@ -703,7 +981,7 @@
         clearTimeout(connectTimer);
         const closingSocket = socket;
         socket = null;
-        onConnection(false, "Disconnected");
+        onConnection(false, "Disconnected", "सत्र संपले");
         if (!closingSocket || closingSocket.readyState === WebSocket.CLOSED) return Promise.resolve();
         return new Promise(resolve => {
           let settled = false;
@@ -713,20 +991,29 @@
             clearTimeout(closeTimer);
             resolve();
           };
-          const closeTimer = setTimeout(finish, 500);
+          const closeTimer = setTimeout(finish, 400);
           closingSocket.addEventListener("close", finish, { once: true });
           try {
             closingSocket.close(1000, "Session ended");
           } catch (error) {
-            console.error("Unable to close the AI WebSocket cleanly.", error);
             finish();
           }
         });
       }
 
-      return { connect, sendAudioChunk, disconnect };
+      return {
+        connect,
+        sendAudioChunk,
+        finishInputTurn,
+        sendTextMessage,
+        disconnect,
+        isConnected: () => connected
+      };
     })();
 
+    // -------------------------------------------------------------------------
+    // D. AUDIO ENGINE (Capture 16kHz PCM + Seamless 24kHz PCM Playback + Intro)
+    // -------------------------------------------------------------------------
     const AudioEngine = (() => {
       let context = null;
       let stream = null;
@@ -734,51 +1021,89 @@
       let processor = null;
       let processorKind = "";
       let mute = null;
+      let playbackGain = null;
       let playbackAnalyser = null;
+      let inputAnalyser = null;
+      let isMutedState = false;
       let active = false;
+
       let onChunk = () => {};
       let onSpeechStart = () => {};
       let onSpeechEnd = () => {};
+
       let speechStartedAt = 0;
       let silenceStartedAt = 0;
       let voicedDuration = 0;
       let hasSpeech = false;
       let frame = null;
+
       let outputTime = 0;
       let pendingAudioChunks = 0;
       let audioQueue = Promise.resolve();
       let playbackGeneration = 0;
+      let carryBuffer = null;
+
       let bootAudioBuffer = null;
       let bootPlayed = false;
+      let bootSource = null;
+      let bootGain = null;
+      let bootPlaying = false;
       let receivedAudioChunks = 0;
+
       const playbackSources = new Set();
-      const SPEECH_RMS = 0.022;
-      const END_SILENCE_MS = 850;
+      const SPEECH_RMS = 0.020;
+      const END_SILENCE_MS = 750;
+
+      async function initContext() {
+        if (!context || context.state === "closed") {
+          context = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (context.state === "suspended") {
+          await context.resume();
+        }
+        return context;
+      }
 
       async function start(handlers = {}) {
         onChunk = handlers.onChunk || onChunk;
         onSpeechStart = handlers.onSpeechStart || onSpeechStart;
         onSpeechEnd = handlers.onSpeechEnd || onSpeechEnd;
+
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          throw new Error("Microphone access requires HTTPS or localhost in a supported browser.");
+          throw new Error("मायक्रोफोन वापरण्यासाठी सुरक्षित HTTPS किंवा localhost कनेक्शन आवश्यक आहे.");
         }
+
         stop();
-        context = new (window.AudioContext || window.webkitAudioContext)();
+        await initContext();
+
+        playbackGain = context.createGain();
+        playbackGain.gain.value = isMutedState ? 0 : 1;
+
         playbackAnalyser = context.createAnalyser();
-        playbackAnalyser.fftSize = 1024;
-        playbackAnalyser.smoothingTimeConstant = .35;
+        playbackAnalyser.fftSize = 512;
+        playbackAnalyser.smoothingTimeConstant = 0.35;
+
+        playbackGain.connect(playbackAnalyser);
         playbackAnalyser.connect(context.destination);
+
         dom.audio.disabled = false;
-        try {
-          await context.resume();
-        } catch (error) {
-          console.warn("Audio playback needs to be enabled with the speaker button.", error);
-        }
+
         stream = await navigator.mediaDevices.getUserMedia({
-          audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+          audio: {
+            channelCount: 1,
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          },
           video: false
         });
+
         source = context.createMediaStreamSource(stream);
+
+        inputAnalyser = context.createAnalyser();
+        inputAnalyser.fftSize = 512;
+        inputAnalyser.smoothingTimeConstant = 0.4;
+        source.connect(inputAnalyser);
 
         mute = context.createGain();
         mute.gain.value = 0;
@@ -788,17 +1113,18 @@
           let sum = 0;
           for (let i = 0; i < input.length; i++) sum += input[i] * input[i];
           const rms = Math.sqrt(sum / input.length);
-          if (isAssistantPlaybackActive()) {
+
+          // If intro boot sound is still playing, don't forward mic
+          if (bootPlaying) {
             UIController.setAudioLevel(0);
-            hasSpeech = false;
-            voicedDuration = 0;
-            silenceStartedAt = 0;
             return;
           }
+
           UIController.setAudioLevel(rms);
           onChunk(resampleToPcm16(input, context.sampleRate, PCM_RATE));
-          updateVoiceActivity(rms, input.length / context.sampleRate * 1000);
+          updateVoiceActivity(rms, (input.length / context.sampleRate) * 1000);
         };
+
         if (context.audioWorklet && typeof AudioWorkletNode !== "undefined") {
           const workletSource = `
             class PardarshiCaptureProcessor extends AudioWorkletProcessor {
@@ -814,9 +1140,7 @@
                 if (!channels || !channels.length) return true;
                 const input = channels[0];
                 for (let i = 0; i < input.length; i++) {
-                  let sample = 0;
-                  for (const channel of channels) sample += channel[i] || 0;
-                  this.buffer[this.offset++] = sample / channels.length;
+                  this.buffer[this.offset++] = input[i];
                   if (this.offset === this.buffer.length) {
                     const packet = this.buffer;
                     this.port.postMessage(packet, [packet.buffer]);
@@ -838,23 +1162,27 @@
             processor.port.onmessage = event => handleInput(event.data);
             processorKind = "worklet";
           } catch (error) {
-            console.warn("AudioWorklet unavailable; using the compatibility audio processor.", error);
+            console.warn("AudioWorklet fallback to ScriptProcessor:", error);
           } finally {
             URL.revokeObjectURL(moduleUrl);
           }
         }
+
         if (!processor && typeof context.createScriptProcessor === "function") {
           processor = context.createScriptProcessor(4096, 1, 1);
           processor.onaudioprocess = event => handleInput(event.inputBuffer.getChannelData(0));
           processorKind = "script";
         }
-        if (!processor) throw new Error("This browser does not support microphone audio processing.");
+
+        if (!processor) throw new Error("या ब्राउझरमध्ये ऑडिओ कॅप्चर उपलब्ध नाही.");
+
         source.connect(processor);
         processor.connect(mute);
         mute.connect(context.destination);
+
         active = true;
         receivedAudioChunks = 0;
-        dom.audioDetail.textContent = "Microphone allowed · testing speaker";
+        dom.audioDetail.textContent = "मायक्रोफोन व स्पीकर तयार";
         drawVisualizer();
         return context.sampleRate;
       }
@@ -869,7 +1197,8 @@
           const after = Math.min(before + 1, input.length - 1);
           const fraction = position - before;
           const sample = input[before] * (1 - fraction) + input[after] * fraction;
-          pcm[i] = Math.round(Math.max(-1, Math.min(1, sample)) * (sample < 0 ? 32768 : 32767));
+          const clamped = Math.max(-1, Math.min(1, sample));
+          pcm[i] = clamped < 0 ? Math.round(clamped * 32768) : Math.round(clamped * 32767);
         }
         return pcm;
       }
@@ -878,72 +1207,91 @@
         if (rms >= SPEECH_RMS) {
           voicedDuration += duration;
           silenceStartedAt = 0;
-          if (!hasSpeech && voicedDuration >= 160) {
+
+          // Barge-in: User started speaking while assistant was talking or thinking
+          if (UIController.getState() === UIController.State.SPEAKING || isAssistantPlaybackActive()) {
+            console.log("🛑 Barge-in: user spoke over assistant, cutting playback.");
+            stopPlayback();
+            UIController.setState(UIController.State.LISTENING, "ऐकत आहे · बोलणे सुरू आहे");
+          }
+
+          if (!hasSpeech && voicedDuration >= 140) {
             hasSpeech = true;
             speechStartedAt = performance.now();
             onSpeechStart();
           }
         } else {
-          voicedDuration = Math.max(0, voicedDuration - duration * 1.8);
+          voicedDuration = Math.max(0, voicedDuration - duration * 1.5);
           if (hasSpeech) {
             if (!silenceStartedAt) silenceStartedAt = performance.now();
             if (performance.now() - silenceStartedAt >= END_SILENCE_MS) {
               hasSpeech = false;
               silenceStartedAt = 0;
-              onSpeechEnd(Math.round(performance.now() - speechStartedAt));
+              const durationMs = Math.round(performance.now() - speechStartedAt);
+              console.log(`🎙️ Speech finished (duration: ${durationMs}ms)`);
+              onSpeechEnd(durationMs);
             }
           }
         }
       }
 
       function isAssistantPlaybackActive() {
-        return pendingAudioChunks > 0
-          || playbackSources.size > 0
-          || Boolean(context && outputTime > context.currentTime);
+        return pendingAudioChunks > 0 || playbackSources.size > 0 || Boolean(context && outputTime > context.currentTime);
       }
 
       function drawVisualizer() {
         cancelAnimationFrame(frame);
         const canvas = dom.canvas;
+        if (!canvas) return;
         const rect = canvas.getBoundingClientRect();
         const scale = Math.min(window.devicePixelRatio || 1, 2);
         canvas.width = Math.max(1, Math.floor(rect.width * scale));
         canvas.height = Math.max(1, Math.floor(rect.height * scale));
         const ctx = canvas.getContext("2d");
         const colors = ["#4285F4", "#EA4335", "#FBBC05", "#34A853", "#9C27B0"];
-        const audioSamples = new Uint8Array(1024);
+        const audioSamples = new Uint8Array(512);
+
         const render = timestamp => {
           if (!ctx) return;
           const width = canvas.width;
           const height = canvas.height;
           ctx.clearRect(0, 0, width, height);
+
           const state = UIController.getState();
           const center = height / 2;
           const thinking = state === UIController.State.THINKING;
           const speaking = state === UIController.State.SPEAKING;
-          const hasOutputAudio = speaking && playbackAnalyser && context && context.state === "running"
-            && (playbackSources.size > 0 || pendingAudioChunks > 0);
-          const phase = timestamp * (thinking ? .0018 : speaking ? .0025 : .0008);
-          const amplitude = (thinking ? 6 : speaking ? 10 : 2.4) * scale;
+          const listening = state === UIController.State.LISTENING;
+
+          const hasOutputAudio = speaking && playbackAnalyser && (playbackSources.size > 0 || pendingAudioChunks > 0);
+          const hasInputAudio = listening && inputAnalyser && UIController.getAudioLevel() > 0.05;
+
+          const phase = timestamp * (thinking ? .002 : speaking ? .003 : .001);
+          const amplitude = (thinking ? 7 : speaking ? 11 : 2.5) * scale;
           const gradient = ctx.createLinearGradient(0, 0, width, 0);
           colors.forEach((color, index) => gradient.addColorStop(index / (colors.length - 1), color));
 
           ctx.beginPath();
-          if (hasOutputAudio) {
+
+          if (hasOutputAudio && playbackAnalyser) {
             playbackAnalyser.getByteTimeDomainData(audioSamples);
-            let sumSquares = 0;
-            for (const sample of audioSamples) {
-              const normalized = (sample - 128) / 128;
-              sumSquares += normalized * normalized;
-            }
-            const rms = Math.sqrt(sumSquares / audioSamples.length);
-            const boost = Math.min(4, .16 / Math.max(rms, .001));
             const points = Math.max(2, Math.floor(width / (2 * scale)));
             for (let point = 0; point <= points; point++) {
-              const sampleIndex = Math.min(audioSamples.length - 1, Math.floor(point / points * audioSamples.length));
+              const sampleIndex = Math.min(audioSamples.length - 1, Math.floor((point / points) * audioSamples.length));
               const normalized = (audioSamples[sampleIndex] - 128) / 128;
-              const y = center - normalized * boost * height * .42;
-              const x = point / points * width;
+              const y = center - normalized * height * .45;
+              const x = (point / points) * width;
+              if (point === 0) ctx.moveTo(x, y);
+              else ctx.lineTo(x, y);
+            }
+          } else if (hasInputAudio && inputAnalyser) {
+            inputAnalyser.getByteTimeDomainData(audioSamples);
+            const points = Math.max(2, Math.floor(width / (2 * scale)));
+            for (let point = 0; point <= points; point++) {
+              const sampleIndex = Math.min(audioSamples.length - 1, Math.floor((point / points) * audioSamples.length));
+              const normalized = (audioSamples[sampleIndex] - 128) / 128;
+              const y = center - normalized * height * .42;
+              const x = (point / points) * width;
               if (point === 0) ctx.moveTo(x, y);
               else ctx.lineTo(x, y);
             }
@@ -952,21 +1300,23 @@
               const progress = x / width;
               const envelope = Math.sin(progress * Math.PI) * .8 + .2;
               const y = center + Math.sin(progress * 11 - phase) * amplitude * envelope
-                + Math.sin(progress * 19 - phase * .72) * amplitude * .28;
+                + Math.sin(progress * 19 - phase * .75) * amplitude * .3;
               if (x === 0) ctx.moveTo(x, y);
               else ctx.lineTo(x, y);
             }
           }
+
           ctx.strokeStyle = gradient;
-          ctx.globalAlpha = thinking || speaking ? .95 : .56;
-          ctx.lineWidth = (thinking || speaking ? 2.3 : 1.8) * scale;
+          ctx.globalAlpha = thinking || speaking ? .95 : .55;
+          ctx.lineWidth = (thinking || speaking ? 2.4 : 1.8) * scale;
           ctx.lineCap = "round";
           ctx.lineJoin = "round";
-          ctx.shadowColor = "rgba(16,135,93,.16)";
-          ctx.shadowBlur = 12 * scale;
+          ctx.shadowColor = "rgba(16,135,93,.2)";
+          ctx.shadowBlur = 10 * scale;
           ctx.stroke();
           ctx.shadowBlur = 0;
           ctx.globalAlpha = 1;
+
           frame = requestAnimationFrame(render);
         };
         frame = requestAnimationFrame(render);
@@ -974,106 +1324,185 @@
 
       window.addEventListener("assistant-state-change", drawVisualizer);
 
+      // CRITICAL FIX: Smooth 24kHz PCM Playback without cracks or unhandled promise errors
       function playAudioChunk(base64, mimeType) {
+        if (!base64) return Promise.resolve();
         pendingAudioChunks++;
         const generation = playbackGeneration;
+
         const scheduled = audioQueue.then(async () => {
           if (generation !== playbackGeneration) return;
-          if (!context || context.state === "closed") throw new Error("Audio playback is not available.");
-          const rateMatch = /(?:^|;)\s*rate=(\d+)/i.exec(mimeType);
+          if (!context || context.state === "closed") return;
+
+          if (context.state === "suspended") {
+            try { await context.resume(); } catch (_) {}
+          }
+
+          const rateMatch = /(?:^|;)\s*rate=(\d+)/i.exec(mimeType || "");
           const sampleRate = rateMatch ? Number(rateMatch[1]) : 24000;
+
           const binary = atob(base64);
           if (!binary.length) return;
-          if (binary.length % 2 !== 0) throw new Error("The AI server sent an incomplete audio sample.");
-          if (!Number.isInteger(sampleRate) || sampleRate < 3000 || sampleRate > 384000) {
-            throw new Error("The AI server sent an invalid audio sample rate.");
+
+          let rawBytes = new Uint8Array(binary.length);
+          for (let index = 0; index < binary.length; index++) {
+            rawBytes[index] = binary.charCodeAt(index);
           }
-          await context.resume();
-          if (context.state !== "running") throw new Error("Tap the speaker button to enable assistant audio.");
-          if (generation !== playbackGeneration) return;
-          const bytes = new Uint8Array(binary.length);
-          for (let index = 0; index < binary.length; index++) bytes[index] = binary.charCodeAt(index);
-          const sampleCount = bytes.byteLength / Int16Array.BYTES_PER_ELEMENT;
+
+          // Handle odd boundary byte carry-over
+          if (carryBuffer && carryBuffer.length > 0) {
+            const combined = new Uint8Array(carryBuffer.length + rawBytes.length);
+            combined.set(carryBuffer, 0);
+            combined.set(rawBytes, carryBuffer.length);
+            rawBytes = combined;
+            carryBuffer = null;
+          }
+
+          if (rawBytes.length % 2 !== 0) {
+            carryBuffer = rawBytes.slice(rawBytes.length - 1);
+            rawBytes = rawBytes.slice(0, rawBytes.length - 1);
+          }
+
+          if (rawBytes.length < 2) return;
+
+          const sampleCount = rawBytes.length / 2;
           const audioBuffer = context.createBuffer(1, sampleCount, sampleRate);
-          const samples = audioBuffer.getChannelData(0);
-          const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-          for (let index = 0; index < samples.length; index++) {
-            samples[index] = view.getInt16(index * Int16Array.BYTES_PER_ELEMENT, true) / 32768;
+          const channelData = audioBuffer.getChannelData(0);
+          const dataView = new DataView(rawBytes.buffer, rawBytes.byteOffset, rawBytes.byteLength);
+
+          for (let index = 0; index < sampleCount; index++) {
+            const int16 = dataView.getInt16(index * 2, true);
+            channelData[index] = int16 < 0 ? int16 / 32768 : int16 / 32767;
           }
+
+          if (generation !== playbackGeneration) return;
 
           const sourceNode = context.createBufferSource();
           sourceNode.buffer = audioBuffer;
-          sourceNode.connect(playbackAnalyser);
+          sourceNode.connect(playbackGain);
+
           sourceNode.onended = () => {
             playbackSources.delete(sourceNode);
-            sourceNode.disconnect();
+            try { sourceNode.disconnect(); } catch (_) {}
           };
-          const startAt = Math.max(context.currentTime, outputTime);
+
+          const now = context.currentTime;
+          if (outputTime < now || outputTime > now + 1.2) {
+            outputTime = now;
+          }
+
+          const startAt = outputTime;
           sourceNode.start(startAt);
           outputTime = startAt + audioBuffer.duration;
           playbackSources.add(sourceNode);
         });
-        audioQueue = scheduled.catch(() => {});
+
+        audioQueue = scheduled.catch(err => {
+          console.warn("Audio queue minor warning:", err);
+        });
+
         return scheduled.finally(() => {
-          pendingAudioChunks--;
+          pendingAudioChunks = Math.max(0, pendingAudioChunks - 1);
         });
       }
 
       async function loadBootAudio() {
         if (bootAudioBuffer) return bootAudioBuffer;
-        const response = await fetch("/contributer-page/boot.mp3");
-        if (!response.ok) throw new Error(`Speaker test audio failed to load (${response.status}).`);
-        const audioData = await response.arrayBuffer();
-        if (!context || context.state === "closed") throw new Error("Audio playback is not available.");
+        const candidateUrls = [
+          new URL("boot.mp3", window.location.href).href,
+          "/contributer-page/boot.mp3",
+          "boot.mp3"
+        ];
+        let audioData = null;
+        for (const url of candidateUrls) {
+          try {
+            const resp = await fetch(url);
+            if (resp.ok) {
+              audioData = await resp.arrayBuffer();
+              break;
+            }
+          } catch (_) {}
+        }
+        if (!audioData) throw new Error("boot.mp3 सापडले नाही.");
+        await initContext();
         bootAudioBuffer = await context.decodeAudioData(audioData);
         return bootAudioBuffer;
       }
 
-      async function playStartupSound() {
+      // Smooth Background Intro Music during loading
+      async function playStartupSoundBackground() {
         if (bootPlayed) return;
-        if (!context || context.state === "closed") throw new Error("Audio playback is not available.");
-        const audioBuffer = await loadBootAudio();
-        await context.resume();
-        if (context.state !== "running") throw new Error("Tap the speaker button to allow audio playback.");
-        const sourceNode = context.createBufferSource();
-        sourceNode.buffer = audioBuffer;
-        sourceNode.connect(playbackAnalyser);
-        playbackSources.add(sourceNode);
-        dom.audioDetail.textContent = "Startup sound playing";
-        await new Promise((resolve, reject) => {
-          sourceNode.onended = () => {
-            playbackSources.delete(sourceNode);
-            sourceNode.disconnect();
-            dom.audioDetail.textContent = "Startup sound played";
-            resolve();
+        try {
+          const audioBuffer = await loadBootAudio();
+          await initContext();
+          if (!context || context.state === "closed") return;
+
+          bootGain = context.createGain();
+          bootGain.gain.setValueAtTime(0, context.currentTime);
+          bootGain.gain.linearRampToValueAtTime(0.7, context.currentTime + 0.15);
+          bootGain.connect(playbackGain);
+
+          bootSource = context.createBufferSource();
+          bootSource.buffer = audioBuffer;
+          bootSource.connect(bootGain);
+
+          bootSource.onended = () => {
+            bootPlaying = false;
+            try { bootSource.disconnect(); } catch (_) {}
+            try { bootGain.disconnect(); } catch (_) {}
+            bootSource = null;
+            bootGain = null;
           };
-          try {
-            sourceNode.start();
-            bootPlayed = true;
-          } catch (error) {
-            playbackSources.delete(sourceNode);
-            sourceNode.disconnect();
-            reject(error);
-          }
-        });
+
+          bootSource.start();
+          bootPlaying = true;
+          bootPlayed = true;
+          dom.audioDetail.textContent = "सुरुवातीचे संगीत सुरू आहे";
+        } catch (error) {
+          console.warn("Startup sound note:", error);
+          dom.audioDetail.textContent = "ऑडिओ तयार";
+        }
+      }
+
+      function stopStartupSound(fadeMs = 450) {
+        if (!bootPlaying || !bootSource || !bootGain || !context) return;
+        try {
+          const now = context.currentTime;
+          bootGain.gain.cancelScheduledValues(now);
+          bootGain.gain.setValueAtTime(bootGain.gain.value, now);
+          bootGain.gain.linearRampToValueAtTime(0.001, now + fadeMs / 1000);
+          setTimeout(() => {
+            if (bootSource) {
+              try { bootSource.stop(); } catch (_) {}
+            }
+            bootPlaying = false;
+          }, fadeMs + 20);
+        } catch (_) {
+          bootPlaying = false;
+        }
       }
 
       function recordIncomingAudio(mimeType) {
         receivedAudioChunks++;
-        const type = mimeType || "audio/pcm;rate=24000 (default)";
-        const rateMatch = /rate=(\d+)/i.exec(type);
-        const rate = rateMatch ? `${(Number(rateMatch[1]) / 1000).toFixed(rateMatch[1].length > 4 ? 1 : 0)} kHz` : "";
-        dom.audioDetail.textContent = `AI ${type.split(";")[0]}${rate ? ` · ${rate}` : ""} · ${receivedAudioChunks} chunks`;
+        const type = mimeType || "audio/pcm;rate=24000";
+        dom.audioDetail.textContent = `AI आवाज: 24 kHz · ${receivedAudioChunks} chunks`;
       }
 
-      async function enablePlayback() {
-        if (!context || context.state === "closed") throw new Error("Audio playback is not available.");
-        await context.resume();
-        if (context.state !== "running") throw new Error("Device audio is still paused. Check the device's sound settings and try again.");
+      function toggleMute() {
+        isMutedState = !isMutedState;
+        if (playbackGain && context) {
+          if (context.state === "suspended") context.resume().catch(() => {});
+          playbackGain.gain.setValueAtTime(isMutedState ? 0 : 1, context.currentTime);
+        }
+        return isMutedState;
+      }
+
+      function isMuted() {
+        return isMutedState;
       }
 
       function isPlaybackReady() {
-        return Boolean(context && context.state === "running");
+        return Boolean(context && context.state === "running" && !isMutedState);
       }
 
       async function waitForPlayback() {
@@ -1085,31 +1514,33 @@
       function stopPlayback() {
         playbackGeneration++;
         outputTime = 0;
+        carryBuffer = null;
         for (const sourceNode of playbackSources) {
           sourceNode.onended = null;
-          try {
-            sourceNode.stop();
-          } catch (error) {
-            console.warn("Unable to stop an AI audio segment.", error);
-          }
-          sourceNode.disconnect();
+          try { sourceNode.stop(); } catch (_) {}
+          try { sourceNode.disconnect(); } catch (_) {}
         }
         playbackSources.clear();
+        pendingAudioChunks = 0;
       }
 
       function stop() {
         active = false;
         cancelAnimationFrame(frame);
+        stopStartupSound(100);
         stopPlayback();
         if (processor) {
           if (processorKind === "script") processor.onaudioprocess = null;
           if (processorKind === "worklet") processor.port.onmessage = null;
-          processor.disconnect();
+          try { processor.disconnect(); } catch (_) {}
           processor = null;
           processorKind = "";
         }
-        if (source) { source.disconnect(); source = null; }
-        if (mute) { mute.disconnect(); mute = null; }
+        if (source) { try { source.disconnect(); } catch (_) {} source = null; }
+        if (mute) { try { mute.disconnect(); } catch (_) {} mute = null; }
+        if (inputAnalyser) { try { inputAnalyser.disconnect(); } catch (_) {} inputAnalyser = null; }
+        if (playbackGain) { try { playbackGain.disconnect(); } catch (_) {} playbackGain = null; }
+        if (playbackAnalyser) { try { playbackAnalyser.disconnect(); } catch (_) {} playbackAnalyser = null; }
         if (stream) {
           stream.getTracks().forEach(track => track.stop());
           stream = null;
@@ -1117,15 +1548,14 @@
         if (context) {
           const oldContext = context;
           context = null;
-          playbackAnalyser = null;
-          oldContext.close().catch(error => console.error("Unable to close audio context.", error));
+          oldContext.close().catch(() => {});
         }
         dom.audio.disabled = true;
         dom.audio.classList.remove("enabled");
         dom.audio.setAttribute("aria-pressed", "false");
         dom.audio.setAttribute("aria-label", "Enable assistant audio");
         dom.audioLabel.textContent = "SOUND OFF";
-        dom.audioDetail.textContent = "AI voice not received";
+        dom.audioDetail.textContent = "ऑडिओ बंद";
         bootAudioBuffer = null;
         receivedAudioChunks = 0;
         hasSpeech = false;
@@ -1136,66 +1566,76 @@
       return {
         start,
         stop,
+        initContext,
         resize: drawVisualizer,
         playAudioChunk,
-        playStartupSound,
+        playStartupSoundBackground,
+        stopStartupSound,
         recordIncomingAudio,
         stopPlayback,
-        enablePlayback,
+        toggleMute,
+        isMuted,
         isPlaybackReady,
         waitForPlayback
       };
     })();
 
+    // -------------------------------------------------------------------------
+    // E. MAIN APPLICATION FLOW & SMOOTH INTRO CONTROLLER
+    // -------------------------------------------------------------------------
     const app = (() => {
       let sessionActive = true;
       let startupTimeout = null;
 
-      async function startSession({ playStartupSound = false } = {}) {
+      async function startSession() {
         sessionActive = true;
         UIController.finishAssistantResponse();
         dom.start.disabled = true;
         dom.start.hidden = true;
         dom.mic.disabled = true;
         dom.splash.classList.remove("hidden");
-        dom.splashStep.textContent = "Initializing AudioContext…";
+        dom.loadingWaves.style.display = "flex";
+
+        dom.splashStep.textContent = "१. मायक्रोफोन परवानगी तपासत आहे...";
         dom.progress.style.width = "25%";
         UIController.setState(UIController.State.IDLE);
+
         try {
+          // 1. Kick off intro boot music in the background immediately
+          AudioEngine.playStartupSoundBackground();
+
+          // 2. Initialize microphone and audio processing
           const sampleRate = await AudioEngine.start({
             onChunk: chunk => LiveWebSocketClient.sendAudioChunk(chunk),
             onSpeechStart: () => {
               if (!sessionActive) return;
-              UIController.setState(UIController.State.LISTENING, "Listening · speech detected");
+              UIController.setState(UIController.State.LISTENING, "ऐकत आहे · बोलणे सुरू आहे...");
               dom.mic.classList.remove("barge-in");
               void dom.mic.offsetWidth;
               dom.mic.classList.add("barge-in");
             },
             onSpeechEnd: duration => {
-              if (!sessionActive || duration < 300) return;
-              UIController.setState(UIController.State.THINKING);
+              if (!sessionActive || duration < 250) return;
+              UIController.setState(UIController.State.THINKING, "उत्तर तयार करत आहे...");
+              // Trigger Gemini Live to finish turn and respond immediately
+              LiveWebSocketClient.finishInputTurn();
             }
           });
-          if (playStartupSound) {
-            dom.splashStep.textContent = "Playing startup sound…";
-            try {
-              await AudioEngine.playStartupSound();
-            } catch (error) {
-              console.warn("Startup sound could not be played.", error);
-              dom.audioDetail.textContent = "Startup sound could not play";
-            }
-          }
+
           if (!sessionActive) {
             AudioEngine.stop();
             return;
           }
-          dom.splashStep.textContent = "Establishing WebSocket Session…";
-          dom.progress.style.width = "68%";
-          await LiveWebSocketClient.connect({
+
+          // 3. Connect to WebSocket & send Handshake payload
+          dom.splashStep.textContent = "२. पारदर्शी AI सर्व्हरशी संपर्क जोडत आहे...";
+          dom.progress.style.width = "60%";
+
+          const contextData = await LiveWebSocketClient.connect({
             onData: text => {
               UIController.setState(
                 UIController.State.SPEAKING,
-                AudioEngine.isPlaybackReady() ? "Playing assistant voice" : "Assistant voice ready · tap speaker to hear"
+                !AudioEngine.isMuted() ? "माहिती सांगत आहे..." : "उत्तर तयार आहे (म्यूट)"
               );
               UIController.appendAssistantText(text);
             },
@@ -1203,73 +1643,82 @@
               AudioEngine.recordIncomingAudio(mimeType);
               UIController.setState(
                 UIController.State.SPEAKING,
-                AudioEngine.isPlaybackReady() ? "Playing assistant voice" : "Assistant voice ready · tap speaker to hear"
+                !AudioEngine.isMuted() ? "माहिती सांगत आहे..." : "उत्तर तयार आहे (म्यूट)"
               );
-              void AudioEngine.playAudioChunk(data, mimeType).catch(error => {
-                console.error("Unable to play the AI audio response.", error);
-                UIController.setState(
-                  UIController.State.ERROR,
-                  error instanceof Error ? error.message : "The AI audio response could not be played."
-                );
-              });
+              void AudioEngine.playAudioChunk(data, mimeType);
             },
             onConnection: (connected, label, detail) => {
               const mode = connected ? "connected" : label === "Connecting" ? "pending" : "error";
-              UIController.setConnection(label, mode, detail || (connected ? `Live audio · ${sampleRate} Hz input` : label === "Connecting" ? "Waiting for session setup" : "Check the connection and retry"));
+              UIController.setConnection(
+                connected ? "Connected" : label,
+                mode,
+                detail || (connected ? `Live · 16000 Hz input` : "सर्व्हर तपासत आहे")
+              );
             },
             onError: error => {
               if (sessionActive) UIController.setState(UIController.State.ERROR, error.message);
             },
             onActivity: activity => {
-              if (activity === "thinking") UIController.setState(UIController.State.THINKING);
-              if (activity === "complete") {
+              if (activity === "interrupted") {
+                AudioEngine.stopPlayback();
+                UIController.finishAssistantResponse();
+                UIController.setState(UIController.State.LISTENING, "ऐकत आहे · बोला...");
+              } else if (activity === "complete") {
                 UIController.finishAssistantResponse();
                 void AudioEngine.waitForPlayback().then(() => {
                   if (sessionActive && UIController.getState() === UIController.State.SPEAKING) {
                     UIController.setState(
                       UIController.State.LISTENING,
-                      AudioEngine.isPlaybackReady()
-                        ? "Microphone is live · speaker ready"
-                        : "Microphone is live · tap speaker to hear responses"
+                      !AudioEngine.isMuted() ? "मायक्रोफोन सुरू आहे · बोला..." : "मायक्रोफोन सुरू आहे (म्यूट)"
                     );
                   }
                 });
               }
             }
           });
+
           if (!sessionActive) {
             LiveWebSocketClient.disconnect();
             AudioEngine.stop();
             return;
           }
+
+          // 4. Handshake succeeded & data loaded
           dom.progress.style.width = "100%";
-          dom.splashStep.textContent = "Ready · microphone is live";
+          dom.splashStep.textContent = "३. सत्र तयार झाले! आवाज सहाय्यक सुरू होत आहे...";
+
+          // Setup Audio Toggle button
           dom.audio.disabled = false;
-          const audioReady = AudioEngine.isPlaybackReady();
-          dom.audio.classList.toggle("enabled", audioReady);
-          dom.audio.setAttribute("aria-pressed", String(audioReady));
-          dom.audio.setAttribute("aria-label", audioReady ? "Assistant audio enabled" : "Enable assistant audio");
-          dom.audioLabel.textContent = audioReady ? "SOUND ON" : "ENABLE SOUND";
+          dom.audio.classList.add("enabled");
+          dom.audio.setAttribute("aria-pressed", "true");
+          dom.audio.setAttribute("aria-label", "Assistant audio enabled");
+          dom.audioLabel.textContent = "SOUND ON";
+          dom.audioDetail.textContent = "आवाज सुरू आहे";
+
           UIController.setMicActive(true, "MIC LIVE");
-          UIController.setState(
-            UIController.State.LISTENING,
-            audioReady ? undefined : "Microphone is live · tap speaker to hear responses"
-          );
-          startupTimeout = setTimeout(() => dom.splash.classList.add("hidden"), 450);
-          dom.mic.disabled = false;
+          UIController.setState(UIController.State.LISTENING, "मायक्रोफोन सुरू आहे · थेट बोला...");
+
+          // Smoothly fade out the intro sound and hide the splash screen
+          setTimeout(() => {
+            AudioEngine.stopStartupSound(600);
+            dom.splash.classList.add("hidden");
+            dom.loadingWaves.style.display = "none";
+            dom.mic.disabled = false;
+          }, 650);
+
         } catch (error) {
-          console.error("Could not start the live microphone session.", error);
+          console.error("Session initialization failed:", error);
           if (!sessionActive) return;
           LiveWebSocketClient.disconnect();
           AudioEngine.stop();
-          dom.splashStep.textContent = "";
-          dom.progress.style.width = "0";
-          UIController.setConnection("", "error", "");
-          UIController.setState(UIController.State.ERROR, error instanceof Error ? error.message : String(error));
+          dom.loadingWaves.style.display = "none";
+          dom.progress.style.width = "0%";
+          UIController.setConnection("त्रुटी", "error", error.message);
+          UIController.setState(UIController.State.ERROR, error.message);
           UIController.setMicActive(false, "MIC OFF");
           dom.mic.disabled = false;
-          dom.splashStep.textContent = error instanceof Error ? error.message : String(error);
-          dom.start.textContent = "Try again";
+          dom.splashStep.textContent = `त्रुटी: ${error.message}`;
+          dom.start.textContent = "पुन्हा प्रयत्न करा (Retry)";
           dom.start.disabled = false;
           dom.start.hidden = false;
         }
@@ -1282,7 +1731,7 @@
         UIController.setMicActive(false, "MIC OFF");
         UIController.setState(UIController.State.IDLE);
         UIController.setConnection("", "", "");
-        dom.feed.querySelectorAll(".data-card").forEach(card => card.remove());
+        dom.feed.querySelectorAll(".data-card, .user-query-card").forEach(card => card.remove());
         UIController.finishAssistantResponse();
         dom.empty.hidden = false;
         dom.scrollButton.hidden = true;
@@ -1292,44 +1741,59 @@
 
       function setup() {
         dom.cancel.addEventListener("click", endSession);
+
         dom.start.addEventListener("click", () => {
-          dom.start.textContent = "Starting assistant…";
-          void startSession({ playStartupSound: true });
+          dom.start.textContent = "सुरू करत आहे…";
+          void startSession();
         });
-        dom.audio.addEventListener("click", async () => {
-          dom.audio.disabled = true;
-          try {
-            await AudioEngine.enablePlayback();
-            dom.audio.classList.add("enabled");
-            dom.audio.setAttribute("aria-pressed", "true");
-            dom.audio.setAttribute("aria-label", "Assistant audio enabled");
-            dom.audioLabel.textContent = "SOUND ON";
-            dom.audioDetail.textContent = "AI voice output enabled";
-            if (UIController.getState() === UIController.State.SPEAKING) {
-              UIController.setState(UIController.State.SPEAKING, "Playing assistant voice");
-            } else if (UIController.getState() === UIController.State.LISTENING) {
-              UIController.setState(UIController.State.LISTENING, "Microphone is live · AI voice ready");
-            }
-          } catch (error) {
-            UIController.setState(
-              UIController.State.ERROR,
-              error instanceof Error ? error.message : "Assistant audio could not be enabled."
-            );
-          } finally {
-            dom.audio.disabled = false;
+
+        // Speaker mute / unmute toggle
+        dom.audio.addEventListener("click", () => {
+          const muted = AudioEngine.toggleMute();
+          dom.audio.classList.toggle("enabled", !muted);
+          dom.audio.setAttribute("aria-pressed", String(!muted));
+          dom.audio.setAttribute("aria-label", muted ? "Enable assistant audio" : "Mute assistant audio");
+          dom.audioLabel.textContent = muted ? "MUTED" : "SOUND ON";
+          dom.audioDetail.textContent = muted ? "आवाज म्यूट केला आहे" : "AI आवाज सुरू आहे";
+        });
+
+        // Mic Button: if already listening, tapping forces turn-finish (fast send)
+        dom.mic.addEventListener("click", () => {
+          if (!sessionActive || UIController.getState() === UIController.State.ERROR || UIController.getState() === UIController.State.IDLE) {
+            void startSession();
+          } else if (UIController.getState() === UIController.State.LISTENING) {
+            console.log("👆 Mic tapped: sending instant turn finish");
+            UIController.setState(UIController.State.THINKING, "उत्तर तयार करत आहे...");
+            LiveWebSocketClient.finishInputTurn();
+          } else if (UIController.getState() === UIController.State.SPEAKING) {
+            AudioEngine.stopPlayback();
+            UIController.setState(UIController.State.LISTENING, "ऐकत आहे · बोला...");
           }
         });
-        dom.mic.addEventListener("click", () => {
-          if (!sessionActive || UIController.getState() === UIController.State.ERROR
-            || UIController.getState() === UIController.State.IDLE) void startSession();
+
+        // Suggestion Chips (Quick prompts)
+        document.addEventListener("click", event => {
+          const chip = event.target.closest(".chip-btn");
+          if (chip) {
+            const queryText = chip.dataset.text || chip.textContent;
+            if (queryText && LiveWebSocketClient.isConnected()) {
+              UIController.appendUserQuery(queryText);
+              AudioEngine.stopPlayback();
+              LiveWebSocketClient.sendTextMessage(queryText);
+              UIController.setState(UIController.State.THINKING, "उत्तर तयार करत आहे...");
+            }
+          }
         });
+
         dom.feed.addEventListener("scroll", () => {
           dom.scrollButton.hidden = UIController.isNearBottom();
         }, { passive: true });
+
         dom.scrollButton.addEventListener("click", () => {
           dom.feed.scrollTo({ top: dom.feed.scrollHeight, behavior: "smooth" });
           dom.scrollButton.hidden = true;
         });
+
         window.addEventListener("resize", () => AudioEngine.resize(), { passive: true });
       }
 
