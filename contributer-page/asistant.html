@@ -421,19 +421,16 @@
     };
 
     // -------------------------------------------------------------------------
-    // B. PRODUCTION STREAMING AUDIO PLAYER (Zero Collisions & Time Dislocation)
+    // B. PRODUCTION STREAMING AUDIO PLAYER (Official Google AudioStreamer Pattern)
     // -------------------------------------------------------------------------
     class ProductionPcmStreamPlayer {
       constructor(audioContext) {
         this.ctx = audioContext;
         this.sampleRate = 24000;
-        this.CHUNK_SIZE = 2400; // 100ms at 24000 Hz
-        this.sampleBuffer = new Float32Array(0);
         this.scheduledTime = 0;
         this.activeSources = new Set();
         this.isPlaying = false;
         this.carryBytes = null;
-        this.generation = 0;
 
         this.gainNode = this.ctx.createGain();
         this.gainNode.gain.value = 1.0;
@@ -484,40 +481,17 @@
         if (bytes.length < 2) return;
 
         const sampleCount = bytes.length / 2;
-        const newSamples = new Float32Array(sampleCount);
+        const float32 = new Float32Array(sampleCount);
         const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
 
         for (let i = 0; i < sampleCount; i++) {
           const int16 = view.getInt16(i * 2, true);
-          newSamples[i] = int16 < 0 ? int16 / 32768 : int16 / 32767;
+          float32[i] = int16 / 32768.0;
         }
 
-        const combined = new Float32Array(this.sampleBuffer.length + newSamples.length);
-        combined.set(this.sampleBuffer, 0);
-        combined.set(newSamples, this.sampleBuffer.length);
-        this.sampleBuffer = combined;
-
-        // Schedule smooth 100ms contiguous blocks without node boundary clicking
-        while (this.sampleBuffer.length >= this.CHUNK_SIZE) {
-          const block = this.sampleBuffer.slice(0, this.CHUNK_SIZE);
-          this.sampleBuffer = this.sampleBuffer.slice(this.CHUNK_SIZE);
-          this._scheduleBlock(block);
-        }
-      }
-
-      flush() {
-        if (this.sampleBuffer.length > 0) {
-          const remaining = this.sampleBuffer;
-          this.sampleBuffer = new Float32Array(0);
-          this._scheduleBlock(remaining);
-        }
-      }
-
-      _scheduleBlock(samples) {
-        if (samples.length === 0 || !this.ctx || this.ctx.state === "closed") return;
-
-        const audioBuffer = this.ctx.createBuffer(1, samples.length, this.sampleRate);
-        audioBuffer.getChannelData(0).set(samples);
+        // Direct low-latency buffer scheduling (matches Google Gemini Live reference architecture)
+        const audioBuffer = this.ctx.createBuffer(1, float32.length, this.sampleRate);
+        audioBuffer.getChannelData(0).set(float32);
 
         const source = this.ctx.createBufferSource();
         source.buffer = audioBuffer;
@@ -525,12 +499,12 @@
 
         const now = this.ctx.currentTime;
         if (this.scheduledTime < now) {
-          this.scheduledTime = now + 0.04;
+          this.scheduledTime = now;
         }
 
-        const startAt = this.scheduledTime;
-        source.start(startAt);
-        this.scheduledTime = startAt + audioBuffer.duration;
+        const startTime = this.scheduledTime;
+        source.start(startTime);
+        this.scheduledTime = startTime + audioBuffer.duration;
 
         this.activeSources.add(source);
         this.isPlaying = true;
@@ -538,15 +512,17 @@
         source.onended = () => {
           this.activeSources.delete(source);
           try { source.disconnect(); } catch (_) {}
-          if (this.activeSources.size === 0 && this.sampleBuffer.length === 0) {
+          if (this.activeSources.size === 0) {
             this.isPlaying = false;
           }
         };
       }
 
+      flush() {
+        // Direct stream scheduling plays chunks without backlog
+      }
+
       stop() {
-        this.generation++;
-        this.sampleBuffer = new Float32Array(0);
         this.carryBytes = null;
         this.scheduledTime = 0;
         this.isPlaying = false;
@@ -1033,6 +1009,7 @@
         if (message.type === "ai_disconnected") {
           connected = false;
           const error = new Error("AI सेवा खंडित झाली (Disconnected).");
+          console.warn("🔌 AI disconnected from server:", message);
           onConnection(false, "AI disconnected", "AI सत्र बंद झाले");
           callbacks.fail(error);
           onError(error);
@@ -1041,8 +1018,10 @@
 
         const content = message.serverContent;
         if (content) {
+          console.log("📥 [Live API] serverContent received:", Object.keys(content));
+
           if (content.interrupted) {
-            console.log("⚠️ Assistant turn interrupted.");
+            console.log("⚠️ Assistant turn interrupted by user.");
             onActivity("interrupted");
             return;
           }
@@ -1054,6 +1033,7 @@
               if (typeof part.text === "string") text += part.text;
               const audio = part.inlineData || part.inline_data;
               if (audio && typeof audio.data === "string") {
+                console.log(`🔊 [Live API] Received audio chunk: ${audio.data.length} chars (rate: 24kHz)`);
                 onAudio(audio.data, audio.mimeType || audio.mime_type || "audio/pcm;rate=24000");
               }
             }
@@ -1068,14 +1048,19 @@
           }
 
           if (text) {
+            console.log("📝 [Live API] Model text:", text);
             onData(text);
           } else if (transcription) {
+            console.log("📝 [Live API] Audio transcription:", transcription);
             onData(transcription);
           }
 
           if (content.turnComplete) {
+            console.log("✅ [Live API] Assistant turn complete.");
             onActivity("complete");
           }
+        } else {
+          console.log("ℹ️ [Live API] Other server frame received:", Object.keys(message));
         }
       }
 
@@ -1367,7 +1352,7 @@
         if (inputRate === outputRate) {
           const pcm = new Int16Array(input.length);
           for (let i = 0; i < input.length; i++) {
-            const clamped = Math.max(-1, Math.min(1, input[i]));
+            const clamped = Math.max(-1, Math.min(1, input[i] * 1.5));
             pcm[i] = clamped < 0 ? Math.round(clamped * 32768) : Math.round(clamped * 32767);
           }
           return pcm;
@@ -1388,7 +1373,7 @@
             }
           }
           const sample = count > 0 ? (sum / count) : input[startIdx];
-          const clamped = Math.max(-1, Math.min(1, sample));
+          const clamped = Math.max(-1, Math.min(1, sample * 1.5));
           pcm[i] = clamped < 0 ? Math.round(clamped * 32768) : Math.round(clamped * 32767);
         }
         return pcm;
