@@ -181,8 +181,8 @@
     }
     .scroll-bottom[hidden] { display: none; }
 
-    .live-status { min-height: 18px; padding: 0 16px; display: flex; align-items: center; justify-content: center; gap: 6px; color: #718078; font-size: 10px; }
-    .live-status .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); transition: background .2s; }
+    .live-status { min-height: 18px; padding: 0 16px; display: flex; align-items: center; justify-content: center; gap: 6px; color: #718078; font-size: 10.5px; font-weight: 500; }
+    .live-status .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); transition: background .2s; }
     .live-status[data-state="THINKING"] .live-dot { background: #f5b942; animation: blink .7s infinite alternate; }
     .live-status[data-state="SPEAKING"] .live-dot { background: #4285F4; box-shadow: 0 0 6px rgba(66,133,244,.6); }
     .live-status[data-state="ERROR"] .live-dot { background: #ef5c5c; }
@@ -218,7 +218,7 @@
     .mic.active::before { inset: calc(-7px - var(--voice-ring, 0px)); border-color: rgba(16,135,93,.4); transform: scale(var(--voice-scale, 1)); transition: inset 120ms ease-out, transform 120ms ease-out; animation: mic-idle-pulse 2.2s ease-in-out infinite; }
     .mic.active::after { inset: calc(-14px - var(--voice-outer, 0px)); border-color: rgba(16,135,93,.2); transform: scale(var(--voice-scale, 1)); transition: inset 150ms ease-out, transform 150ms ease-out; animation: mic-idle-pulse 2.2s .55s ease-in-out infinite; }
     @keyframes mic-idle-pulse { 50% { opacity: .42; } }
-    .mic.active.voice-detected { background: radial-gradient(circle at 50% 38%, #f5fff9, #d9f3e5); box-shadow: 0 0 0 8px rgba(16,135,93,.08), 0 10px 32px rgba(16,135,93,.26), inset 0 1px 3px #fff; }
+    .mic.active.voice-detected { background: radial-gradient(circle at 50% 38%, #f5fff9, #d9f3e5); box-shadow: 0 0 0 8px rgba(16,135,93,.14), 0 10px 32px rgba(16,135,93,.32), inset 0 1px 3px #fff; }
     .mic:active { transform: scale(.96); }
     .mic.barge-in { animation: barge-in .45s ease-out; }
     @keyframes barge-in { 50% { box-shadow: 0 0 0 12px rgba(66,133,244,.16), 0 8px 26px rgba(16,135,93,.16); } }
@@ -342,11 +342,12 @@
           <img src="ailogo.ico" onerror="this.src='/contributer-page/ailogo.ico'" alt="PARDARSHI">
         </div>
         <h1>तुमचा प्रश्न विचारा किंवा बोला</h1>
-        <p>मायक्रोफोन सुरू आहे. तुम्ही थेट मराठीत प्रश्न विचारू शकता — सर्व आर्थिक माहिती, जमा-खर्च आणि पावती पडताळणी स्क्रीनवर दिसेल.</p>
+        <p>मायक्रोफोन सुरू आहे. तुम्ही थेट "Hello" किंवा मराठीत प्रश्न विचारू शकता — सर्व आर्थिक माहिती, जमा-खर्च आणि पावती पडताळणी स्क्रीनवर दिसेल.</p>
         <div class="suggestion-chips" id="suggestion-chips">
+          <button class="chip-btn" type="button" data-text="नमस्कार! पारदर्शी प्रणालीबद्दल माहिती द्या.">👋 नमस्कार (Hello)</button>
           <button class="chip-btn" type="button" data-text="एकूण जमा आणि शिल्लक रक्कम किती आहे?">💰 एकूण शिल्लक</button>
           <button class="chip-btn" type="button" data-text="संस्थेचे चालू प्रकल्प आणि खर्च दाखवा">📊 चालू प्रकल्प व खर्च</button>
-          <button class="chip-btn" type="button" data-text="काही संशयास्पद किंवा अनधिकृत खर्च आढळले आहेत का?">🔍 संशयास्पद खर्च तपासणी</button>
+          <button class="chip-btn" type="button" data-text="काही संशयास्पद किंवा अनधिकृत खर्च आढळले आहेत का?">🔍 संशयास्पद खर्च</button>
         </div>
       </div>
     </main>
@@ -491,12 +492,12 @@
 
       function setAudioLevel(value) {
         audioLevel = value;
-        const level = Math.min(1, Math.max(0, value * 10));
+        const level = Math.min(1, Math.max(0, value * 14));
         dom.mic.style.setProperty("--voice-level", level.toFixed(3));
-        dom.mic.style.setProperty("--voice-ring", `${(level * 10).toFixed(1)}px`);
-        dom.mic.style.setProperty("--voice-outer", `${(level * 16).toFixed(1)}px`);
-        dom.mic.style.setProperty("--voice-scale", (1 + level * .12).toFixed(3));
-        dom.mic.classList.toggle("voice-detected", level > .10);
+        dom.mic.style.setProperty("--voice-ring", `${(level * 12).toFixed(1)}px`);
+        dom.mic.style.setProperty("--voice-outer", `${(level * 18).toFixed(1)}px`);
+        dom.mic.style.setProperty("--voice-scale", (1 + level * .15).toFixed(3));
+        dom.mic.classList.toggle("voice-detected", level > .08);
       }
 
       function setMicActive(active, label) {
@@ -781,7 +782,7 @@
     })();
 
     // -------------------------------------------------------------------------
-    // C. WEBSOCKET CLIENT (Handshake, PCM relay, End-of-Turn & Marathi relay)
+    // C. WEBSOCKET CLIENT (Handshake, PCM relay, Turn completion)
     // -------------------------------------------------------------------------
     const LiveWebSocketClient = (() => {
       let socket = null;
@@ -890,12 +891,20 @@
         }
       }
 
-      // CRITICAL FIX: Explicit End-of-Turn Signal to trigger Gemini Live response
+      // CRITICAL FIX: Send BOTH audio_stream_end AND clientContent: { turnComplete: true }
+      // This tells Gemini Live API explicitly that the user's voice turn is finished!
       function finishInputTurn() {
         if (!connected || !socket || socket.readyState !== WebSocket.OPEN) return;
         try {
-          console.log("🎙️ Sending audio_stream_end to Gemini Live...");
+          console.log("🎙️ Sending turn-complete signals to Gemini Live...");
+          // Signal 1: server audio_stream_end handler
           socket.send(JSON.stringify({ type: "audio_stream_end" }));
+          // Signal 2: official Gemini protocol turnComplete pass-through
+          socket.send(JSON.stringify({
+            clientContent: {
+              turnComplete: true
+            }
+          }));
         } catch (error) {
           console.warn("Unable to send end of turn signal:", error);
         }
@@ -1012,7 +1021,7 @@
     })();
 
     // -------------------------------------------------------------------------
-    // D. AUDIO ENGINE (Capture 16kHz PCM + Seamless 24kHz PCM Playback + Intro)
+    // D. AUDIO ENGINE (Ultra-clean 24kHz Non-overlapping Queue & Responsive VAD)
     // -------------------------------------------------------------------------
     const AudioEngine = (() => {
       let context = null;
@@ -1025,7 +1034,7 @@
       let playbackAnalyser = null;
       let inputAnalyser = null;
       let isMutedState = false;
-      let active = false;
+      let micStreamActive = false;
 
       let onChunk = () => {};
       let onSpeechStart = () => {};
@@ -1035,28 +1044,29 @@
       let silenceStartedAt = 0;
       let voicedDuration = 0;
       let hasSpeech = false;
+      let noiseFloor = 0.005;
       let frame = null;
 
-      let outputTime = 0;
+      // CRITICAL FIX: nextPlayTime scheduler ensures zero overlap between audio chunks
+      let nextPlayTime = 0;
       let pendingAudioChunks = 0;
-      let audioQueue = Promise.resolve();
       let playbackGeneration = 0;
       let carryBuffer = null;
+      const playbackSources = new Set();
 
       let bootAudioBuffer = null;
       let bootPlayed = false;
       let bootSource = null;
       let bootGain = null;
-      let bootPlaying = false;
       let receivedAudioChunks = 0;
 
-      const playbackSources = new Set();
-      const SPEECH_RMS = 0.020;
-      const END_SILENCE_MS = 750;
+      const SILENCE_TIMEOUT_MS = 600;
 
       async function initContext() {
         if (!context || context.state === "closed") {
-          context = new (window.AudioContext || window.webkitAudioContext)();
+          context = new (window.AudioContext || window.webkitAudioContext)({
+            latencyHint: "interactive"
+          });
         }
         if (context.state === "suspended") {
           await context.resume();
@@ -1081,7 +1091,7 @@
 
         playbackAnalyser = context.createAnalyser();
         playbackAnalyser.fftSize = 512;
-        playbackAnalyser.smoothingTimeConstant = 0.35;
+        playbackAnalyser.smoothingTimeConstant = 0.3;
 
         playbackGain.connect(playbackAnalyser);
         playbackAnalyser.connect(context.destination);
@@ -1102,35 +1112,31 @@
 
         inputAnalyser = context.createAnalyser();
         inputAnalyser.fftSize = 512;
-        inputAnalyser.smoothingTimeConstant = 0.4;
+        inputAnalyser.smoothingTimeConstant = 0.35;
         source.connect(inputAnalyser);
 
         mute = context.createGain();
         mute.gain.value = 0;
 
         const handleInput = input => {
-          if (!active) return;
+          if (!micStreamActive) return;
+
           let sum = 0;
           for (let i = 0; i < input.length; i++) sum += input[i] * input[i];
           const rms = Math.sqrt(sum / input.length);
-
-          // If intro boot sound is still playing, don't forward mic
-          if (bootPlaying) {
-            UIController.setAudioLevel(0);
-            return;
-          }
 
           UIController.setAudioLevel(rms);
           onChunk(resampleToPcm16(input, context.sampleRate, PCM_RATE));
           updateVoiceActivity(rms, (input.length / context.sampleRate) * 1000);
         };
 
+        // Prefer AudioWorklet with fallback to ScriptProcessor
         if (context.audioWorklet && typeof AudioWorkletNode !== "undefined") {
           const workletSource = `
             class PardarshiCaptureProcessor extends AudioWorkletProcessor {
               constructor() {
                 super();
-                this.buffer = new Float32Array(4096);
+                this.buffer = new Float32Array(2048);
                 this.offset = 0;
               }
               process(inputs, outputs) {
@@ -1144,7 +1150,7 @@
                   if (this.offset === this.buffer.length) {
                     const packet = this.buffer;
                     this.port.postMessage(packet, [packet.buffer]);
-                    this.buffer = new Float32Array(4096);
+                    this.buffer = new Float32Array(2048);
                     this.offset = 0;
                   }
                 }
@@ -1169,7 +1175,7 @@
         }
 
         if (!processor && typeof context.createScriptProcessor === "function") {
-          processor = context.createScriptProcessor(4096, 1, 1);
+          processor = context.createScriptProcessor(2048, 1, 1);
           processor.onaudioprocess = event => handleInput(event.inputBuffer.getChannelData(0));
           processorKind = "script";
         }
@@ -1180,11 +1186,15 @@
         processor.connect(mute);
         mute.connect(context.destination);
 
-        active = true;
+        micStreamActive = false; // Enabled after splash dismisses
         receivedAudioChunks = 0;
         dom.audioDetail.textContent = "मायक्रोफोन व स्पीकर तयार";
         drawVisualizer();
         return context.sampleRate;
+      }
+
+      function enableMicStreaming() {
+        micStreamActive = true;
       }
 
       function resampleToPcm16(input, inputRate, outputRate) {
@@ -1203,32 +1213,39 @@
         return pcm;
       }
 
+      // Responsive Dynamic Voice Activity Detection (VAD)
       function updateVoiceActivity(rms, duration) {
-        if (rms >= SPEECH_RMS) {
+        // Adapt noise floor
+        if (rms < noiseFloor * 1.5) {
+          noiseFloor = noiseFloor * 0.96 + rms * 0.04;
+        }
+        const speechThreshold = Math.max(0.007, noiseFloor * 2.2);
+
+        if (rms >= speechThreshold) {
           voicedDuration += duration;
           silenceStartedAt = 0;
 
-          // Barge-in: User started speaking while assistant was talking or thinking
+          // Barge-in: user talks while AI is speaking
           if (UIController.getState() === UIController.State.SPEAKING || isAssistantPlaybackActive()) {
-            console.log("🛑 Barge-in: user spoke over assistant, cutting playback.");
+            console.log("🛑 Barge-in: speech detected during assistant playback.");
             stopPlayback();
-            UIController.setState(UIController.State.LISTENING, "ऐकत आहे · बोलणे सुरू आहे");
+            UIController.setState(UIController.State.LISTENING, "ऐकत आहे · बोलणे सुरू आहे...");
           }
 
-          if (!hasSpeech && voicedDuration >= 140) {
+          if (!hasSpeech && voicedDuration >= 90) {
             hasSpeech = true;
             speechStartedAt = performance.now();
             onSpeechStart();
           }
         } else {
-          voicedDuration = Math.max(0, voicedDuration - duration * 1.5);
+          voicedDuration = Math.max(0, voicedDuration - duration * 1.4);
           if (hasSpeech) {
             if (!silenceStartedAt) silenceStartedAt = performance.now();
-            if (performance.now() - silenceStartedAt >= END_SILENCE_MS) {
+            if (performance.now() - silenceStartedAt >= SILENCE_TIMEOUT_MS) {
               hasSpeech = false;
               silenceStartedAt = 0;
               const durationMs = Math.round(performance.now() - speechStartedAt);
-              console.log(`🎙️ Speech finished (duration: ${durationMs}ms)`);
+              console.log(`🎙️ User finished speaking (${durationMs}ms)`);
               onSpeechEnd(durationMs);
             }
           }
@@ -1236,7 +1253,7 @@
       }
 
       function isAssistantPlaybackActive() {
-        return pendingAudioChunks > 0 || playbackSources.size > 0 || Boolean(context && outputTime > context.currentTime);
+        return pendingAudioChunks > 0 || playbackSources.size > 0 || Boolean(context && nextPlayTime > context.currentTime);
       }
 
       function drawVisualizer() {
@@ -1264,7 +1281,7 @@
           const listening = state === UIController.State.LISTENING;
 
           const hasOutputAudio = speaking && playbackAnalyser && (playbackSources.size > 0 || pendingAudioChunks > 0);
-          const hasInputAudio = listening && inputAnalyser && UIController.getAudioLevel() > 0.05;
+          const hasInputAudio = listening && inputAnalyser && UIController.getAudioLevel() > 0.04;
 
           const phase = timestamp * (thinking ? .002 : speaking ? .003 : .001);
           const amplitude = (thinking ? 7 : speaking ? 11 : 2.5) * scale;
@@ -1324,32 +1341,37 @@
 
       window.addEventListener("assistant-state-change", drawVisualizer);
 
-      // CRITICAL FIX: Smooth 24kHz PCM Playback without cracks or unhandled promise errors
+      // =========================================================================
+      // CRITICAL FIX: Zero-Overlap 24kHz PCM Playback Queue
+      // Each chunk is scheduled exactly at the end of the previous chunk.
+      // Chunks NEVER overlap, NEVER drift, and NEVER garble!
+      // =========================================================================
       function playAudioChunk(base64, mimeType) {
-        if (!base64) return Promise.resolve();
+        if (!base64) return;
         pendingAudioChunks++;
         const generation = playbackGeneration;
 
-        const scheduled = audioQueue.then(async () => {
-          if (generation !== playbackGeneration) return;
+        try {
           if (!context || context.state === "closed") return;
-
           if (context.state === "suspended") {
-            try { await context.resume(); } catch (_) {}
+            context.resume().catch(() => {});
           }
 
           const rateMatch = /(?:^|;)\s*rate=(\d+)/i.exec(mimeType || "");
           const sampleRate = rateMatch ? Number(rateMatch[1]) : 24000;
 
           const binary = atob(base64);
-          if (!binary.length) return;
+          if (!binary.length) {
+            pendingAudioChunks = Math.max(0, pendingAudioChunks - 1);
+            return;
+          }
 
           let rawBytes = new Uint8Array(binary.length);
           for (let index = 0; index < binary.length; index++) {
             rawBytes[index] = binary.charCodeAt(index);
           }
 
-          // Handle odd boundary byte carry-over
+          // Handle odd byte carry-over across network boundaries
           if (carryBuffer && carryBuffer.length > 0) {
             const combined = new Uint8Array(carryBuffer.length + rawBytes.length);
             combined.set(carryBuffer, 0);
@@ -1363,7 +1385,10 @@
             rawBytes = rawBytes.slice(0, rawBytes.length - 1);
           }
 
-          if (rawBytes.length < 2) return;
+          if (rawBytes.length < 2) {
+            pendingAudioChunks = Math.max(0, pendingAudioChunks - 1);
+            return;
+          }
 
           const sampleCount = rawBytes.length / 2;
           const audioBuffer = context.createBuffer(1, sampleCount, sampleRate);
@@ -1375,7 +1400,10 @@
             channelData[index] = int16 < 0 ? int16 / 32768 : int16 / 32767;
           }
 
-          if (generation !== playbackGeneration) return;
+          if (generation !== playbackGeneration) {
+            pendingAudioChunks = Math.max(0, pendingAudioChunks - 1);
+            return;
+          }
 
           const sourceNode = context.createBufferSource();
           sourceNode.buffer = audioBuffer;
@@ -1383,27 +1411,27 @@
 
           sourceNode.onended = () => {
             playbackSources.delete(sourceNode);
+            pendingAudioChunks = Math.max(0, pendingAudioChunks - 1);
             try { sourceNode.disconnect(); } catch (_) {}
           };
 
-          const now = context.currentTime;
-          if (outputTime < now || outputTime > now + 1.2) {
-            outputTime = now;
+          const currentTime = context.currentTime;
+
+          // If nextPlayTime is in the past, anchor it with a tiny 40ms safety margin
+          if (nextPlayTime < currentTime) {
+            nextPlayTime = currentTime + 0.04;
           }
 
-          const startAt = outputTime;
+          const startAt = nextPlayTime;
           sourceNode.start(startAt);
-          outputTime = startAt + audioBuffer.duration;
+          // Advance nextPlayTime strictly by this chunk's duration (NO OVERLAP POSSIBLE!)
+          nextPlayTime = startAt + audioBuffer.duration;
           playbackSources.add(sourceNode);
-        });
 
-        audioQueue = scheduled.catch(err => {
-          console.warn("Audio queue minor warning:", err);
-        });
-
-        return scheduled.finally(() => {
+        } catch (err) {
+          console.warn("Audio chunk schedule note:", err);
           pendingAudioChunks = Math.max(0, pendingAudioChunks - 1);
-        });
+        }
       }
 
       async function loadBootAudio() {
@@ -1447,7 +1475,6 @@
           bootSource.connect(bootGain);
 
           bootSource.onended = () => {
-            bootPlaying = false;
             try { bootSource.disconnect(); } catch (_) {}
             try { bootGain.disconnect(); } catch (_) {}
             bootSource = null;
@@ -1455,7 +1482,6 @@
           };
 
           bootSource.start();
-          bootPlaying = true;
           bootPlayed = true;
           dom.audioDetail.textContent = "सुरुवातीचे संगीत सुरू आहे";
         } catch (error) {
@@ -1464,8 +1490,8 @@
         }
       }
 
-      function stopStartupSound(fadeMs = 450) {
-        if (!bootPlaying || !bootSource || !bootGain || !context) return;
+      function stopStartupSound(fadeMs = 350) {
+        if (!bootSource || !bootGain || !context) return;
         try {
           const now = context.currentTime;
           bootGain.gain.cancelScheduledValues(now);
@@ -1474,17 +1500,16 @@
           setTimeout(() => {
             if (bootSource) {
               try { bootSource.stop(); } catch (_) {}
+              try { bootSource.disconnect(); } catch (_) {}
             }
-            bootPlaying = false;
+            bootSource = null;
+            bootGain = null;
           }, fadeMs + 20);
-        } catch (_) {
-          bootPlaying = false;
-        }
+        } catch (_) {}
       }
 
       function recordIncomingAudio(mimeType) {
         receivedAudioChunks++;
-        const type = mimeType || "audio/pcm;rate=24000";
         dom.audioDetail.textContent = `AI आवाज: 24 kHz · ${receivedAudioChunks} chunks`;
       }
 
@@ -1501,19 +1526,15 @@
         return isMutedState;
       }
 
-      function isPlaybackReady() {
-        return Boolean(context && context.state === "running" && !isMutedState);
-      }
-
       async function waitForPlayback() {
-        while (pendingAudioChunks > 0 || playbackSources.size > 0) {
-          await new Promise(resolve => setTimeout(resolve, 50));
+        while (pendingAudioChunks > 0 || playbackSources.size > 0 || (context && nextPlayTime > context.currentTime)) {
+          await new Promise(resolve => setTimeout(resolve, 40));
         }
       }
 
       function stopPlayback() {
         playbackGeneration++;
-        outputTime = 0;
+        nextPlayTime = 0;
         carryBuffer = null;
         for (const sourceNode of playbackSources) {
           sourceNode.onended = null;
@@ -1525,9 +1546,9 @@
       }
 
       function stop() {
-        active = false;
+        micStreamActive = false;
         cancelAnimationFrame(frame);
-        stopStartupSound(100);
+        stopStartupSound(80);
         stopPlayback();
         if (processor) {
           if (processorKind === "script") processor.onaudioprocess = null;
@@ -1566,6 +1587,7 @@
       return {
         start,
         stop,
+        enableMicStreaming,
         initContext,
         resize: drawVisualizer,
         playAudioChunk,
@@ -1575,7 +1597,6 @@
         stopPlayback,
         toggleMute,
         isMuted,
-        isPlaybackReady,
         waitForPlayback
       };
     })();
@@ -1601,7 +1622,7 @@
         UIController.setState(UIController.State.IDLE);
 
         try {
-          // 1. Kick off intro boot music in the background immediately
+          // 1. Kick off intro boot music in background
           AudioEngine.playStartupSoundBackground();
 
           // 2. Initialize microphone and audio processing
@@ -1609,15 +1630,15 @@
             onChunk: chunk => LiveWebSocketClient.sendAudioChunk(chunk),
             onSpeechStart: () => {
               if (!sessionActive) return;
-              UIController.setState(UIController.State.LISTENING, "ऐकत आहे · बोलणे सुरू आहे...");
+              UIController.setState(UIController.State.LISTENING, "ऐकत आहे · तुमचा आवाज येत आहे...");
               dom.mic.classList.remove("barge-in");
               void dom.mic.offsetWidth;
               dom.mic.classList.add("barge-in");
             },
             onSpeechEnd: duration => {
-              if (!sessionActive || duration < 250) return;
+              if (!sessionActive) return;
               UIController.setState(UIController.State.THINKING, "उत्तर तयार करत आहे...");
-              // Trigger Gemini Live to finish turn and respond immediately
+              // Explicit turn completion triggers Gemini Live answer
               LiveWebSocketClient.finishInputTurn();
             }
           });
@@ -1645,7 +1666,7 @@
                 UIController.State.SPEAKING,
                 !AudioEngine.isMuted() ? "माहिती सांगत आहे..." : "उत्तर तयार आहे (म्यूट)"
               );
-              void AudioEngine.playAudioChunk(data, mimeType);
+              AudioEngine.playAudioChunk(data, mimeType);
             },
             onConnection: (connected, label, detail) => {
               const mode = connected ? "connected" : label === "Connecting" ? "pending" : "error";
@@ -1696,15 +1717,17 @@
           dom.audioDetail.textContent = "आवाज सुरू आहे";
 
           UIController.setMicActive(true, "MIC LIVE");
-          UIController.setState(UIController.State.LISTENING, "मायक्रोफोन सुरू आहे · थेट बोला...");
+          UIController.setState(UIController.State.LISTENING, "मायक्रोफोन सुरू आहे · 'Hello' किंवा मराठीत बोला...");
 
-          // Smoothly fade out the intro sound and hide the splash screen
+          // Enable actual live microphone stream to WebSocket and fade intro music
           setTimeout(() => {
-            AudioEngine.stopStartupSound(600);
+            AudioEngine.stopStartupSound(400);
             dom.splash.classList.add("hidden");
             dom.loadingWaves.style.display = "none";
             dom.mic.disabled = false;
-          }, 650);
+            AudioEngine.enableMicStreaming();
+            console.log("🎙️ Live microphone is now active and streaming to Gemini Live.");
+          }, 450);
 
         } catch (error) {
           console.error("Session initialization failed:", error);
@@ -1757,7 +1780,7 @@
           dom.audioDetail.textContent = muted ? "आवाज म्यूट केला आहे" : "AI आवाज सुरू आहे";
         });
 
-        // Mic Button: if already listening, tapping forces turn-finish (fast send)
+        // Mic Button: tapping while listening forces immediate turn completion
         dom.mic.addEventListener("click", () => {
           if (!sessionActive || UIController.getState() === UIController.State.ERROR || UIController.getState() === UIController.State.IDLE) {
             void startSession();
