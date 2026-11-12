@@ -57,8 +57,8 @@
     .status-dot.connected { background: var(--green); box-shadow: 0 0 0 3px rgba(16,135,93,.18); }
     .status-dot.pending { background: #f5b942; box-shadow: 0 0 0 3px rgba(245,185,66,.2); animation: blink 1s infinite alternate; }
     .status-dot.error { background: #ef5c5c; box-shadow: 0 0 0 3px rgba(239,92,92,.18); }
-    .brand { text-align: right; line-height: 1.15; display: flex; align-items: center; gap: 8px; }
-    .brand-logo { width: 26px; height: 26px; border-radius: 7px; object-fit: contain; box-shadow: 0 2px 6px rgba(0,0,0,.08); }
+    .brand { text-align: right; line-height: 1.15; display: flex; align-items: center; gap: 9px; }
+    .brand-logo { width: 34px; height: 34px; border-radius: 9px; object-fit: cover; box-shadow: 0 2px 6px rgba(0,0,0,.08); }
     .brand-text strong { display: block; color: var(--green); font-size: 12px; letter-spacing: .08em; }
     .brand-text span { display: block; margin-top: 2px; color: #7d8982; font-size: 8.5px; letter-spacing: .12em; text-transform: uppercase; }
     @keyframes blink { to { opacity: .35; } }
@@ -68,7 +68,7 @@
       min-height: 0;
       overflow: auto;
       overscroll-behavior: contain;
-      padding: 16px 14px 10px;
+      padding: 16px 14px 18px;
       display: flex;
       flex-direction: column;
       gap: 14px;
@@ -106,11 +106,11 @@
     /* Clean response card without redundant labels */
     .data-card {
       width: 100%;
-      padding: 14px 16px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: #ffffff;
-      box-shadow: 0 4px 16px rgba(25,55,40,.05);
+      padding: 16px;
+      border: 1px solid rgba(25,55,40,.1);
+      border-radius: 18px;
+      background: linear-gradient(145deg, #ffffff, #fbfdfb);
+      box-shadow: 0 8px 26px rgba(25,55,40,.07);
       animation: card-in .26s ease both;
     }
     .response-content {
@@ -138,8 +138,6 @@
     tbody tr:last-child td { border-bottom: 0; }
     tbody tr:hover td { background: rgba(16,135,93,.02); }
     .amount { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; font-weight: 600; color: #182b20; }
-    .card-footer { display: flex; justify-content: flex-end; margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(25,55,40,.06); color: #8c9b92; font-size: 9.5px; }
-    
     .scroll-bottom {
       position: absolute; z-index: 3; left: 50%; bottom: calc(140px + var(--safe-bottom));
       transform: translateX(-50%); padding: 8px 13px; border: 1px solid var(--line); border-radius: 999px;
@@ -148,12 +146,17 @@
     }
     .scroll-bottom[hidden] { display: none; }
 
-    .live-status { min-height: 18px; padding: 0 16px; display: flex; align-items: center; justify-content: center; gap: 6px; color: #718078; font-size: 11px; font-weight: 550; }
+    .live-status { min-height: 22px; padding: 0 16px; display: flex; align-items: center; justify-content: center; gap: 6px; color: #718078; font-size: 11px; font-weight: 550; }
     .live-status .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); transition: background .2s; }
     .live-status[data-state="RECORDING"] .live-dot { background: #e53e3e; box-shadow: 0 0 8px rgba(229,62,62,.6); animation: blink .8s infinite alternate; }
     .live-status[data-state="THINKING"] .live-dot { background: #f5b942; animation: blink .7s infinite alternate; }
     .live-status[data-state="SPEAKING"] .live-dot { background: #4285F4; box-shadow: 0 0 6px rgba(66,133,244,.6); }
     .live-status[data-state="ERROR"] .live-dot { background: #ef5c5c; }
+    #live-status-text, .mic-label, .audio-label, .audio-detail { display: none; }
+    .thinking-gear { display: none; width: 17px; height: 17px; color: #c28a12; }
+    .thinking-gear svg { display: block; width: 100%; height: 100%; animation: gear-turn 2.4s linear infinite; }
+    .live-status[data-state="THINKING"] .thinking-gear { display: block; }
+    @keyframes gear-turn { to { transform: rotate(360deg); } }
     .visualizer { position: relative; height: 62px; flex: none; overflow: hidden; background: transparent; }
     #waveform { width: 100%; height: 100%; display: block; }
     footer { flex: none; padding: 2px 16px 8px; display: flex; justify-content: center; align-items: center; gap: 18px; }
@@ -194,7 +197,6 @@
     @keyframes mic-rec-pulse { 50% { opacity: .4; transform: scale(1.08); } }
 
     .mic:active { transform: scale(.96); }
-    .mic-label, .audio-label { min-height: 10px; color: #64766c; font-size: 8.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
     .mic:disabled, .audio-toggle:disabled { opacity: .55; cursor: wait; }
     .audio-wrap { display: grid; justify-items: center; gap: 5px; }
     .audio-toggle {
@@ -203,7 +205,9 @@
     }
     .audio-toggle.enabled { color: var(--green); border-color: rgba(16,135,93,.32); background: #f0faf4; }
     .audio-toggle svg { width: 20px; height: 20px; }
-    .audio-detail { max-width: 120px; min-height: 10px; color: #64766c; font-size: 7.5px; line-height: 1.25; text-align: center; overflow-wrap: anywhere; }
+    .audio-toggle[aria-pressed="false"] .sound-waves { display: none; }
+    .audio-toggle[aria-pressed="false"] .sound-muted { display: block; }
+    .sound-muted { display: none; }
 
     /* Branded startup overlay */
     .splash {
@@ -213,19 +217,19 @@
       transition: opacity .45s cubic-bezier(0.4, 0, 0.2, 1), visibility .45s;
     }
     .splash.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-    .splash-content { width: min(320px, 100%); text-align: center; }
+    .splash-content { width: min(340px, 100%); padding: 26px 24px 24px; text-align: center; border: 1px solid rgba(25,55,40,.09); border-radius: 26px; background: rgba(255,255,255,.92); box-shadow: 0 24px 70px rgba(25,55,40,.12); }
 
     .splash-logo-wrap {
-      width: 72px; height: 72px; margin: 0 auto 16px;
-      border-radius: 22px;
-      background: radial-gradient(circle at 40% 30%, #ffffff, #eaf5ef);
+      width: 82px; height: 82px; margin: 0 auto 18px;
+      border-radius: 25px;
+      background: #eff8f2;
       box-shadow: 0 0 0 1px rgba(16,135,93,.16), 0 14px 34px rgba(16,135,93,.16);
       display: grid; place-items: center;
       position: relative;
     }
-    .splash-logo { width: 44px; height: 44px; border-radius: 12px; object-fit: contain; }
+    .splash-logo { width: 78px; height: 78px; border-radius: 23px; object-fit: cover; }
     .splash-pulse-ring {
-      position: absolute; inset: -6px; border-radius: 26px;
+      position: absolute; inset: -7px; border-radius: 29px;
       border: 1.5px solid rgba(16,135,93,.25);
       animation: ring-pulse 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     }
@@ -243,20 +247,20 @@
       font-size: 9px; font-weight: 600; margin-bottom: 14px;
     }
 
-    .splash-step { margin: 12px 0 10px; color: #64756c; font-size: 11px; line-height: 1.45; min-height: 28px; }
+    .splash-step { margin: 14px 0 10px; color: #64756c; font-size: 12px; line-height: 1.5; min-height: 22px; }
 
     .loading-waves {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 3px;
-      height: 20px;
-      margin: 8px auto 14px;
+      gap: 4px;
+      height: 24px;
+      margin: 12px auto 15px;
     }
     .loading-waves span {
-      display: block; width: 3px; height: 8px; border-radius: 2px;
+      display: block; width: 4px; height: 8px; border-radius: 4px;
       background: var(--green); opacity: 0.65;
-      animation: wave-bounce 1s ease-in-out infinite alternate;
+      animation: wave-bounce .85s ease-in-out infinite alternate;
     }
     .loading-waves span:nth-child(2) { animation-delay: .2s; }
     .loading-waves span:nth-child(3) { animation-delay: .4s; }
@@ -264,8 +268,14 @@
     .loading-waves span:nth-child(5) { animation-delay: .8s; }
     @keyframes wave-bounce {
       from { height: 4px; opacity: 0.3; }
-      to { height: 18px; opacity: 1; }
+      to { height: 23px; opacity: 1; }
     }
+    .splash-error { margin: 14px 0 4px; padding: 14px; border: 1px solid rgba(205,54,54,.24); border-radius: 15px; background: #fff4f3; color: #b42323; text-align: left; }
+    .splash-error[hidden] { display: none; }
+    .splash-error-message { margin: 0 0 12px; font-size: 12px; line-height: 1.55; font-weight: 600; overflow-wrap: anywhere; }
+    .retry-assistant { width: 100%; padding: 11px 16px; border: 0; border-radius: 11px; color: #fff; background: #c53b3b; font-size: 12px; font-weight: 650; cursor: pointer; transition: background .2s, transform .2s; }
+    .retry-assistant:hover { background: #a92d2d; }
+    .retry-assistant:active { transform: scale(.98); }
 
     .start-assistant {
       margin: 10px 0 14px; padding: 12px 22px; border: 0; border-radius: 999px;
@@ -280,6 +290,7 @@
     .start-assistant:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(16,135,93,.32); }
     .start-assistant:active { transform: scale(.97); }
     .start-assistant:disabled { opacity: .6; cursor: wait; }
+    .start-assistant[hidden] { display: none; }
 
     .progress { height: 3px; overflow: hidden; background: #dce4df; border-radius: 3px; margin-top: 6px; }
     .progress span { display: block; height: 100%; width: 0%; background: var(--green); transition: width .35s cubic-bezier(0.4, 0, 0.2, 1); }
@@ -287,7 +298,7 @@
     @media (min-width: 600px) {
       .app { max-width: 480px; margin: auto; height: 100dvh; border-inline: 1px solid rgba(25,55,40,.06); }
       body { background: #e9eeeb; }
-      .data-card { padding: 16px 18px; }
+      .data-card { padding: 18px 20px; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
@@ -319,7 +330,7 @@
     <button id="scroll-bottom" class="scroll-bottom" type="button" hidden>↓ &nbsp; नवीनतम माहिती</button>
 
     <div id="live-status" class="live-status" data-state="IDLE" role="status" aria-live="polite">
-      <span class="live-dot"></span><span id="live-status-text">मायक्रोफोन सुरू होत आहे…</span>
+      <span class="live-dot"></span><span class="thinking-gear" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/><path d="m19.4 15 .1.1a1.8 1.8 0 0 1-2.5 2.5l-.1-.1a1.8 1.8 0 0 0-3 .9v.2a1.8 1.8 0 0 1-3.6 0v-.2a1.8 1.8 0 0 0-3-.9l-.1.1a1.8 1.8 0 0 1-2.5-2.5l.1-.1a1.8 1.8 0 0 0-.9-3h-.2a1.8 1.8 0 0 1 0-3.6h.2a1.8 1.8 0 0 0 .9-3l-.1-.1a1.8 1.8 0 0 1 2.5-2.5l.1.1a1.8 1.8 0 0 0 3-.9v-.2a1.8 1.8 0 0 1 3.6 0v.2a1.8 1.8 0 0 0 3 .9l.1-.1a1.8 1.8 0 0 1 2.5 2.5l-.1.1a1.8 1.8 0 0 0 .9 3h.2a1.8 1.8 0 0 1 0 3.6h-.2a1.8 1.8 0 0 0-.9 3Z"/></svg></span><span id="live-status-text"></span>
     </div>
     <div id="visualizer" class="visualizer" aria-hidden="true">
       <canvas id="waveform"></canvas>
@@ -331,8 +342,8 @@
         <span id="mic-label" class="mic-label">TAP TO SPEAK</span>
       </div>
       <div class="audio-wrap">
-        <button id="btn-audio" class="control audio-toggle" type="button" aria-label="Enable assistant audio" aria-pressed="false" disabled>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+        <button id="btn-audio" class="control audio-toggle" type="button" aria-label="Enable assistant audio" aria-pressed="false" title="Toggle assistant speaker" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><g class="sound-waves"><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></g><path class="sound-muted" d="m16 9 5 6m0-6-5 6"/></svg>
         </button>
         <span id="audio-label" class="audio-label">SOUND ON</span>
         <span id="audio-detail" class="audio-detail" aria-live="polite">तयार आहे</span>
@@ -355,6 +366,10 @@
       </div>
 
       <div id="splash-step" class="splash-step">सत्र सुरू करण्यासाठी खालील बटण दाबा.</div>
+      <div id="splash-error" class="splash-error" role="alert" hidden>
+        <p id="splash-error-message" class="splash-error-message"></p>
+        <button id="btn-retry" class="retry-assistant" type="button">पुन्हा प्रयत्न करा</button>
+      </div>
       <button id="btn-start" class="start-assistant" type="button">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         सुरू करा (Start Assistant)
@@ -414,6 +429,9 @@
       start: document.getElementById("btn-start"),
       splash: document.getElementById("splash"),
       splashStep: document.getElementById("splash-step"),
+      splashError: document.getElementById("splash-error"),
+      splashErrorMessage: document.getElementById("splash-error-message"),
+      retry: document.getElementById("btn-retry"),
       progress: document.getElementById("progress-bar"),
       loadingWaves: document.getElementById("loading-waves"),
       scrollButton: document.getElementById("scroll-bottom"),
@@ -788,11 +806,8 @@
           if (!content) return;
           content.replaceChildren();
           appendMarkdown(content, currentResponseText);
-          if (isNearBottom()) {
-            dom.feed.scrollTo({ top: dom.feed.scrollHeight, behavior: "smooth" });
-          } else {
-            dom.scrollButton.hidden = false;
-          }
+          dom.feed.scrollTo({ top: dom.feed.scrollHeight, behavior: "smooth" });
+          dom.scrollButton.hidden = true;
         });
       }
 
@@ -807,14 +822,7 @@
           const content = document.createElement("div");
           content.className = "response-content";
 
-          const footer = document.createElement("div");
-          footer.className = "card-footer";
-          const time = document.createElement("time");
-          time.dateTime = new Date().toISOString();
-          time.textContent = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date());
-          footer.append(time);
-
-          currentResponse.append(content, footer);
+          currentResponse.append(content);
           dom.empty.hidden = true;
           dom.feed.append(currentResponse);
         }
@@ -1125,9 +1133,6 @@
       let totalSpeechBytes = 0;
       let totalSpeechChunks = 0;
 
-      let bootAudioBuffer = null;
-      let bootSource = null;
-      let bootGain = null;
       let receivedAudioChunks = 0;
 
       async function initContext() {
@@ -1406,8 +1411,8 @@
           const hasOutputAudio = speaking && playbackAnalyser && pcmPlayer && pcmPlayer.isCurrentlyPlaying;
           const hasInputAudio = recording && inputAnalyser && UIController.getAudioLevel() > 0.03;
 
-          const phase = timestamp * (thinking ? .002 : speaking ? .003 : .001);
-          const amplitude = (thinking ? 7 : speaking ? 11 : 2.5) * scale;
+          const phase = timestamp * (thinking ? .0028 : speaking ? .0035 : .0014);
+          const amplitude = (thinking ? 10 : speaking ? 14 : 4) * scale;
           const gradient = ctx.createLinearGradient(0, 0, width, 0);
           colors.forEach((color, index) => gradient.addColorStop(index / (colors.length - 1), color));
 
@@ -1447,12 +1452,12 @@
           }
 
           ctx.strokeStyle = gradient;
-          ctx.globalAlpha = thinking || speaking || recording ? .95 : .55;
-          ctx.lineWidth = (thinking || speaking || recording ? 2.4 : 1.8) * scale;
+          ctx.globalAlpha = thinking || speaking || recording ? .98 : .72;
+          ctx.lineWidth = (thinking || speaking || recording ? 2.8 : 2.2) * scale;
           ctx.lineCap = "round";
           ctx.lineJoin = "round";
-          ctx.shadowColor = "rgba(16,135,93,.2)";
-          ctx.shadowBlur = 10 * scale;
+          ctx.shadowColor = "rgba(16,135,93,.32)";
+          ctx.shadowBlur = 14 * scale;
           ctx.stroke();
           ctx.shadowBlur = 0;
           ctx.globalAlpha = 1;
@@ -1474,98 +1479,6 @@
         if (pcmPlayer) {
           pcmPlayer.flush();
         }
-      }
-
-      async function loadBootAudio() {
-        if (bootAudioBuffer) return bootAudioBuffer;
-        const candidateUrls = [
-          new URL("boot.opus", window.location.href).href,
-          new URL("boot.mp3", window.location.href).href,
-          "boot.opus",
-          "/contributer-page/boot.opus",
-          "boot.mp3",
-          "/contributer-page/boot.mp3"
-        ];
-        let audioData = null;
-        for (const url of candidateUrls) {
-          try {
-            const resp = await fetch(url);
-            if (resp.ok) {
-              const buf = await resp.arrayBuffer();
-              if (buf && buf.byteLength > 0) {
-                audioData = buf;
-                break;
-              }
-            }
-          } catch (_) {}
-        }
-        if (!audioData) {
-          console.warn("Startup audio file not found, continuing without sound.");
-          return null;
-        }
-        await initContext();
-        try {
-          bootAudioBuffer = await context.decodeAudioData(audioData.slice(0));
-          return bootAudioBuffer;
-        } catch (decodeErr) {
-          console.warn("Unable to decode startup audio:", decodeErr);
-          return null;
-        }
-      }
-
-      async function playStartupSoundBackground() {
-        try {
-          const audioBuffer = await loadBootAudio();
-          if (!audioBuffer) return;
-          await initContext();
-          if (!context || context.state === "closed") return;
-
-          if (bootSource) {
-            try { bootSource.stop(); } catch (_) {}
-            try { bootSource.disconnect(); } catch (_) {}
-            bootSource = null;
-          }
-
-          bootGain = context.createGain();
-          bootGain.gain.setValueAtTime(0.001, context.currentTime);
-          bootGain.gain.linearRampToValueAtTime(0.7, context.currentTime + 0.15);
-          bootGain.connect(context.destination);
-
-          bootSource = context.createBufferSource();
-          bootSource.buffer = audioBuffer;
-          bootSource.connect(bootGain);
-
-          bootSource.onended = () => {
-            try { bootSource.disconnect(); } catch (_) {}
-            try { bootGain.disconnect(); } catch (_) {}
-            bootSource = null;
-            bootGain = null;
-          };
-
-          bootSource.start();
-          dom.audioDetail.textContent = "सुरुवातीचे संगीत सुरू आहे";
-        } catch (error) {
-          console.warn("Startup sound note:", error);
-          dom.audioDetail.textContent = "ऑडिओ तयार";
-        }
-      }
-
-      function stopStartupSound(fadeMs = 350) {
-        if (!bootSource || !bootGain || !context) return;
-        try {
-          const now = context.currentTime;
-          bootGain.gain.cancelScheduledValues(now);
-          bootGain.gain.setValueAtTime(bootGain.gain.value, now);
-          bootGain.gain.linearRampToValueAtTime(0.001, now + fadeMs / 1000);
-          setTimeout(() => {
-            if (bootSource) {
-              try { bootSource.stop(); } catch (_) {}
-              try { bootSource.disconnect(); } catch (_) {}
-            }
-            bootSource = null;
-            bootGain = null;
-          }, fadeMs + 20);
-        } catch (_) {}
       }
 
       function recordIncomingAudio(mimeType) {
@@ -1600,7 +1513,6 @@
       function stop() {
         isRecording = false;
         cancelAnimationFrame(frame);
-        stopStartupSound(80);
         stopPlayback();
         pcmPlayer = null;
         if (processor) {
@@ -1625,7 +1537,6 @@
         dom.audio.setAttribute("aria-pressed", "false");
         dom.audioLabel.textContent = "SOUND OFF";
         dom.audioDetail.textContent = "ऑडिओ बंद";
-        bootAudioBuffer = null;
         receivedAudioChunks = 0;
       }
 
@@ -1638,8 +1549,6 @@
         resize: drawVisualizer,
         playAudioChunk,
         finishAudioTurn,
-        playStartupSoundBackground,
-        stopStartupSound,
         recordIncomingAudio,
         stopPlayback,
         toggleMute,
@@ -1655,11 +1564,22 @@
       let sessionActive = true;
       let startupTimeout = null;
 
+      function showError(message) {
+        dom.loadingWaves.style.display = "none";
+        dom.progress.style.width = "0%";
+        dom.splashStep.textContent = "सेवा सुरू होऊ शकली नाही.";
+        dom.splashErrorMessage.textContent = `त्रुटी: ${message || "कृपया पुन्हा प्रयत्न करा."}`;
+        dom.splashError.hidden = false;
+        dom.start.hidden = true;
+        dom.splash.classList.remove("hidden");
+      }
+
       async function startSession() {
         sessionActive = true;
         UIController.finishAssistantResponse();
         dom.start.disabled = true;
         dom.start.hidden = true;
+        dom.splashError.hidden = true;
         dom.mic.disabled = true;
         dom.splash.classList.remove("hidden");
         dom.loadingWaves.style.display = "flex";
@@ -1669,8 +1589,6 @@
         UIController.setState(UIController.State.IDLE);
 
         try {
-          AudioEngine.playStartupSoundBackground();
-
           await AudioEngine.start({
             onChunk: chunk => LiveWebSocketClient.sendAudioChunk(chunk),
             onSilenceDetected: () => {
@@ -1714,7 +1632,10 @@
               );
             },
             onError: error => {
-              if (sessionActive) UIController.setState(UIController.State.ERROR, error.message);
+              if (sessionActive) {
+                UIController.setState(UIController.State.ERROR, error.message);
+                showError(error.message);
+              }
             },
             onActivity: activity => {
               if (activity === "interrupted") {
@@ -1755,7 +1676,6 @@
           UIController.setState(UIController.State.READY, "मायक्रोफोन तयार आहे · बोलण्यासाठी टॅप करा");
 
           setTimeout(() => {
-            AudioEngine.stopStartupSound(350);
             dom.splash.classList.add("hidden");
             dom.loadingWaves.style.display = "none";
             dom.mic.disabled = false;
@@ -1772,10 +1692,7 @@
           UIController.setConnection("त्रुटी", "error", error.message);
           UIController.setState(UIController.State.ERROR, error.message);
           dom.mic.disabled = false;
-          dom.splashStep.textContent = `त्रुटी: ${error.message}`;
-          dom.start.textContent = "पुन्हा प्रयत्न करा (Retry)";
-          dom.start.disabled = false;
-          dom.start.hidden = false;
+          showError(error.message);
         }
       }
 
@@ -1812,7 +1729,9 @@
         dom.cancel.addEventListener("click", endSession);
 
         dom.start.addEventListener("click", () => {
-          dom.start.textContent = "सुरू करत आहे…";
+          void startSession();
+        });
+        dom.retry.addEventListener("click", () => {
           void startSession();
         });
 
