@@ -151,17 +151,17 @@
     .live-status { min-height: 22px; padding: 0 16px; display: flex; align-items: center; justify-content: center; gap: 6px; color: #718078; font-size: 11px; font-weight: 550; }
     .live-status .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); transition: background .2s; }
     .live-status[data-state="RECORDING"] .live-dot { background: #e53e3e; box-shadow: 0 0 8px rgba(229,62,62,.6); animation: blink .8s infinite alternate; }
-    .live-status[data-state="THINKING"] .live-dot { background: #f5b942; animation: blink .7s infinite alternate; }
+    .live-status[data-state="THINKING"] .live-dot { background: #f5b942; box-shadow: 0 0 8px rgba(245,185,66,.55); animation: blink .7s infinite alternate; }
     .live-status[data-state="SPEAKING"] .live-dot { background: #4285F4; box-shadow: 0 0 6px rgba(66,133,244,.6); }
     .live-status[data-state="ERROR"] .live-dot { background: #ef5c5c; }
     #live-status-text, .mic-label, .audio-label, .audio-detail { display: none; }
-    .thinking-gear { display: none; width: 17px; height: 17px; color: #c28a12; }
+    .thinking-gear { display: none; width: 20px; height: 20px; color: #c28a12; filter: drop-shadow(0 0 3px rgba(245,185,66,.55)); }
     .thinking-gear svg { display: block; width: 100%; height: 100%; animation: gear-turn 2.4s linear infinite; }
     .live-status[data-state="THINKING"] .thinking-gear { display: block; }
     @keyframes gear-turn { to { transform: rotate(360deg); } }
     .visualizer { position: relative; height: 62px; flex: none; overflow: hidden; background: transparent; }
     #waveform { width: 100%; height: 100%; display: block; }
-    footer { flex: none; padding: 2px 16px 8px; display: flex; justify-content: center; align-items: center; gap: 18px; }
+    footer { flex: none; padding: 2px 16px 16px; display: flex; justify-content: center; align-items: center; gap: 18px; }
     .control {
       border: 0; display: grid; place-items: center; cursor: pointer; color: #fff;
       transition: transform .18s ease, opacity .18s ease;
@@ -1130,7 +1130,9 @@
       let silenceTimer = null;
       let frame = null;
       let visualizerLevel = 0;
+      let visualizerActivity = 0;
       let visualizerLastTime = 0;
+      let visualizerSpeakTime = 0;
 
       // Rate-pacing buffer: Accumulates into uniform 100ms (1600 samples) chunks
       const OUTGOING_CHUNK_SAMPLES = 1600; // 100ms of 16kHz audio = 3200 bytes
@@ -1398,7 +1400,12 @@
         canvas.width = Math.max(1, Math.floor(rect.width * scale));
         canvas.height = Math.max(1, Math.floor(rect.height * scale));
         const ctx = canvas.getContext("2d");
-        const colors = ["#2868d7", "#4385e8", "#55a9bb"];
+        const colors = [
+          [24, 58, 132],
+          [132, 184, 255],
+          [226, 72, 86],
+          [242, 194, 75]
+        ];
         const audioSamples = new Uint8Array(512);
 
         const render = timestamp => {
@@ -1426,40 +1433,68 @@
             const targetLevel = Math.min(1, Math.sqrt(sum / audioSamples.length) * 5);
             const smoothingTime = targetLevel > visualizerLevel ? 220 : 420;
             visualizerLevel += (targetLevel - visualizerLevel) * (1 - Math.exp(-elapsed / smoothingTime));
+            visualizerSpeakTime = timestamp;
           } else {
-            visualizerLevel = 0;
+            visualizerLevel += (0 - visualizerLevel) * (1 - Math.exp(-elapsed / 420));
           }
+          const targetActivity = aiVoiceActive ? 1 : 0;
+          const activitySmoothing = aiVoiceActive ? 180 : 420;
+          visualizerActivity += (targetActivity - visualizerActivity)
+            * (1 - Math.exp(-elapsed / activitySmoothing));
 
-          const gradient = ctx.createLinearGradient(0, 0, width, 0);
-          colors.forEach((color, index) => gradient.addColorStop(index / (colors.length - 1), color));
+          let strokeStyle = "#2868d7";
+          if (visualizerActivity > .001) {
+            const colorPhase = (visualizerSpeakTime / 2400) % colors.length;
+            const colorIndex = Math.floor(colorPhase);
+            const colorMix = colorPhase - colorIndex;
+            const gradient = ctx.createLinearGradient(0, 0, width, 0);
+            colors.forEach((color, index) => {
+              const from = colors[(index + colorIndex) % colors.length];
+              const to = colors[(index + colorIndex + 1) % colors.length];
+              const speakingColor = from.map((channel, channelIndex) =>
+                Math.round(channel + (to[channelIndex] - channel) * colorMix)
+              );
+              const idleColor = [40, 104, 215];
+              const blended = speakingColor.map((channel, channelIndex) =>
+                Math.round(idleColor[channelIndex] +
+                  (channel - idleColor[channelIndex]) * visualizerActivity)
+              );
+              gradient.addColorStop(
+                index / (colors.length - 1),
+                `rgb(${blended[0]}, ${blended[1]}, ${blended[2]})`
+              );
+            });
+            strokeStyle = gradient;
+          }
 
           ctx.beginPath();
-          if (aiVoiceActive) {
-            const phase = timestamp * .0015;
-            const amplitude = (5 + visualizerLevel * 17) * scale;
-            const points = Math.max(48, Math.floor(width / (3 * scale)));
-            for (let point = 0; point <= points; point++) {
-              const progress = point / points;
-              const envelope = Math.pow(Math.sin(progress * Math.PI), .75);
-              const wave = Math.sin(progress * Math.PI * 3.2 - phase)
-                + .24 * Math.sin(progress * Math.PI * 6.4 - phase * .72);
-              const x = progress * width;
-              const y = center - wave * envelope * amplitude;
-              if (point === 0) ctx.moveTo(x, y);
-              else ctx.lineTo(x, y);
-            }
-          } else {
-            ctx.moveTo(0, center);
-            ctx.lineTo(width, center);
+          const phase = timestamp * .0015;
+          const points = Math.max(48, Math.floor(width / (3 * scale)));
+          const idleAmplitude = .55;
+          const voiceAmplitude = 5 + visualizerLevel * 17;
+          const amplitude = idleAmplitude +
+            (voiceAmplitude - idleAmplitude) * visualizerActivity;
+          for (let point = 0; point <= points; point++) {
+            const progress = point / points;
+            const envelope = Math.pow(Math.sin(progress * Math.PI), .75);
+            const idleWave = Math.sin(progress * Math.PI * 2 - phase * .35) * .55;
+            const voiceWave = Math.sin(progress * Math.PI * 3.2 - phase)
+              + .24 * Math.sin(progress * Math.PI * 6.4 - phase * .72);
+            const wave = idleWave + (voiceWave - idleWave) * visualizerActivity;
+            const x = progress * width;
+            const y = center - wave * envelope * amplitude * scale;
+            if (point === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
           }
 
-          ctx.strokeStyle = gradient;
-          ctx.globalAlpha = aiVoiceActive ? .94 : .38;
-          ctx.lineWidth = (aiVoiceActive ? 2.6 : 1.5) * scale;
+          ctx.strokeStyle = strokeStyle;
+          ctx.globalAlpha = .54 + .4 * visualizerActivity +
+            .08 * (1 - visualizerActivity) * (0.5 + 0.5 * Math.sin(timestamp * .0012));
+          ctx.lineWidth = (1.6 + visualizerActivity) * scale;
           ctx.lineCap = "round";
           ctx.lineJoin = "round";
           ctx.shadowColor = "rgba(40,104,215,.3)";
-          ctx.shadowBlur = aiVoiceActive ? 12 * scale : 0;
+          ctx.shadowBlur = (2 + visualizerActivity * 10) * scale;
           ctx.stroke();
           ctx.shadowBlur = 0;
           ctx.globalAlpha = 1;
