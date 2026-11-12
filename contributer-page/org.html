@@ -48,6 +48,46 @@
 
         .desc-content { max-height: 0; overflow: hidden; opacity: 0; padding: 0 15px; background: #f8fafc; border-radius: 8px; font-size: 13.5px; color: #475569; line-height: 1.6; margin-top: 0; transition: all 0.3s ease-in-out; border: 1px solid transparent; }
         .desc-content.open { max-height: 600px; opacity: 1; padding: 15px; margin-top: 5px; border-color: #e2e8f0; }
+
+        /* Public announcements */
+        .announcements-panel { background: white; border: 1px solid #e8edf4; border-radius: 16px; padding: 20px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(15, 23, 42, .04); }
+        .announcements-toggle { width: 100%; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: space-between; gap: 14px; text-align: left; cursor: pointer; color: #1e293b; }
+        .announcements-heading { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .announcements-icon { width: 42px; height: 42px; flex: 0 0 42px; display: grid; place-items: center; border-radius: 12px; color: #6d28d9; background: #f3e8ff; font-size: 17px; }
+        .announcements-title { margin: 0; font-size: 17px; font-weight: 700; }
+        .announcements-subtitle { margin: 3px 0 0; color: #64748b; font-size: 12px; }
+        .announcements-count { min-width: 27px; height: 27px; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; border-radius: 20px; color: #6d28d9; background: #f3e8ff; font-size: 12px; font-weight: 700; }
+        .announcements-toggle-end { display: flex; align-items: center; gap: 12px; }
+        .announcements-chevron { color: #64748b; transition: transform .25s ease; }
+        .announcements-toggle[aria-expanded="true"] .announcements-chevron { transform: rotate(180deg); }
+        .announcements-content { max-height: 0; overflow: hidden; opacity: 0; transition: max-height .3s ease, opacity .25s ease, margin .3s ease; }
+        .announcements-content.open { max-height: 520px; opacity: 1; margin-top: 18px; }
+        .announcements-horizontal { display: flex; gap: 12px; overflow-x: auto; padding: 2px 2px 10px; scrollbar-width: thin; }
+        .announcement-card { flex: 0 0 270px; min-height: 148px; padding: 15px; display: flex; flex-direction: column; align-items: stretch; text-align: left; border: 1px solid #e2e8f0; border-radius: 13px; background: linear-gradient(145deg, #fff 45%, #faf8ff); color: #1e293b; cursor: pointer; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+        .announcement-card:hover, .announcement-card:focus-visible { transform: translateY(-2px); border-color: #c4b5fd; box-shadow: 0 8px 18px rgba(109, 40, 217, .10); outline: none; }
+        .announcement-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 11px; }
+        .announcement-project { min-width: 0; overflow: hidden; color: #6d28d9; font-size: 11px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+        .announcement-date { flex-shrink: 0; color: #64748b; font-size: 10px; }
+        .announcement-expense { margin: 0 0 7px; font-size: 14px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+        .announcement-amount { margin-top: auto; color: #0f766e; font-size: 13px; font-weight: 700; }
+        .announcement-message-preview { margin: 8px 0 0; color: #64748b; font-size: 11px; line-height: 1.45; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .announcements-empty { margin: 0; padding: 16px; border: 1px dashed #cbd5e1; border-radius: 10px; color: #64748b; font-size: 13px; text-align: center; }
+        .announcement-modal-overlay { position: fixed; inset: 0; z-index: 1200; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(15, 23, 42, .62); backdrop-filter: blur(5px); }
+        .announcement-modal-overlay.open { display: flex; }
+        .announcement-modal { position: relative; width: 100%; max-width: 520px; max-height: 88vh; overflow-y: auto; padding: 28px; border: 1px solid rgba(255,255,255,.7); border-radius: 20px; background: #fff; box-shadow: 0 24px 70px rgba(15, 23, 42, .28); animation: announcement-modal-in .2s ease-out; }
+        @keyframes announcement-modal-in { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .announcement-modal-close { position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 50%; background: #f1f5f9; color: #475569; cursor: pointer; transition: background .2s ease; }
+        .announcement-modal-close:hover { background: #e2e8f0; }
+        .announcement-modal-kicker { margin: 0 45px 8px 0; color: #7c3aed; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+        .announcement-modal h2 { margin: 0 42px 20px 0; color: #0f172a; font-size: 22px; line-height: 1.3; }
+        .announcement-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+        .announcement-detail { min-width: 0; padding: 13px; border: 1px solid #e8edf4; border-radius: 11px; background: #f8fafc; }
+        .announcement-detail-label { display: block; margin-bottom: 5px; color: #64748b; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+        .announcement-detail-value { display: block; color: #1e293b; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+        .announcement-detail-value.amount { color: #0f766e; font-size: 16px; }
+        .announcement-message { padding: 16px; border-radius: 12px; background: #f8fafc; color: #334155; font-size: 14px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+        .announcement-message-label { margin: 0 0 8px; color: #64748b; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+        body.announcement-modal-open { overflow: hidden; }
         
         /* Skeleton Loaders */
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
@@ -65,6 +105,13 @@
             .dashboard-content { padding: 12px; padding-bottom: 130px; } /* Increased from 120px */
             .pardarshi-footer { padding-bottom: 80px; } /* Increased from 70px to lift the text */
             .assistant-launcher { right: 16px; bottom: 88px; }
+            .announcements-panel { padding: 16px; }
+            .announcement-card { flex-basis: 245px; }
+            .announcement-modal { padding: 24px 20px; }
+        }
+        @media (max-width: 420px) {
+            .announcement-detail-grid { grid-template-columns: 1fr; }
+            .announcements-subtitle { max-width: 180px; }
         }
     </style>
 </head>
@@ -117,6 +164,26 @@
                     </div>
                 </div>
 
+                <!-- Public Announcements -->
+                <section class="announcements-panel" aria-label="Organization announcements">
+                    <button class="announcements-toggle" id="announcements-toggle" type="button" aria-expanded="false" aria-controls="announcements-content">
+                        <span class="announcements-heading">
+                            <span class="announcements-icon"><i class="fa-solid fa-bullhorn" aria-hidden="true"></i></span>
+                            <span>
+                                <span class="announcements-title" style="display:block;">Announcements</span>
+                                <span class="announcements-subtitle" style="display:block;">Latest organization updates</span>
+                            </span>
+                        </span>
+                        <span class="announcements-toggle-end">
+                            <span class="announcements-count" id="announcements-count" aria-label="0 announcements">0</span>
+                            <i class="fa-solid fa-chevron-down announcements-chevron" aria-hidden="true"></i>
+                        </span>
+                    </button>
+                    <div class="announcements-content" id="announcements-content" aria-hidden="true">
+                        <div class="announcements-horizontal" id="announcements-container"></div>
+                    </div>
+                </section>
+
                 <!-- Prominent Description -->
                 <div class="prominent-desc" id="org-desc"></div>
 
@@ -142,6 +209,17 @@
         <img id="assistant-launcher-icon" src="/contributer-page/ailogo.ico" alt="">
     </a> 
 
+    <div class="announcement-modal-overlay" id="announcement-modal" role="dialog" aria-modal="true" aria-labelledby="announcement-modal-title" aria-hidden="true">
+        <div class="announcement-modal">
+            <button class="announcement-modal-close" id="announcement-modal-close" type="button" aria-label="Close announcement details"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+            <p class="announcement-modal-kicker">Organization announcement</p>
+            <h2 id="announcement-modal-title"></h2>
+            <div class="announcement-detail-grid" id="announcement-modal-details"></div>
+            <p class="announcement-message-label">Announcement details</p>
+            <div class="announcement-message" id="announcement-modal-message"></div>
+        </div>
+    </div>
+
     <script>
         // SECURITY UTILITIES
         const escapeHtml = (str) => String(str || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
@@ -152,6 +230,97 @@
             if (trimmed.toLowerCase().startsWith('javascript:')) return '#';
             return escapeHtml(trimmed);
         };
+
+        const formatAnnouncementDate = (value) => {
+            if (!value) return 'Date unavailable';
+            const date = new Date(value);
+            return Number.isNaN(date.getTime()) ? 'Date unavailable' : date.toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+        };
+        const formatAnnouncementAmount = (value) => {
+            const amount = Number(value);
+            return value === null || value === undefined || value === '' || !Number.isFinite(amount)
+                ? 'Amount unavailable'
+                : `₹${amount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+        };
+        function renderAnnouncements(announcements) {
+            const items = Array.isArray(announcements) ? announcements : [];
+            const container = document.getElementById('announcements-container');
+            const count = document.getElementById('announcements-count');
+            count.textContent = String(items.length);
+            count.setAttribute('aria-label', `${items.length} announcement${items.length === 1 ? '' : 's'}`);
+
+            if (!items.length) {
+                container.innerHTML = '<p class="announcements-empty">There are no public announcements yet.</p>';
+                return;
+            }
+
+            container.innerHTML = items.map((item, index) => {
+                const projectName = item.project_name || 'Organization update';
+                const expenseTitle = item.expense_title || 'No expense linked';
+                const message = item.text_information || 'No additional announcement details.';
+                return `
+                    <button class="announcement-card" type="button" data-announcement-index="${index}" aria-label="View announcement for ${escapeHtml(projectName)}">
+                        <span class="announcement-card-top">
+                            <span class="announcement-project"><i class="fa-solid fa-folder-open" aria-hidden="true"></i> ${escapeHtml(projectName)}</span>
+                            <span class="announcement-date">${escapeHtml(formatAnnouncementDate(item.created_at))}</span>
+                        </span>
+                        <span class="announcement-expense">${escapeHtml(expenseTitle)}</span>
+                        <span class="announcement-amount">${escapeHtml(formatAnnouncementAmount(item.expense_amount))}</span>
+                        <span class="announcement-message-preview">${escapeHtml(message)}</span>
+                    </button>
+                `;
+            }).join('');
+            container.announcementItems = items;
+        }
+
+        function closeAnnouncementModal() {
+            const modal = document.getElementById('announcement-modal');
+            modal.classList.remove('open');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('announcement-modal-open');
+        }
+
+        document.getElementById('announcements-toggle').addEventListener('click', event => {
+            const button = event.currentTarget;
+            const content = document.getElementById('announcements-content');
+            const isExpanded = button.getAttribute('aria-expanded') === 'true';
+            button.setAttribute('aria-expanded', String(!isExpanded));
+            content.setAttribute('aria-hidden', String(isExpanded));
+            content.classList.toggle('open', !isExpanded);
+        });
+
+        document.getElementById('announcements-container').addEventListener('click', event => {
+            const card = event.target.closest('.announcement-card');
+            if (!card) return;
+            const item = event.currentTarget.announcementItems[Number(card.dataset.announcementIndex)];
+            if (!item) return;
+
+            const projectName = item.project_name || 'Organization update';
+            const expenseTitle = item.expense_title || 'No expense linked';
+            document.getElementById('announcement-modal-title').textContent = expenseTitle;
+            document.getElementById('announcement-modal-details').innerHTML = `
+                <div class="announcement-detail"><span class="announcement-detail-label">Project</span><span class="announcement-detail-value">${escapeHtml(projectName)}</span></div>
+                <div class="announcement-detail"><span class="announcement-detail-label">Expense</span><span class="announcement-detail-value">${escapeHtml(expenseTitle)}</span></div>
+                <div class="announcement-detail"><span class="announcement-detail-label">Amount</span><span class="announcement-detail-value amount">${escapeHtml(formatAnnouncementAmount(item.expense_amount))}</span></div>
+                <div class="announcement-detail"><span class="announcement-detail-label">Announcement date</span><span class="announcement-detail-value">${escapeHtml(formatAnnouncementDate(item.created_at))}</span></div>
+            `;
+            document.getElementById('announcement-modal-message').textContent = item.text_information || 'No additional announcement details.';
+            const modal = document.getElementById('announcement-modal');
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('announcement-modal-open');
+            document.getElementById('announcement-modal-close').focus();
+        });
+
+        document.getElementById('announcement-modal-close').addEventListener('click', closeAnnouncementModal);
+        document.getElementById('announcement-modal').addEventListener('click', event => {
+            if (event.target.id === 'announcement-modal') closeAnnouncementModal();
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && document.getElementById('announcement-modal').classList.contains('open')) {
+                closeAnnouncementModal();
+            }
+        });
 
         const scheduledPrefetches = new Set();
         function scheduleRelatedDataPrefetch(baseUrl, orgSlug, projects, guestToken) {
@@ -273,6 +442,8 @@
                     if(ogTitle) ogTitle.setAttribute('content', org.name);
                     if(ogDesc) ogDesc.setAttribute('content', org.description || 'View our organization profile on PARDARSHI.');
                     if(ogImage) ogImage.setAttribute('content', safeLogoUrl);
+
+                    renderAnnouncements(result.data.announcements);
               
  
                     // Securely assign text properties to prevent DOM injection
