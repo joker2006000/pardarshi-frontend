@@ -14,9 +14,9 @@
       background: #f5f7f6;
       color: #17211b;
       font-synthesis: none;
-      --green: #07875d;
-      --green-light: rgba(16,135,93,.08);
-      --green-border: rgba(16,135,93,.25);
+      --green: #2868d7;
+      --green-light: rgba(40,104,215,.08);
+      --green-border: rgba(40,104,215,.25);
       --muted: #718078;
       --panel: #ffffff;
       --line: rgba(25,55,40,.11);
@@ -35,7 +35,7 @@
       flex-direction: column;
       padding: var(--safe-top) 0 var(--safe-bottom);
       overflow: hidden;
-      background: radial-gradient(ellipse at 50% 100%, rgba(16,135,93,.055), transparent 44%), #f5f7f6;
+      background: radial-gradient(ellipse at 50% 100%, rgba(40,104,215,.055), transparent 44%), #f5f7f6;
     }
     header {
       min-height: 58px;
@@ -54,7 +54,7 @@
     .connection-main { display: flex; align-items: center; gap: 6px; color: #34443b; font-size: 11px; font-weight: 600; }
     .connection-label[hidden], .latency-label[hidden] { display: none; }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #aab4ae; box-shadow: 0 0 0 3px rgba(104,113,108,.12); transition: background .3s, box-shadow .3s; }
-    .status-dot.connected { background: var(--green); box-shadow: 0 0 0 3px rgba(16,135,93,.18); }
+    .status-dot.connected { background: var(--green); box-shadow: 0 0 0 3px rgba(40,104,215,.18); }
     .status-dot.pending { background: #f5b942; box-shadow: 0 0 0 3px rgba(245,185,66,.2); animation: blink 1s infinite alternate; }
     .status-dot.error { background: #ef5c5c; box-shadow: 0 0 0 3px rgba(239,92,92,.18); }
     .brand { text-align: right; line-height: 1.15; display: flex; align-items: center; gap: 9px; }
@@ -80,8 +80,8 @@
     .empty-mark {
       width: 58px; height: 58px; margin: 0 auto 14px; border-radius: 18px;
       display: grid; place-items: center; color: var(--green);
-      border: 1px solid rgba(16,135,93,.22); background: rgba(16,135,93,.06);
-      box-shadow: 0 4px 20px rgba(16,135,93,.1);
+      border: 1px solid rgba(40,104,215,.22); background: rgba(40,104,215,.06);
+      box-shadow: 0 4px 20px rgba(40,104,215,.1);
     }
     .empty-mark img { width: 34px; height: 34px; border-radius: 8px; object-fit: contain; }
     .feed-empty h1 { margin: 0 0 6px; color: #23332a; font-size: 15px; font-weight: 650; }
@@ -100,7 +100,7 @@
       color: #ffffff;
       font-size: 12.5px;
       line-height: 1.5;
-      box-shadow: 0 3px 10px rgba(16,135,93,.18);
+      box-shadow: 0 3px 10px rgba(40,104,215,.18);
     }
 
     /* Clean response card without redundant labels */
@@ -123,11 +123,11 @@
     .response-content p, .response-content ul, .response-content ol, .response-content blockquote, .response-content pre { margin: 7px 0; }
     .response-content ul, .response-content ol { padding-left: 20px; }
     .response-content li { margin-bottom: 3px; }
-    .response-content blockquote { padding-left: 10px; border-left: 3px solid rgba(16,135,93,.4); color: #57675f; margin: 8px 0; font-style: italic; }
+    .response-content blockquote { padding-left: 10px; border-left: 3px solid rgba(40,104,215,.4); color: #57675f; margin: 8px 0; font-style: italic; }
     .response-content pre { overflow-x: auto; padding: 9px; border-radius: 8px; background: #f0f4f1; border: 1px solid var(--line); font-size: 11px; }
-    .response-content code { padding: 1px 4px; border-radius: 4px; background: #f0f4f1; font-family: ui-monospace, monospace; font-size: 11px; color: #1f3b2c; }
+    .response-content code { padding: 1px 4px; border-radius: 4px; background: #f0f4f1; font-family: ui-monospace, monospace; font-size: 11px; color: #263955; }
     .response-content pre code { padding: 0; background: transparent; }
-    .response-content a { color: #08734f; text-decoration: underline; font-weight: 500; }
+    .response-content a { color: #2459b9; text-decoration: underline; font-weight: 500; }
     .response-content hr { margin: 10px 0; border: 0; border-top: 1px solid var(--line); }
     @keyframes card-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -136,7 +136,7 @@
     th { padding: 8px 7px; color: #627269; font-size: 9px; font-weight: 650; letter-spacing: .05em; text-transform: uppercase; background: #f4f7f5; border-bottom: 1px solid var(--line); }
     td { padding: 8px 7px; color: #34443b; border-bottom: 1px solid rgba(25,55,40,.07); vertical-align: top; }
     tbody tr:last-child td { border-bottom: 0; }
-    tbody tr:hover td { background: rgba(16,135,93,.02); }
+    tbody tr:hover td { background: rgba(40,104,215,.035); }
     .amount { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; font-weight: 600; color: #182b20; }
     .scroll-bottom {
       position: absolute; z-index: 3; left: 50%; bottom: calc(140px + var(--safe-bottom));
@@ -172,17 +172,17 @@
     }
     .mic-wrap { display: grid; justify-items: center; gap: 5px; }
     .mic {
-      width: 66px; height: 66px; position: relative; border: 2px solid rgba(16,135,93,.35);
-      border-radius: 50%; background: radial-gradient(circle at 50% 40%, #ffffff, #e8f4ee);
-      box-shadow: 0 0 0 6px rgba(16,135,93,.045), 0 10px 28px rgba(16,135,93,.16), inset 0 1px 3px #fff;
-      color: #07875d;
+      width: 66px; height: 66px; position: relative; border: 2px solid rgba(40,104,215,.35);
+      border-radius: 50%; background: radial-gradient(circle at 50% 40%, #ffffff, #edf4ff);
+      box-shadow: 0 0 0 6px rgba(40,104,215,.045), 0 10px 28px rgba(40,104,215,.16), inset 0 1px 3px #fff;
+      color: #2868d7;
       isolation: isolate;
       cursor: pointer;
       transition: transform .2s ease, box-shadow .25s ease, background .25s ease, border-color .25s ease;
     }
     .mic > span { position: relative; z-index: 1; width: 30px; height: 30px; display: grid; place-items: center; }
     .mic svg { width: 26px; height: 26px; display: block; }
-    .mic::before, .mic::after { content: ""; position: absolute; z-index: -1; inset: -8px; border: 1.5px solid rgba(16,135,93,.2); border-radius: 50%; opacity: 0; transform: scale(.92); pointer-events: none; }
+    .mic::before, .mic::after { content: ""; position: absolute; z-index: -1; inset: -8px; border: 1.5px solid rgba(40,104,215,.2); border-radius: 50%; opacity: 0; transform: scale(.92); pointer-events: none; }
     
     /* Recording active state */
     .mic.recording {
@@ -203,7 +203,7 @@
       width: 44px; height: 44px; border: 1px solid rgba(25,55,40,.1); border-radius: 50%;
       background: #ffffff; color: #64766c; box-shadow: 0 2px 8px rgba(0,0,0,.04);
     }
-    .audio-toggle.enabled { color: var(--green); border-color: rgba(16,135,93,.32); background: #f0faf4; }
+    .audio-toggle.enabled { color: var(--green); border-color: rgba(40,104,215,.32); background: #eff5ff; }
     .audio-toggle svg { width: 20px; height: 20px; }
     .audio-toggle[aria-pressed="false"] .sound-waves { display: none; }
     .audio-toggle[aria-pressed="false"] .sound-muted { display: block; }
@@ -212,25 +212,25 @@
     /* Branded startup overlay */
     .splash {
       position: fixed; inset: 0; z-index: 100; display: grid; place-items: center;
-      padding: 24px; background: rgba(245, 247, 246, 0.98);
-      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      padding: 28px 24px; background: radial-gradient(ellipse at 50% 42%, #ffffff 0%, #f5f8fc 66%, #eef3fb 100%);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
       transition: opacity .45s cubic-bezier(0.4, 0, 0.2, 1), visibility .45s;
     }
     .splash.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-    .splash-content { width: min(340px, 100%); padding: 26px 24px 24px; text-align: center; border: 1px solid rgba(25,55,40,.09); border-radius: 26px; background: rgba(255,255,255,.92); box-shadow: 0 24px 70px rgba(25,55,40,.12); }
+    .splash-content { width: min(360px, 100%); padding: 22px 18px; text-align: center; }
 
     .splash-logo-wrap {
       width: 82px; height: 82px; margin: 0 auto 18px;
       border-radius: 25px;
-      background: #eff8f2;
-      box-shadow: 0 0 0 1px rgba(16,135,93,.16), 0 14px 34px rgba(16,135,93,.16);
+      background: linear-gradient(145deg, #ffffff, #edf4ff);
+      box-shadow: 0 0 0 1px rgba(40,104,215,.14), 0 14px 34px rgba(40,104,215,.14);
       display: grid; place-items: center;
       position: relative;
     }
     .splash-logo { width: 78px; height: 78px; border-radius: 23px; object-fit: cover; }
     .splash-pulse-ring {
       position: absolute; inset: -7px; border-radius: 29px;
-      border: 1.5px solid rgba(16,135,93,.25);
+      border: 1.5px solid rgba(40,104,215,.25);
       animation: ring-pulse 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     }
     @keyframes ring-pulse {
@@ -239,12 +239,12 @@
       100% { transform: scale(0.95); opacity: 0.8; }
     }
 
-    .splash-title { color: var(--green); font-size: 15px; font-weight: 750; letter-spacing: .1em; margin-bottom: 2px; }
-    .splash-subtitle { color: #53655c; font-size: 11px; font-weight: 500; margin-bottom: 6px; display: block; }
+    .splash-title { color: var(--green); font-size: 16px; font-weight: 750; letter-spacing: .12em; margin-bottom: 4px; }
+    .splash-subtitle { color: #53655c; font-size: 12px; font-weight: 500; margin-bottom: 8px; display: block; }
     .splash-org-tag {
       display: inline-block; padding: 3px 9px; border-radius: 999px;
-      background: rgba(16,135,93,.08); color: var(--green);
-      font-size: 9px; font-weight: 600; margin-bottom: 14px;
+      background: rgba(40,104,215,.08); color: #2459b9;
+      font-size: 10px; font-weight: 600; margin-bottom: 18px;
     }
 
     .splash-step { margin: 14px 0 10px; color: #64756c; font-size: 12px; line-height: 1.5; min-height: 22px; }
@@ -253,22 +253,22 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
-      height: 24px;
-      margin: 12px auto 15px;
+      gap: 7px;
+      height: 22px;
+      margin: 12px auto 18px;
     }
     .loading-waves span {
-      display: block; width: 4px; height: 8px; border-radius: 4px;
-      background: var(--green); opacity: 0.65;
-      animation: wave-bounce .85s ease-in-out infinite alternate;
+      display: block; width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green); opacity: 0.45;
+      animation: loading-pulse 1.35s ease-in-out infinite;
     }
-    .loading-waves span:nth-child(2) { animation-delay: .2s; }
-    .loading-waves span:nth-child(3) { animation-delay: .4s; }
-    .loading-waves span:nth-child(4) { animation-delay: .6s; }
-    .loading-waves span:nth-child(5) { animation-delay: .8s; }
-    @keyframes wave-bounce {
-      from { height: 4px; opacity: 0.3; }
-      to { height: 23px; opacity: 1; }
+    .loading-waves span:nth-child(2) { animation-delay: .12s; }
+    .loading-waves span:nth-child(3) { animation-delay: .24s; }
+    .loading-waves span:nth-child(4) { animation-delay: .36s; }
+    .loading-waves span:nth-child(5) { animation-delay: .48s; }
+    @keyframes loading-pulse {
+      0%, 60%, 100% { opacity: .4; transform: scale(.78); }
+      30% { opacity: 1; transform: scale(1.16); }
     }
     .splash-error { margin: 14px 0 4px; padding: 14px; border: 1px solid rgba(205,54,54,.24); border-radius: 15px; background: #fff4f3; color: #b42323; text-align: left; }
     .splash-error[hidden] { display: none; }
@@ -278,22 +278,23 @@
     .retry-assistant:active { transform: scale(.98); }
 
     .start-assistant {
-      margin: 10px 0 14px; padding: 12px 22px; border: 0; border-radius: 999px;
-      color: #fff; background: var(--green); font-size: 12px; font-weight: 650;
-      box-shadow: 0 6px 18px rgba(16,135,93,.25);
+      width: min(280px, 100%); justify-content: center;
+      margin: 10px 0 14px; padding: 14px 22px; border: 0; border-radius: 15px;
+      color: #fff; background: linear-gradient(135deg, #3478e5, #2459b9); font-size: 13px; font-weight: 650;
+      box-shadow: 0 8px 20px rgba(40,104,215,.24);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 7px;
       transition: all .2s ease;
     }
-    .start-assistant:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(16,135,93,.32); }
+    .start-assistant:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(40,104,215,.3); }
     .start-assistant:active { transform: scale(.97); }
     .start-assistant:disabled { opacity: .6; cursor: wait; }
     .start-assistant[hidden] { display: none; }
 
-    .progress { height: 3px; overflow: hidden; background: #dce4df; border-radius: 3px; margin-top: 6px; }
-    .progress span { display: block; height: 100%; width: 0%; background: var(--green); transition: width .35s cubic-bezier(0.4, 0, 0.2, 1); }
+    .progress { display: none; }
+    .progress span { display: block; height: 100%; width: 0%; border-radius: inherit; background: linear-gradient(90deg, #3478e5, #65a1ff); transition: width .5s ease; }
 
     @media (min-width: 600px) {
       .app { max-width: 480px; margin: auto; height: 100dvh; border-inline: 1px solid rgba(25,55,40,.06); }
@@ -1126,6 +1127,8 @@
       let onSilenceDetected = () => {};
       let silenceTimer = null;
       let frame = null;
+      let visualizerLevel = 0;
+      let visualizerLastTime = 0;
 
       // Rate-pacing buffer: Accumulates into uniform 100ms (1600 samples) chunks
       const OUTGOING_CHUNK_SAMPLES = 1600; // 100ms of 16kHz audio = 3200 bytes
@@ -1393,7 +1396,7 @@
         canvas.width = Math.max(1, Math.floor(rect.width * scale));
         canvas.height = Math.max(1, Math.floor(rect.height * scale));
         const ctx = canvas.getContext("2d");
-        const colors = ["#4285F4", "#EA4335", "#FBBC05", "#34A853", "#9C27B0"];
+        const colors = ["#2868d7", "#4385e8", "#55a9bb"];
         const audioSamples = new Uint8Array(512);
 
         const render = timestamp => {
@@ -1404,60 +1407,57 @@
 
           const state = UIController.getState();
           const center = height / 2;
-          const thinking = state === UIController.State.THINKING;
-          const speaking = state === UIController.State.SPEAKING;
-          const recording = state === UIController.State.RECORDING;
+          const aiVoiceActive = state === UIController.State.SPEAKING
+            && playbackAnalyser
+            && pcmPlayer
+            && pcmPlayer.isCurrentlyPlaying;
+          const elapsed = visualizerLastTime ? Math.min(80, timestamp - visualizerLastTime) : 16;
+          visualizerLastTime = timestamp;
 
-          const hasOutputAudio = speaking && playbackAnalyser && pcmPlayer && pcmPlayer.isCurrentlyPlaying;
-          const hasInputAudio = recording && inputAnalyser && UIController.getAudioLevel() > 0.03;
+          if (aiVoiceActive) {
+            playbackAnalyser.getByteTimeDomainData(audioSamples);
+            let sum = 0;
+            for (const sample of audioSamples) {
+              const normalized = (sample - 128) / 128;
+              sum += normalized * normalized;
+            }
+            const targetLevel = Math.min(1, Math.sqrt(sum / audioSamples.length) * 5);
+            const smoothingTime = targetLevel > visualizerLevel ? 220 : 420;
+            visualizerLevel += (targetLevel - visualizerLevel) * (1 - Math.exp(-elapsed / smoothingTime));
+          } else {
+            visualizerLevel = 0;
+          }
 
-          const phase = timestamp * (thinking ? .0028 : speaking ? .0035 : .0014);
-          const amplitude = (thinking ? 10 : speaking ? 14 : 4) * scale;
           const gradient = ctx.createLinearGradient(0, 0, width, 0);
           colors.forEach((color, index) => gradient.addColorStop(index / (colors.length - 1), color));
 
           ctx.beginPath();
-
-          if (hasOutputAudio && playbackAnalyser) {
-            playbackAnalyser.getByteTimeDomainData(audioSamples);
-            const points = Math.max(2, Math.floor(width / (2 * scale)));
+          if (aiVoiceActive) {
+            const phase = timestamp * .0015;
+            const amplitude = (5 + visualizerLevel * 17) * scale;
+            const points = Math.max(48, Math.floor(width / (3 * scale)));
             for (let point = 0; point <= points; point++) {
-              const sampleIndex = Math.min(audioSamples.length - 1, Math.floor((point / points) * audioSamples.length));
-              const normalized = (audioSamples[sampleIndex] - 128) / 128;
-              const y = center - normalized * height * .45;
-              const x = (point / points) * width;
-              if (point === 0) ctx.moveTo(x, y);
-              else ctx.lineTo(x, y);
-            }
-          } else if (hasInputAudio && inputAnalyser) {
-            inputAnalyser.getByteTimeDomainData(audioSamples);
-            const points = Math.max(2, Math.floor(width / (2 * scale)));
-            for (let point = 0; point <= points; point++) {
-              const sampleIndex = Math.min(audioSamples.length - 1, Math.floor((point / points) * audioSamples.length));
-              const normalized = (audioSamples[sampleIndex] - 128) / 128;
-              const y = center - normalized * height * .42;
-              const x = (point / points) * width;
+              const progress = point / points;
+              const envelope = Math.pow(Math.sin(progress * Math.PI), .75);
+              const wave = Math.sin(progress * Math.PI * 3.2 - phase)
+                + .24 * Math.sin(progress * Math.PI * 6.4 - phase * .72);
+              const x = progress * width;
+              const y = center - wave * envelope * amplitude;
               if (point === 0) ctx.moveTo(x, y);
               else ctx.lineTo(x, y);
             }
           } else {
-            for (let x = 0; x <= width; x += 2 * scale) {
-              const progress = x / width;
-              const envelope = Math.sin(progress * Math.PI) * .8 + .2;
-              const y = center + Math.sin(progress * 11 - phase) * amplitude * envelope
-                + Math.sin(progress * 19 - phase * .75) * amplitude * .3;
-              if (x === 0) ctx.moveTo(x, y);
-              else ctx.lineTo(x, y);
-            }
+            ctx.moveTo(0, center);
+            ctx.lineTo(width, center);
           }
 
           ctx.strokeStyle = gradient;
-          ctx.globalAlpha = thinking || speaking || recording ? .98 : .72;
-          ctx.lineWidth = (thinking || speaking || recording ? 2.8 : 2.2) * scale;
+          ctx.globalAlpha = aiVoiceActive ? .94 : .38;
+          ctx.lineWidth = (aiVoiceActive ? 2.6 : 1.5) * scale;
           ctx.lineCap = "round";
           ctx.lineJoin = "round";
-          ctx.shadowColor = "rgba(16,135,93,.32)";
-          ctx.shadowBlur = 14 * scale;
+          ctx.shadowColor = "rgba(40,104,215,.3)";
+          ctx.shadowBlur = aiVoiceActive ? 12 * scale : 0;
           ctx.stroke();
           ctx.shadowBlur = 0;
           ctx.globalAlpha = 1;
@@ -1584,7 +1584,7 @@
         dom.splash.classList.remove("hidden");
         dom.loadingWaves.style.display = "flex";
 
-        dom.splashStep.textContent = "१. मायक्रोफोन परवानगी तपासत आहे...";
+        dom.splashStep.textContent = "एजंट तुमची विनंती स्वीकारत आहे...";
         dom.progress.style.width = "25%";
         UIController.setState(UIController.State.IDLE);
 
@@ -1604,7 +1604,7 @@
             return;
           }
 
-          dom.splashStep.textContent = "२. सर्व्हरशी संपर्क जोडत आहे...";
+          dom.splashStep.textContent = "एजंट तुमच्या फाइल्स शोधत आहे...";
           dom.progress.style.width = "60%";
 
           await LiveWebSocketClient.connect({
@@ -1664,7 +1664,7 @@
           }
 
           dom.progress.style.width = "100%";
-          dom.splashStep.textContent = "३. सत्र तयार झाले! सुरू होत आहे...";
+          dom.splashStep.textContent = "एजंट तयार आहे. कृपया प्रतीक्षा करा...";
 
           dom.audio.disabled = false;
           dom.audio.classList.add("enabled");

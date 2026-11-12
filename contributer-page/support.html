@@ -86,6 +86,7 @@ body.chat-active {
 }
 
     </style>
+    <script src="/pardarshi-page/script/public-data-cache.js" defer></script>
 </head>
 <body class="preload">
 
@@ -205,6 +206,7 @@ body.chat-active {
         let internalProjId = null;
         let currentReportId = null;
         let socket = null;
+        let reportListLoadGeneration = 0;
 
         // --- ASYNC SOCKET INITIALIZATION ---
         window.initSocket = function() {
@@ -309,18 +311,18 @@ body.chat-active {
 
             // FETCH INTERNAL IDs FOR REPORT CREATION
             try {
-                const res = await fetch(`${API_BASE}/public/org/${orgSlug}`);
-                const result = await res.json();
-                if(result.success) {
+                const orgUrl = `${API_BASE}/public/org/${orgSlug}`;
+                await window.PardarshiDataCache.load(orgUrl, {}, result => {
+                    if (!result.success) return;
                     internalOrgId = result.data.organization.organization_id;
                     if(projSlug) {
                         const proj = result.data.projects.find(p => p.slug === projSlug);
                         if(proj) internalProjId = proj.project_id;
                     }
-                }
+                });
             } catch (err) { console.error("Failed to load organization metadata."); }
 
-            loadReportsList();
+            loadReportsList(true);
 
             // Input handlers
             document.getElementById('chat-input').addEventListener('keypress', function (e) {
@@ -338,14 +340,11 @@ body.chat-active {
         });
 
         // --- FETCH REPORTS LIST ---
-        async function loadReportsList() {
+        async function loadReportsList(useCache = false) {
             const grid = document.getElementById('reports-grid');
-            try {
-                const res = await fetch(`${API_BASE}/public/report/list`, {
-                    headers: { 'x-guest-token': guestToken }
-                });
-                const result = await res.json();
-                
+            const loadGeneration = ++reportListLoadGeneration;
+            const renderReports = result => {
+                if (loadGeneration !== reportListLoadGeneration) return;
                 if (result.success && result.data.length > 0) {
                     grid.innerHTML = result.data.map(report => `
                         <div class="report-card" onclick="openChat(${report.report_id})">
@@ -360,8 +359,20 @@ body.chat-active {
                 } else {
                     grid.innerHTML = '<p style="color: #64748b; font-size: 14px; text-align: center; width: 100%; padding: 40px; background: white; border-radius: 12px; border: 1px dashed #cbd5e1; grid-column: 1 / -1;">No reports initiated yet.</p>';
                 }
+            };
+
+            try {
+                const reportsUrl = `${API_BASE}/public/report/list`;
+                const options = { headers: { 'x-guest-token': guestToken } };
+                if (useCache) {
+                    await window.PardarshiDataCache.load(reportsUrl, options, renderReports);
+                } else {
+                    renderReports(await window.PardarshiDataCache.refresh(reportsUrl, options));
+                }
             } catch (error) {
-                grid.innerHTML = '<p style="color: #ef4444; padding: 20px;">Failed to load reports.</p>';
+                if (loadGeneration === reportListLoadGeneration) {
+                    grid.innerHTML = '<p style="color: #ef4444; padding: 20px;">Failed to load reports.</p>';
+                }
             }
         }
 

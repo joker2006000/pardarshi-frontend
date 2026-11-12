@@ -106,6 +106,7 @@
             .summary-card .sum-icon { width: 42px; height: 42px; font-size: 18px; }
         }
     </style>
+    <script src="/pardarshi-page/script/public-data-cache.js" defer></script>
 </head>
 <body class="preload">
 
@@ -314,10 +315,17 @@ let visibleContribCount = getPageSize();
             document.getElementById('skeleton-contributions').style.display = 'block';
 
             try {
-                const response = await fetch(`${BASE_URL}/api/public/org/${orgSlug}/project/${projSlug}`);
-                const result = await response.json();
+                const ledgerUrl = `${BASE_URL}/api/public/org/${orgSlug}/project/${projSlug}`;
+                await window.PardarshiDataCache.load(ledgerUrl, {}, result => {
+                    if (!result.success) {
+                        document.getElementById('page-title').textContent = "Data Not Found";
+                        document.getElementById('page-desc').textContent = escapeHtml(result.message) || "Could not load the ledger.";
+                        document.getElementById('skeleton-summary').style.display = 'none';
+                        document.getElementById('skeleton-expenses').style.display = 'none';
+                        document.getElementById('skeleton-contributions').style.display = 'none';
+                        return;
+                    }
 
-                if (result.success) {
                     const data = result.data;
                     allExpenses = data.expenses || []; 
                     allContributions = data.contributions || [];
@@ -341,13 +349,7 @@ let visibleContribCount = getPageSize();
                     document.getElementById('real-summary').style.display = 'grid';
                     document.getElementById('skeleton-expenses').style.display = 'none';
                     document.getElementById('skeleton-contributions').style.display = 'none';
-                } else {
-                    document.getElementById('page-title').textContent = "Data Not Found";
-                    document.getElementById('page-desc').textContent = escapeHtml(result.message) || "Could not load the ledger.";
-                    document.getElementById('skeleton-summary').style.display = 'none';
-                    document.getElementById('skeleton-expenses').style.display = 'none';
-                    document.getElementById('skeleton-contributions').style.display = 'none';
-                }
+                });
             } catch (err) {
                 console.error(err);
                 document.getElementById('page-title').textContent = "Server Error";

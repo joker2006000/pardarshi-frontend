@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="/pardarshi-page/style/structure.css">
     <link rel="stylesheet" href="/pardarshi-page/style/home.css">
     <link rel="manifest" href="/manifest.json">
+    <script src="/pardarshi-page/script/public-data-cache.js" defer></script>
     <style>
         /* Mobile overrides & SCROLL FIX */
         .dashboard-content { background: #f8fafc; padding: 30px; padding-bottom: 100px; box-sizing: border-box; min-height: 100vh; position: relative; }
@@ -152,6 +153,57 @@
             return escapeHtml(trimmed);
         };
 
+        const scheduledPrefetches = new Set();
+        function scheduleRelatedDataPrefetch(baseUrl, orgSlug, projects, guestToken) {
+            const requests = [];
+            for (const project of projects || []) {
+                if (!project.slug) continue;
+                const url = `${baseUrl}/api/public/org/${orgSlug}/project/${project.slug}`;
+                const key = `project:${orgSlug}:${project.slug}`;
+                if (!scheduledPrefetches.has(key)) {
+                    scheduledPrefetches.add(key);
+                    requests.push({ url, options: {} });
+                }
+            }
+
+            if (guestToken) {
+                const key = `reports:${orgSlug}:${guestToken}`;
+                if (!scheduledPrefetches.has(key)) {
+                    scheduledPrefetches.add(key);
+                    requests.push({
+                        url: `${baseUrl}/api/public/report/list`,
+                        options: { headers: { 'x-guest-token': guestToken } }
+                    });
+                }
+            }
+
+            if (!requests.length) return;
+
+            const startPrefetch = () => {
+                let nextRequest = 0;
+                let activeRequests = 0;
+                const runNext = () => {
+                    while (activeRequests < 2 && nextRequest < requests.length) {
+                        const request = requests[nextRequest++];
+                        activeRequests++;
+                        window.PardarshiDataCache.refresh(request.url, request.options)
+                            .catch(error => console.warn('Background page data prefetch failed.', error))
+                            .finally(() => {
+                                activeRequests--;
+                                runNext();
+                            });
+                    }
+                };
+                runNext();
+            };
+
+            if (window.requestIdleCallback) {
+                window.requestIdleCallback(startPrefetch, { timeout: 1200 });
+            } else {
+                window.setTimeout(startPrefetch, 200);
+            }
+        }
+
        document.addEventListener('DOMContentLoaded', async () => {
             const BASE_URL = 'https://pardarshi-server-1.onrender.com';
             const urlParams = new URLSearchParams(window.location.search);
@@ -197,10 +249,10 @@
         
 
             try {
-                const response = await fetch(`${BASE_URL}/api/public/org/${orgSlug}`);
-                const result = await response.json();
-
-               if (result.success) {
+                const orgUrl = `${BASE_URL}/api/public/org/${orgSlug}`;
+                const reportToken = guestToken || localStorage.getItem('pardarshi_guest_token');
+                await window.PardarshiDataCache.load(orgUrl, {}, result => {
+                    if (!result.success) return;
                     const org = result.data.organization;
                     
                     // --- DYNAMIC METADATA & FAVICON UPDATE ---
@@ -312,7 +364,8 @@
 
                     document.getElementById('skeleton-org').style.display = 'none';
                     document.getElementById('real-org').style.display = 'block';
-                }
+                    scheduleRelatedDataPrefetch(BASE_URL, orgSlug, result.data.projects, reportToken);
+                });
             } catch (err) {
                 console.error(err);
                 document.getElementById('skeleton-org').innerHTML = '<p>Error loading data.</p>';
