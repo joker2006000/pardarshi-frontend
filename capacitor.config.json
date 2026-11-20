@@ -4,7 +4,7 @@
   "webDir": "www",
   "bundledWebRuntime": false,
   "server": {
-    "url": "https://pardarshi.vercel.app", 
+    "url": "https://pardarshi.online",
     "cleartext": true
   },
   "plugins": {
