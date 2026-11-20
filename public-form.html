@@ -127,7 +127,53 @@
             cursor: pointer; transition: 0.2s; text-transform: uppercase;
         }
         .btn-submit:hover { background-color: #3856d6; transform: scale(1.05); }
+        .btn-submit:disabled, .btn-submit:disabled:hover {
+            background-color: #94a3b8; cursor: not-allowed; opacity: .7; transform: none;
+        }
 
+        .privacy-consent {
+            display: flex; align-items: flex-start; gap: 12px; margin-top: 24px;
+            padding: 16px; border: 1px solid #bfdbfe; border-radius: 12px; background: #eff6ff;
+            color: #1e293b; line-height: 1.6;
+        }
+        .privacy-consent input { width: 18px; height: 18px; margin: 3px 0 0; flex: none; accent-color: #2563eb; }
+        .privacy-consent-copy { display: grid; gap: 6px; }
+        .privacy-consent-copy label { cursor: pointer; font-size: 14px; font-weight: 600; }
+        .privacy-terms-trigger {
+            justify-self: start; padding: 0; border: 0; background: none; color: #2563eb;
+            font: inherit; font-size: 14px; font-weight: 700; text-decoration: underline; cursor: pointer;
+        }
+        .privacy-dialog {
+            width: min(620px, calc(100% - 32px)); max-height: min(82vh, 760px); padding: 0;
+            border: 0; border-radius: 16px; color: #1e293b; box-shadow: 0 24px 70px rgba(15, 23, 42, .28);
+        }
+        .privacy-dialog::backdrop { background: rgba(15, 23, 42, .58); }
+        .privacy-dialog-header {
+            position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between;
+            gap: 16px; padding: 18px 22px; background: #fff; border-bottom: 1px solid #e2e8f0;
+        }
+        .privacy-dialog-header h2 { margin: 0; color: #0f172a; font-size: 19px; }
+        .privacy-dialog-close {
+            display: grid; place-items: center; width: 38px; height: 38px; border: 0;
+            border-radius: 50%; background: #eff6ff; color: #1d4ed8; font-size: 18px; cursor: pointer;
+        }
+        .privacy-dialog-content { max-height: calc(82vh - 135px); overflow-y: auto; padding: 18px 22px; }
+        .privacy-dialog-content h3 { margin: 0 0 10px; font-size: 16px; }
+        .privacy-dialog-content p { margin: 0 0 12px; font-size: 14px; line-height: 1.7; }
+        .privacy-dialog-actions { display: flex; justify-content: flex-end; padding: 0 22px 18px; }
+        .privacy-dialog-actions button {
+            border: 0; border-radius: 9px; padding: 10px 16px; background: #2563eb; color: #fff;
+            font: inherit; font-weight: 700; cursor: pointer;
+        }
+        .transparency-footer {
+            display: flex; align-items: flex-start; gap: 14px; padding: 20px;
+            background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
+            box-shadow: 0 4px 10px rgba(15, 23, 42, .04);
+        }
+        .transparency-footer img { width: 38px; height: 38px; flex: none; }
+        .transparency-footer h2 { margin: 0 0 6px; color: #1e293b; font-size: 16px; }
+        .transparency-footer p { margin: 0 0 8px; color: #475569; font-size: 13px; line-height: 1.6; }
+        .transparency-footer a { color: #2563eb; font-size: 13px; font-weight: 700; text-decoration: underline; }
 
         /* === WHATSAPP NOTE === */
         .whatsapp-note {
@@ -231,13 +277,50 @@
                             <span>Please ensure the mobile number you provide is correct and active on WhatsApp so we can send you your contribution details and updates.</span>
                         </div>
 
+                        <div class="privacy-consent" lang="mr">
+                            <input type="checkbox" id="privacy-consent" required aria-describedby="privacy-consent-label">
+                            <div class="privacy-consent-copy">
+                                <label id="privacy-consent-label" for="privacy-consent">मी सहमत आहे की माझे नाव सार्वजनिकरीत्या दाखवले जाऊ शकते</label>
+                                <button type="button" class="privacy-terms-trigger" onclick="openPrivacyTerms()">Terms &amp; Conditions</button>
+                            </div>
+                        </div>
+
                         <div class="submit-area">
-                            <button type="submit" class="btn-submit" id="submit-btn">Contribute Now</button>
+                            <button type="submit" class="btn-submit" id="submit-btn" disabled>Contribute Now</button>
                         </div>
                     </form>
                 </div>
             </div>
+
+            <footer class="transparency-footer" lang="mr">
+                <img src="/favicon.ico" alt="PARDARSHI">
+                <div>
+                    <h2>PARDARSHI मधील योगदानाची पारदर्शकता</h2>
+                    <p>तुमचे योगदान संबंधित संस्था आणि प्रकल्पाच्या नोंदीशी जोडले जाते. संस्थेने प्रकाशित केलेले योगदान, खर्च आणि पुरावे पाहून निधीचा मागोवा घेता येतो.</p>
+                    <a href="/contributersinfo.html">योगदानकर्त्यांसाठी PARDARSHI मार्गदर्शक वाचा</a>
+                </div>
+            </footer>
         </div>
+
+        <dialog id="privacy-terms-dialog" class="privacy-dialog" aria-labelledby="privacy-terms-title">
+            <div class="privacy-dialog-header">
+                <h2 id="privacy-terms-title">Terms &amp; Conditions</h2>
+                <button type="button" class="privacy-dialog-close" aria-label="अटी बंद करा" onclick="closePrivacyTerms()">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="privacy-dialog-content" lang="mr">
+                <h3>माहिती संकलन आणि गोपनीयता</h3>
+                <p>Pardarshi प्लॅटफॉर्मवर योगदानाची नोंद, मागोवा आणि व्यवस्थापन करण्यासाठी योगदानकर्त्याचे नाव, मोबाईल क्रमांक, ईमेल आणि आवश्यकतेनुसार इतर माहिती संकलित केली जाऊ शकते.</p>
+                <p>तुमचे नाव सार्वजनिकरीत्या प्रदर्शित केले जाऊ शकते, जेणेकरून संबंधित योगदानाची नोंद आणि पारदर्शकता राखता येईल. मात्र, तुमचा मोबाईल क्रमांक, ईमेल आणि इतर वैयक्तिक माहिती सार्वजनिक केली जाणार नाही किंवा इतर योगदानकर्त्यांना दाखवली जाणार नाही.</p>
+                <p>ही वैयक्तिक माहिती केवळ तुम्ही ज्या संस्थेला योगदान दिले आहे, त्या संबंधित संस्थेला योगदानाची नोंद ठेवणे, ओळख पडताळणे आणि योगदान व्यवस्थापित करण्यासाठी उपलब्ध असेल.</p>
+                <p>Pardarshi तुमच्या वैयक्तिक माहितीची गोपनीयता जपण्यासाठी आणि तिचे संरक्षण करण्यासाठी आवश्यक सुरक्षा उपाययोजना करण्यास कटिबद्ध आहे. तुमची माहिती अनधिकृत व्यक्तींना उपलब्ध करून दिली जाणार नाही.</p>
+                <p>प्लॅटफॉर्मवर माहिती प्रदान करून, तुम्ही वरील अटींनुसार माहिती संकलन आणि वापरास सहमती देता.</p>
+            </div>
+            <div class="privacy-dialog-actions">
+                <button type="button" onclick="closePrivacyTerms()">फॉर्मवर परत जा</button>
+            </div>
+        </dialog>
 
         <!-- 3. SUCCESS SCREEN (Hidden initially) -->
         <div id="success-screen" style="display: none;">
@@ -267,6 +350,14 @@
         function toggleProjectDesc() {
             const panel = document.getElementById('desc-panel');
             panel.classList.toggle('open');
+        }
+
+        function openPrivacyTerms() {
+            document.getElementById('privacy-terms-dialog').showModal();
+        }
+
+        function closePrivacyTerms() {
+            document.getElementById('privacy-terms-dialog').close();
         }
 
         // Mobile Validation Logic (Limits to 10 digits & warns user)
@@ -404,9 +495,19 @@
         }
 
         // --- 5. HANDLE SUBMISSION ---
+        document.getElementById('privacy-consent').addEventListener('change', (e) => {
+            document.getElementById('submit-btn').disabled = !e.currentTarget.checked;
+        });
+
         document.getElementById('dynamic-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submit-btn');
+            const privacyConsent = document.getElementById('privacy-consent');
+
+            if (!privacyConsent.checked) {
+                privacyConsent.focus();
+                return;
+            }
 
             // PREVENT SUBMIT IF ANY MOBILE NUMBER IS < 10 DIGITS
             const mobileWarnings = document.querySelectorAll('span[id^="warn-mobile-"]');
@@ -495,8 +596,8 @@
         });
 
         function resetBtn(btn) {
-            btn.textContent = 'Submit Application';
-            btn.disabled = false;
+            btn.textContent = 'Contribute Now';
+            btn.disabled = !document.getElementById('privacy-consent').checked;
         }
 
         function showSuccess() {

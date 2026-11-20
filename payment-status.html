@@ -87,6 +87,41 @@
         }
         .btn-home:hover { background-color: #2563eb; }
 
+        .transparency-info {
+            margin-top: 20px; padding: 16px; border: 1px solid #bfdbfe; border-radius: 12px;
+            background: #eff6ff; text-align: left;
+        }
+        .transparency-info-brand { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .transparency-info-brand img { width: 28px; height: 28px; }
+        .transparency-info h3 { margin: 0; color: #1e3a8a; font-size: 15px; }
+        .transparency-info p { margin: 0 0 8px; color: #334155; font-size: 13px; line-height: 1.6; }
+        .transparency-info a, .privacy-terms-trigger {
+            padding: 0; border: 0; background: none; color: #2563eb; font: inherit;
+            font-size: 13px; font-weight: 700; text-decoration: underline; cursor: pointer;
+        }
+        .privacy-dialog {
+            width: min(620px, calc(100% - 32px)); max-height: min(82vh, 760px); padding: 0;
+            border: 0; border-radius: 16px; color: #1e293b; box-shadow: 0 24px 70px rgba(15, 23, 42, .28);
+        }
+        .privacy-dialog::backdrop { background: rgba(15, 23, 42, .58); }
+        .privacy-dialog-header {
+            position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between;
+            gap: 16px; padding: 18px 22px; background: #fff; border-bottom: 1px solid #e2e8f0;
+        }
+        .privacy-dialog-header h2 { margin: 0; color: #0f172a; font-size: 19px; }
+        .privacy-dialog-close {
+            display: grid; place-items: center; width: 38px; height: 38px; border: 0;
+            border-radius: 50%; background: #eff6ff; color: #1d4ed8; font-size: 18px; cursor: pointer;
+        }
+        .privacy-dialog-content { max-height: calc(82vh - 135px); overflow-y: auto; padding: 18px 22px; }
+        .privacy-dialog-content h3 { margin: 0 0 10px; font-size: 16px; }
+        .privacy-dialog-content p { margin: 0 0 12px; font-size: 14px; line-height: 1.7; }
+        .privacy-dialog-actions { display: flex; justify-content: flex-end; padding: 0 22px 18px; }
+        .privacy-dialog-actions button {
+            border: 0; border-radius: 9px; padding: 10px 16px; background: #2563eb; color: #fff;
+            font: inherit; font-weight: 700; cursor: pointer;
+        }
+
         @media (max-width: 480px) {
             .status-container {
                 padding: 28px 20px;
@@ -149,10 +184,49 @@
             <!-- Clean routing -->
             <a href="/" class="btn-home" style="background: #ef4444;">Close</a>
         </div>
+
+        <aside class="transparency-info" lang="mr">
+            <div class="transparency-info-brand">
+                <img src="/favicon.ico" alt="PARDARSHI">
+                <h3>PARDARSHI मधील योगदानाची पारदर्शकता</h3>
+            </div>
+            <p>तुमचे योगदान संबंधित संस्था आणि प्रकल्पाच्या नोंदीशी जोडले जाते. संस्थेने प्रकाशित केलेले योगदान, खर्च आणि पुरावे पाहून निधीचा मागोवा घेता येतो.</p>
+            <a href="/contributersinfo.html">योगदानकर्त्यांसाठी PARDARSHI मार्गदर्शक वाचा</a>
+            <span aria-hidden="true"> · </span>
+            <button type="button" class="privacy-terms-trigger" onclick="openPrivacyTerms()">Terms &amp; Conditions</button>
+        </aside>
+
+        <dialog id="privacy-terms-dialog" class="privacy-dialog" aria-labelledby="privacy-terms-title">
+            <div class="privacy-dialog-header">
+                <h2 id="privacy-terms-title">Terms &amp; Conditions</h2>
+                <button type="button" class="privacy-dialog-close" aria-label="अटी बंद करा" onclick="closePrivacyTerms()">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="privacy-dialog-content" lang="mr">
+                <h3>माहिती संकलन आणि गोपनीयता</h3>
+                <p>Pardarshi प्लॅटफॉर्मवर योगदानाची नोंद, मागोवा आणि व्यवस्थापन करण्यासाठी योगदानकर्त्याचे नाव, मोबाईल क्रमांक, ईमेल आणि आवश्यकतेनुसार इतर माहिती संकलित केली जाऊ शकते.</p>
+                <p>तुमचे नाव सार्वजनिकरीत्या प्रदर्शित केले जाऊ शकते, जेणेकरून संबंधित योगदानाची नोंद आणि पारदर्शकता राखता येईल. मात्र, तुमचा मोबाईल क्रमांक, ईमेल आणि इतर वैयक्तिक माहिती सार्वजनिक केली जाणार नाही किंवा इतर योगदानकर्त्यांना दाखवली जाणार नाही.</p>
+                <p>ही वैयक्तिक माहिती केवळ तुम्ही ज्या संस्थेला योगदान दिले आहे, त्या संबंधित संस्थेला योगदानाची नोंद ठेवणे, ओळख पडताळणे आणि योगदान व्यवस्थापित करण्यासाठी उपलब्ध असेल.</p>
+                <p>Pardarshi तुमच्या वैयक्तिक माहितीची गोपनीयता जपण्यासाठी आणि तिचे संरक्षण करण्यासाठी आवश्यक सुरक्षा उपाययोजना करण्यास कटिबद्ध आहे. तुमची माहिती अनधिकृत व्यक्तींना उपलब्ध करून दिली जाणार नाही.</p>
+                <p>प्लॅटफॉर्मवर माहिती प्रदान करून, तुम्ही वरील अटींनुसार माहिती संकलन आणि वापरास सहमती देता.</p>
+            </div>
+            <div class="privacy-dialog-actions">
+                <button type="button" onclick="closePrivacyTerms()">बंद करा</button>
+            </div>
+        </dialog>
     </div>
 
     <script>
         const BASE_URL = 'https://pardarshi-server-1.onrender.com';
+
+        function openPrivacyTerms() {
+            document.getElementById('privacy-terms-dialog').showModal();
+        }
+
+        function closePrivacyTerms() {
+            document.getElementById('privacy-terms-dialog').close();
+        }
         
         let checkCount = 0;
         let countdownInterval;
